@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-void ast::ReturnStmt::debug() const {
-    std::cout << "ReturnStmt { " << return_val << " }, ";
+void ast::Return::debug() const {
+    std::cout << "Return { " << return_val << " }, ";
 }
 
 void ast::Block::debug() const {

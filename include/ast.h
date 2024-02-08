@@ -1,6 +1,8 @@
 #ifndef AST_H_
 #define AST_H_
 
+#include "koopa.h"
+
 #include <iostream>
 
 namespace ast {
@@ -10,26 +12,32 @@ public:
     virtual ~Base() = default;
 
     virtual void debug() const = 0;
+
+    virtual koopa::Base *to_koopa() const = 0;
 };
 
 
 class Stmt : public Base {
 };
 
-class ReturnStmt : public Stmt {
+class Return : public Stmt {
 public:
     int return_val = 0;
 
-    ReturnStmt(int return_val) : return_val(return_val) {}
+    Return(int return_val) : return_val(return_val) {}
+
+    koopa::Base *to_koopa() const override;
 
     void debug() const override;
 };
 
 class Block : public Base {
 public:
-    Base *stmt;
+    Stmt *stmt;
 
-    Block(Base *stmt) : stmt(stmt) {}
+    Block(Stmt *stmt) : stmt(stmt) {}
+
+    koopa::Base *to_koopa() const override;
 
     void debug() const override;
 
@@ -41,17 +49,21 @@ class FuncType : public Base {
 
 class IntFuncType : public FuncType {
 public:
+    koopa::Base *to_koopa() const override;
+
     void debug() const override;
 };
 
 class FuncDef : public Base {
 public:
-    Base *func_type;
+    FuncType *func_type;
     std::string *id;
-    Base *block;
+    Block *block;
 
-    FuncDef(Base *func_type, std::string *id, Base *block) :
+    FuncDef(FuncType *func_type, std::string *id, Block *block) :
         func_type(func_type), id(id), block(block) {}
+
+    koopa::Base *to_koopa() const override;
 
     void debug() const override;
 
@@ -60,9 +72,11 @@ public:
 
 class CompUnit : public Base {
 public:
-    Base *func_def;
+    FuncDef *func_def;
 
-    CompUnit(Base *func_def) : func_def(func_def) {}
+    CompUnit(FuncDef *func_def) : func_def(func_def) {}
+
+    koopa::Base *to_koopa() const override;
 
     void debug() const override;
 

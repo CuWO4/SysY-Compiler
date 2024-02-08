@@ -88,11 +88,13 @@ $(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y
 
 -include $(DEPS)
 
-.PHONY : run clean
+.PHONY : run clean once
 .PHONY : test-hello 
 .PHONY : test-lv1
 .PHONY : docker build-win clean-win test-hello-win
 
+once:
+	$(CXX) $(SRCS) $(LDFLAGS) -lpthread -ldl -o $(BUILD_DIR)/$(TARGET_EXEC)
 
 clean:
 	-rm -rf $(BUILD_DIR)

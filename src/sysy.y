@@ -21,42 +21,46 @@
 %token <str_val> TK_IDENT
 %token <int_val> TK_INT_CONST
 
-%type   <ast_val> CompUnit FuncDef FuncType Block Stmt
-%type   <int_val> Number
+%type   <ast_val> comp_unit func_def func_type block stmt
+%type   <int_val> number
 
 %%
 
-CompUnit
-    : FuncDef {
-        ast = new ast::CompUnit($1);
+comp_unit
+    : func_def {
+        ast = new ast::CompUnit((ast::FuncDef *) $1);
     }
 ;
 
-FuncDef
-    : FuncType TK_IDENT '(' ')' Block {
-        $$ = new ast::FuncDef($1, $2, $5);
+func_def
+    : func_type TK_IDENT '(' ')' block {
+        $$ = new ast::FuncDef(
+            (ast::FuncType *) $1, 
+            $2, 
+            (ast::Block *) $5
+        );
     }
 ;
 
-FuncType
+func_type
     : TK_INT {
         $$ = new ast::IntFuncType();
     }
 ;
 
-Block
-    : '{' Stmt '}' {
-        $$ = new ast::Block($2);
+block
+    : '{' stmt '}' {
+        $$ = new ast::Block((ast::Stmt *) $2);
     }
 ;
 
-Stmt
-    : TK_RETURN Number ';' {
-        $$ = new ast::ReturnStmt($2);
+stmt
+    : TK_RETURN number ';' {
+        $$ = new ast::Return($2);
     }
 ;
 
-Number
+number
     : TK_INT_CONST
 ;
 

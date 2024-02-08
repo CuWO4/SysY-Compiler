@@ -26,7 +26,9 @@ int main(int argc, const char *argv[]) {
 	auto ret = yyparse(ast);
 	assert(!ret);
 
+	ast->to_koopa();
+
 	delete ast;
-    
+
 	return 0;
 }
