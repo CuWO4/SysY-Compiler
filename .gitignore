@@ -1,0 +1,9 @@
+/build
+/tmp
+/.vscode
+/.VSCodeCounter
+ 
+*.txt
+*.tmp
+*.koopa
+*.S
