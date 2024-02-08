@@ -14,7 +14,7 @@
 %union {
     std::string    *str_val;
     int             int_val;
-    ast::Base        *ast_val;
+    ast::Base      *ast_val;
 }
 
 %token TK_INT TK_RETURN

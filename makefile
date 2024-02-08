@@ -101,7 +101,7 @@ docker :
 	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler  maxxing/compiler-dev bash
 
 test-hello : $(BUILD_DIR)/$(TARGET_EXEC)
-	$(BUILD_DIR)/$(TARGET_EXEC) --koopa test/hello/hello.c -o test/hello/hello.koopa
+	$(BUILD_DIR)/$(TARGET_EXEC) --koopa ./test/hello/hello.c -o ./test/hello/hello.koopa
 
 test-lv1 :
 	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler maxxing/compiler-dev \

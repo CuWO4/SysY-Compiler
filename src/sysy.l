@@ -28,7 +28,7 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 {BlockComment}
 
 "int"           { return TK_INT; }
-"returnn"        { return TK_RETURN; }
+"return"        { return TK_RETURN; }
 
 {Identifier}    { yylval.str_val = new std::string(yytext); return TK_IDENT; }
 
