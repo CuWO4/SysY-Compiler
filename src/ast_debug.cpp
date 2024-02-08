@@ -2,21 +2,21 @@
 
 #include <iostream>
 
-void ReturnStmtAst::debug() const {
+void ast::ReturnStmt::debug() const {
     std::cout << "ReturnStmt { " << return_val << " }, ";
 }
 
-void BlockAst::debug() const {
+void ast::Block::debug() const {
     std::cout << "Block { ";
     stmt->debug();
     std::cout << "}, ";
 }
 
-void IntFuncTypeAst::debug() const {
+void ast::IntFuncType::debug() const {
     std::cout << "IntFuncType, ";
 }
 
-void FuncDefAst::debug() const {
+void ast::FuncDef::debug() const {
     std::cout << "FuncDef { ";
     func_type->debug();
     std::cout << *id << " , ";
@@ -24,7 +24,7 @@ void FuncDefAst::debug() const {
     std::cout << "}, ";
 }
 
-void CompUnitAst::debug() const {
+void ast::CompUnit::debug() const {
     std::cout << "CompUnit { ";
     func_def->debug();
     std::cout << "} ";

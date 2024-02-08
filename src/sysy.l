@@ -27,14 +27,14 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 {LineComment}
 {BlockComment}
 
-"int"           { return INT; }
-"return"        { return RETURN; }
+"int"           { return TK_INT; }
+"returnn"        { return TK_RETURN; }
 
-{Identifier}    { yylval.str_val = new std::string(yytext); return IDENT; }
+{Identifier}    { yylval.str_val = new std::string(yytext); return TK_IDENT; }
 
-{Decimal}       { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
-{Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
-{Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
+{Decimal}       { yylval.int_val = strtol(yytext, nullptr, 0); return TK_INT_CONST; }
+{Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); return TK_INT_CONST; }
+{Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); return TK_INT_CONST; }
 
 .               { return yytext[0]; }
 

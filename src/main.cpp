@@ -1,4 +1,5 @@
 #include "../include/ast.h"
+#include "../include/koopa.h"
 
 #include "../build/sysy.tab.hpp"
 
@@ -9,7 +10,7 @@
 #include <string>
 
 extern FILE *yyin;
-extern int yyparse(CompUnitAst *&ast);
+extern int yyparse(ast::CompUnit *&ast);
 
 int main(int argc, const char *argv[]) {
 	assert(argc == 5);
@@ -21,12 +22,11 @@ int main(int argc, const char *argv[]) {
 	yyin = fopen(input, "r");
 	assert(yyin);
 
-	CompUnitAst *ast;
+	ast::CompUnit *ast;
 	auto ret = yyparse(ast);
 	assert(!ret);
 
-    ast->debug();
-    std::cout << std::endl;
+	delete ast;
     
 	return 0;
 }

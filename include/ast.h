@@ -3,64 +3,72 @@
 
 #include <iostream>
 
+namespace ast {
 
-class BaseAst {
+class Base {
 public:
-    virtual ~BaseAst() = default;
+    virtual ~Base() = default;
 
     virtual void debug() const = 0;
 };
 
 
-class StmtAst : public BaseAst {
+class Stmt : public Base {
 };
 
-class ReturnStmtAst : public StmtAst {
+class ReturnStmt : public Stmt {
 public:
     int return_val = 0;
 
-    ReturnStmtAst(int return_val) : return_val(return_val) {}
+    ReturnStmt(int return_val) : return_val(return_val) {}
 
     void debug() const override;
 };
 
-
-class BlockAst : public BaseAst {
+class Block : public Base {
 public:
-    BaseAst *stmt;
+    Base *stmt;
 
-    BlockAst(BaseAst *stmt) : stmt(stmt) {}
+    Block(Base *stmt) : stmt(stmt) {}
 
+    void debug() const override;
+
+    ~Block() override;
+};
+
+class FuncType : public Base {
+};
+
+class IntFuncType : public FuncType {
+public:
     void debug() const override;
 };
 
-class FuncTypeAst : public BaseAst {
-};
-
-class IntFuncTypeAst : public FuncTypeAst {
+class FuncDef : public Base {
 public:
-    void debug() const override;
-};
-
-class FuncDefAst : public BaseAst {
-public:
-    BaseAst *func_type;
+    Base *func_type;
     std::string *id;
-    BaseAst *block;
+    Base *block;
 
-    FuncDefAst(BaseAst *func_type, std::string *id, BaseAst *block) :
+    FuncDef(Base *func_type, std::string *id, Base *block) :
         func_type(func_type), id(id), block(block) {}
 
     void debug() const override;
+
+    ~FuncDef() override;
 };
 
-class CompUnitAst : public BaseAst {
+class CompUnit : public Base {
 public:
-    BaseAst *func_def;
+    Base *func_def;
 
-    CompUnitAst(BaseAst *func_def) : func_def(func_def) {}
+    CompUnit(Base *func_def) : func_def(func_def) {}
 
     void debug() const override;
+
+    ~CompUnit() override;
 };
+
+}
 
 #endif
