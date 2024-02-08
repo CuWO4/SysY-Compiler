@@ -1,79 +1,67 @@
 %code requires {
+    #include <iostream>
     #include <memory>
     #include <string>
+
+    #include "../include/ast.h"
+
+    int yylex();
+    void yyerror(CompUnitAst *&ast, const char *s);
 }
 
-%{
-
-#include <iostream>
-#include <memory>
-#include <string>
-
-int yylex();
-void yyerror(std::unique_ptr<std::string> &ast, const char *s);
-
-using namespace std;
-
-%}
-
-%parse-param    { std::unique_ptr<std::string> &ast }
+%parse-param    { CompUnitAst *&ast }
 
 %union {
     std::string    *str_val;
     int             int_val;
+    BaseAst        *ast_val;
 }
 
 %token INT RETURN
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
-%type   <str_val> FuncDef FuncType Block Stmt Number
+%type   <ast_val> CompUnit FuncDef FuncType Block Stmt
+%type   <int_val> Number
 
 %%
 
 CompUnit
     : FuncDef {
-        ast = unique_ptr<string>($1);
+        ast = new CompUnitAst($1);
     }
 ;
 
 FuncDef
     : FuncType IDENT '(' ')' Block {
-        auto type = unique_ptr<string>($1);
-        auto ident = unique_ptr<string>($2);
-        auto block = unique_ptr<string>($5);
-        $$ = new string(*type + " " + *ident + "() " + *block);
+        $$ = new FuncDefAst($1, $2, $5);
     }
 ;
 
 FuncType
     : INT {
-        $$ = new string("int");
+        $$ = new IntFuncTypeAst();
     }
 ;
 
 Block
     : '{' Stmt '}' {
-        auto stmt = unique_ptr<string>($2);
-        $$ = new string("{ " + *stmt + " }");
+        $$ = new BlockAst($2);
     }
 ;
 
 Stmt
     : RETURN Number ';' {
-        auto number = unique_ptr<string>($2);
-        $$ = new string("return " + *number + ";");
+        $$ = new ReturnStmtAst($2);
     }
 ;
 
 Number
-    : INT_CONST {
-        $$ = new string(to_string($1));
-    }
+    : INT_CONST
 ;
 
 %%
 
-void yyerror(unique_ptr<string> &ast, const char *s) {
-  cerr << "error: " << s << endl;
+void yyerror(CompUnitAst *&ast, const char *s) {
+    std::cerr << "error: " << s << std::endl;
 }

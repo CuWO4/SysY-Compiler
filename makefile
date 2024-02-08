@@ -89,19 +89,23 @@ $(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y
 -include $(DEPS)
 
 .PHONY : run clean
-.PHONY : docker build-win clean-win 
 .PHONY : test-hello 
 .PHONY : test-lv1
+.PHONY : docker build-win clean-win test-hello-win
 
 
 clean:
 	-rm -rf $(BUILD_DIR)
 
-test-hello :
-	$(BUILD_DIR)/$(TARGET_EXEC) --koopa test/hello/hello.c -o test/hello/hello.koopa
-
 docker :
 	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler  maxxing/compiler-dev bash
+
+test-hello : $(BUILD_DIR)/$(TARGET_EXEC)
+	$(BUILD_DIR)/$(TARGET_EXEC) --koopa test/hello/hello.c -o test/hello/hello.koopa
+
+test-lv1 :
+	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler maxxing/compiler-dev \
+  	autotest -koopa -s lv1 /root/compiler
 
 build-win :
 	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler  maxxing/compiler-dev \
@@ -110,7 +114,3 @@ build-win :
 clean-win :
 	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler maxxing/compiler-dev \
 	bash -c "cd compiler && make clean"
-
-test-lv1 :
-	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler maxxing/compiler-dev \
-  	autotest -koopa -s lv1 /root/compiler

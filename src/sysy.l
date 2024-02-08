@@ -9,8 +9,6 @@
 
 #include "sysy.tab.hpp"
 
-using namespace std;
-
 %}
 
 WhiteSpace      [ \t\n\r]*
@@ -32,7 +30,7 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 "int"           { return INT; }
 "return"        { return RETURN; }
 
-{Identifier}    { yylval.str_val = new string(yytext); return IDENT; }
+{Identifier}    { yylval.str_val = new std::string(yytext); return IDENT; }
 
 {Decimal}       { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 {Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
