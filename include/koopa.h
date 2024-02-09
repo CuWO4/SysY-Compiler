@@ -10,13 +10,14 @@ class Base {
 public:
     virtual std::string to_string() = 0;
 
-    // virtual std::string to_riscv() = 0;
+    virtual std::string to_riscv() = 0;
 
     virtual ~Base() = default;
 };
 
 class Type : public Base {
 public:
+    std::string to_riscv() override { return ""; }
 };
 
     class Int : public Type {
@@ -83,6 +84,8 @@ class Value : public Base {
 
         std::string to_string() override;
 
+        std::string to_riscv() override;
+
         Id(Type *type, std::string *lit) : type(type), lit(lit) {}
 
         ~Id() override;
@@ -93,6 +96,8 @@ class Value : public Base {
         int val = 0;
 
         std::string to_string() override;
+
+        std::string to_riscv() override;
 
         Const(int val) : val(val) {}
     };
@@ -301,6 +306,8 @@ class EndStmt : public Base {
 
         std::string to_string() override;
 
+        std::string to_riscv() override;
+
         Return(Value *val) : val(val) {}
 
         ~Return() override;
@@ -319,6 +326,8 @@ class GlobalStmt : public Base {
         std::vector<std::string> succs;
 
         std::string to_string() override;
+
+        std::string to_riscv() override;
 
         Block(Id *id, std::vector<Stmt *> *stmts, EndStmt *end_stmt) :
             id(id), stmts(stmts), end_stmt(end_stmt) {
@@ -349,6 +358,8 @@ class GlobalStmt : public Base {
         std::vector<Block *>            *blocks             = nullptr;
 
         std::string to_string() override;
+
+        std::string to_riscv() override;
 
         FuncDef(Id *id, std::vector<FuncParamDecl *> *func_param_decls,
                 Type *ret_type, std::vector<Block *> *blocks) :
@@ -402,6 +413,8 @@ public:
     std::vector<GlobalStmt*> *global_stmts = nullptr;
 
     std::string to_string() override;
+
+    std::string to_riscv() override;
 
     Program(std::vector<GlobalStmt *> *global_stmts) : 
         global_stmts(global_stmts) {}

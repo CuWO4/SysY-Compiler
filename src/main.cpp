@@ -37,6 +37,9 @@ int main(int argc, const char *argv[]) {
 	if (!strcmp(mode, "-koopa")) {
 		os << koopa->to_string();
 	} 
+	else if (!strcmp(mode, "-riscv")) {
+		os << koopa->to_riscv();
+	}
 
 	delete koopa;
 	delete ast;

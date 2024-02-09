@@ -25,7 +25,7 @@ std::string koopa::FuncType::to_string() {
     if (arg_types->size() > 0) res.pop_back();
     res += ")";
 
-    if (!std::is_same<decltype(ret_type), koopa::Void>::value) {
+    if (!(typeid(ret_type) == typeid(koopa::Void))) {
         res += ": " + ret_type->to_string();
     }
     return res;
@@ -41,9 +41,9 @@ std::string koopa::Void::to_string() {
 
 std::string koopa::Id::to_string() {
     auto res = std::string(lit != nullptr ? *lit : "");
-    if (std::is_same<decltype(type), koopa::Int>::value
-        || std::is_same<decltype(type), koopa::Array>::value
-        || std::is_same<decltype(type), koopa::Pointer>::value) {
+    if ((typeid(type) == typeid(koopa::Int))
+        || (typeid(type) == typeid(koopa::Array))
+        || (typeid(type) == typeid(koopa::Pointer))) {
         res += "/*! type: " + type->to_string() + " */"; 
     }
     return res;
@@ -187,7 +187,7 @@ std::string koopa::FuncDef::to_string() {
     if (func_param_decls->size() > 0) res.pop_back();
     res += ')';
 
-    if (!std::is_same<decltype(ret_type), koopa::Void>::value) {
+    if (!(typeid(ret_type) == typeid(koopa::Void))) {
         res += ": " + ret_type->to_string();
     }
     
@@ -216,7 +216,7 @@ std::string koopa::FuncDecl::to_string() {
     if (param_types->size() > 0) res.pop_back();
     res += ')';
 
-    if (!std::is_same<decltype(ret_type), koopa::Void>::value) {
+    if (!(typeid(ret_type) == typeid(koopa::Void))) {
         res += ": " + ret_type->to_string();
     }
 
