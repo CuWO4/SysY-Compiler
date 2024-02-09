@@ -12,8 +12,8 @@ void ast::Block::debug() const {
     std::cout << "}, ";
 }
 
-void ast::IntFuncType::debug() const {
-    std::cout << "IntFuncType, ";
+void ast::Int::debug() const {
+    std::cout << "Int, ";
 }
 
 void ast::FuncDef::debug() const {

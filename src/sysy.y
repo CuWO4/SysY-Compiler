@@ -35,7 +35,7 @@ comp_unit
 func_def
     : func_type TK_IDENT '(' ')' block {
         $$ = new ast::FuncDef(
-            (ast::FuncType *) $1, 
+            (ast::Type *) $1, 
             $2, 
             (ast::Block *) $5
         );
@@ -44,7 +44,7 @@ func_def
 
 func_type
     : TK_INT {
-        $$ = new ast::IntFuncType();
+        $$ = new ast::Int();
     }
 ;
 

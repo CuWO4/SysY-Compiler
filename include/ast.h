@@ -20,16 +20,16 @@ public:
 class Stmt : public Base {
 };
 
-class Return : public Stmt {
-public:
-    int return_val = 0;
+    class Return : public Stmt {
+    public:
+        int return_val = 0;
 
-    Return(int return_val) : return_val(return_val) {}
+        Return(int return_val) : return_val(return_val) {}
 
-    koopa::Base *to_koopa() const override;
+        koopa::Base *to_koopa() const override;
 
-    void debug() const override;
-};
+        void debug() const override;
+    };
 
 class Block : public Base {
 public:
@@ -44,23 +44,23 @@ public:
     ~Block() override;
 };
 
-class FuncType : public Base {
+class Type : public Base {
 };
 
-class IntFuncType : public FuncType {
-public:
-    koopa::Base *to_koopa() const override;
+    class Int : public Type {
+    public:
+        koopa::Base *to_koopa() const override;
 
-    void debug() const override;
-};
+        void debug() const override;
+    };
 
 class FuncDef : public Base {
 public:
-    FuncType        *func_type  = nullptr;
+    Type        *func_type  = nullptr;
     std::string     *id         = nullptr;
     Block           *block      = nullptr;
 
-    FuncDef(FuncType *func_type, std::string *id, Block *block) :
+    FuncDef(Type *func_type, std::string *id, Block *block) :
         func_type(func_type), id(id), block(block) {}
 
     koopa::Base *to_koopa() const override;

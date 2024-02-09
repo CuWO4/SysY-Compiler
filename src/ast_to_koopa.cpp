@@ -15,7 +15,7 @@ koopa::Base *ast::Block::to_koopa() const {
     );
 }
 
-koopa::Base *ast::IntFuncType::to_koopa() const {
+koopa::Base *ast::Int::to_koopa() const {
     return new koopa::Int;
 }
 
