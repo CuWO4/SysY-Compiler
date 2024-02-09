@@ -48,8 +48,8 @@ public:
 
     class FuncType : public Type {
     public:
-        std::vector<Type *> *arg_types = nullptr;
-        Type *ret_type = nullptr;
+        std::vector<Type *>     *arg_types  = nullptr;
+        Type                    *ret_type   = nullptr;
 
         std::string to_string() override;
 
@@ -76,8 +76,8 @@ class Value : public Base {
 
     class Id : public Value {
     public:
-        Type *type = nullptr;
-        std::string *lit = nullptr;
+        Type        *type   = nullptr;
+        std::string *lit    = nullptr;
 
         std::string to_string() override;
 
@@ -172,8 +172,8 @@ class Stmt : virtual public Base {
 
         class GetPtr : public Rvalue {
         public:
-            Id *base = nullptr;
-            Value *offset = nullptr;
+            Id      *base   = nullptr;
+            Value   *offset = nullptr;
 
             std::string to_string() override;
 
@@ -184,8 +184,8 @@ class Stmt : virtual public Base {
 
         class GetElemPtr : public Rvalue {
         public:
-            Id *base = nullptr;
-            Value *offset = nullptr;
+            Id      *base   = nullptr;
+            Value   *offset = nullptr;
 
             std::string to_string() override;
 
@@ -215,8 +215,8 @@ class Stmt : virtual public Base {
 
         class FuncCall : public Rvalue, public Stmt {
         public:
-            Id *id = nullptr;
-            std::vector<Value *> *args = nullptr;
+            Id                      *id     = nullptr;
+            std::vector<Value *>    *args   = nullptr;
 
             std::string to_string() override;
 
@@ -227,8 +227,8 @@ class Stmt : virtual public Base {
 
     class SymbolDef : public Stmt {
     public:
-        Id *id = nullptr;
-        Rvalue *val = nullptr;
+        Id      *id     = nullptr;
+        Rvalue  *val    = nullptr;
 
         std::string to_string() override;
 
@@ -242,8 +242,8 @@ class Stmt : virtual public Base {
 
         class StoreValue : public Store {
         public:
-            Value *value = nullptr;
-            Id *addr = nullptr;
+            Value   *value  = nullptr;
+            Id      *addr   = nullptr;
 
             std::string to_string() override;
 
@@ -254,8 +254,8 @@ class Stmt : virtual public Base {
 
         class StoreInitializer : public Store {
         public:
-            Initializer *initializer = nullptr;
-            Id *addr = nullptr;
+            Initializer *initializer    = nullptr;
+            Id          *addr           = nullptr;
 
             std::string to_string() override;
 
@@ -270,9 +270,9 @@ class EndStmt : public Base {
 
     class Branch : public EndStmt {
     public:
-        Value *cond = nullptr;
-        Id *target1 = nullptr;
-        Id *target2 = nullptr;
+        Value   *cond       = nullptr;
+        Id      *target1    = nullptr;
+        Id      *target2    = nullptr;
 
         std::string to_string() override;
 
@@ -309,9 +309,9 @@ class GlobalStmt : public Base {
 
     class Block : public Base {
     public:
-        Id *id = nullptr;
-        std::vector<Stmt *> *stmts = nullptr;
-        EndStmt *end_stmt = nullptr;
+        Id                  *id         = nullptr;
+        std::vector<Stmt *> *stmts      = nullptr;
+        EndStmt             *end_stmt   = nullptr;
 
         std::string to_string() override;
 
@@ -323,8 +323,8 @@ class GlobalStmt : public Base {
 
     class FuncParamDecl : public Base {
     public:
-        Id *id = nullptr;
-        Type *type = nullptr;
+        Id      *id     = nullptr;
+        Type    *type   = nullptr;
 
         std::string to_string() override;
 
@@ -336,10 +336,10 @@ class GlobalStmt : public Base {
 
     class FuncDef : public GlobalStmt {
     public:
-        Id *id = nullptr;
-        std::vector<FuncParamDecl *> *func_param_decls = nullptr;
-        Type *ret_type = nullptr;
-        std::vector<Block *> *blocks = nullptr;
+        Id                              *id                 = nullptr;
+        std::vector<FuncParamDecl *>    *func_param_decls   = nullptr;
+        Type                            *ret_type           = nullptr;
+        std::vector<Block *>            *blocks             = nullptr;
 
         std::string to_string() override;
 
@@ -352,9 +352,9 @@ class GlobalStmt : public Base {
 
     class FuncDecl : public GlobalStmt {
     public:
-        Id *id = nullptr;
-        std::vector<Type *> *param_types = nullptr;
-        Type *ret_type = nullptr;
+        Id                  *id             = nullptr;
+        std::vector<Type *> *param_types    = nullptr;
+        Type                *ret_type       = nullptr;
 
         std::string to_string() override;
 
@@ -366,8 +366,8 @@ class GlobalStmt : public Base {
 
     class GlobalMemoryDecl : public Base {
     public:
-        Type *type = nullptr;
-        Initializer *initializer = nullptr;
+        Type        *type           = nullptr;
+        Initializer *initializer    = nullptr;
 
         std::string to_string() override;
 
@@ -379,8 +379,8 @@ class GlobalStmt : public Base {
 
     class GlobalSymbolDef : public GlobalStmt {
     public:
-        Id *id = nullptr;
-        GlobalMemoryDecl *decl = nullptr;
+        Id                  *id     = nullptr;
+        GlobalMemoryDecl    *decl   = nullptr;
 
         std::string to_string() override;
 

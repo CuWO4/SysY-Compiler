@@ -33,7 +33,7 @@ public:
 
 class Block : public Base {
 public:
-    Stmt *stmt;
+    Stmt *stmt = nullptr;
 
     Block(Stmt *stmt) : stmt(stmt) {}
 
@@ -56,9 +56,9 @@ public:
 
 class FuncDef : public Base {
 public:
-    FuncType *func_type;
-    std::string *id;
-    Block *block;
+    FuncType        *func_type  = nullptr;
+    std::string     *id         = nullptr;
+    Block           *block      = nullptr;
 
     FuncDef(FuncType *func_type, std::string *id, Block *block) :
         func_type(func_type), id(id), block(block) {}
@@ -72,7 +72,7 @@ public:
 
 class CompUnit : public Base {
 public:
-    FuncDef *func_def;
+    FuncDef *func_def = nullptr;
 
     CompUnit(FuncDef *func_def) : func_def(func_def) {}
 

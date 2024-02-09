@@ -1,15 +1,15 @@
 #include "../include/ast.h"
 
 ast::Block::~Block() {
-    delete stmt;
+    if (stmt != nullptr) { delete stmt; stmt = nullptr;  }
 }
 
 ast::FuncDef::~FuncDef() {
-    delete func_type;
-    delete id;
-    delete block;
+    if (func_type != nullptr) { delete func_type; func_type = nullptr;  }
+    if (id != nullptr) { delete id; id = nullptr;  }
+    if (block != nullptr) { delete block; block = nullptr;  }
 }
 
 ast::CompUnit::~CompUnit() {
-    delete func_def;
+    if (func_def != nullptr) { delete func_def; func_def = nullptr;  }
 }
