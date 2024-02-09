@@ -6,8 +6,11 @@
 #include <cassert>
 #include <cstdio>
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <string>
+
+#include <string.h>
 
 extern FILE *yyin;
 extern int yyparse(ast::CompUnit *&ast);
@@ -22,12 +25,20 @@ int main(int argc, const char *argv[]) {
 	yyin = fopen(input, "r");
 	assert(yyin);
 
+	std::ofstream os;
+	os.open(output, std::ios::out);
+
 	ast::CompUnit *ast;
 	auto ret = yyparse(ast);
 	assert(!ret);
 
-	ast->to_koopa();
+	auto koopa = ast->to_koopa();
 
+	if (!strcmp(mode, "-koopa")) {
+		os << koopa->to_string();
+	} 
+
+	delete koopa;
 	delete ast;
 
 	return 0;

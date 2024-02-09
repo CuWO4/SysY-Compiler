@@ -77,8 +77,8 @@ koopa::StoreInitializer::~StoreInitializer() {
 
 koopa::Branch::~Branch() {
     if (cond != nullptr) delete cond;
-    if (target[0] != nullptr) delete target[0];
-    if (target[1] != nullptr) delete target[1];
+    if (target1 != nullptr) delete target1;
+    if (target2 != nullptr) delete target2;
 }
 
 koopa::Jump::~Jump() {
@@ -90,6 +90,7 @@ koopa::Return::~Return() {
 }
 
 koopa::Block::~Block() {
+    if (id != nullptr) delete id;
     for (auto stmt : *stmts) {
         if (stmt != nullptr) delete stmt;
     }
