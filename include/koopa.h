@@ -13,21 +13,14 @@ public:
     virtual ~Base() = default;
 };
 
-namespace type {
-    enum id {
-        Int, Array, Pointer, FuncType, Label, Void,
-    };
-}
-
 class Type : public Base {
 public:
-    virtual type::id get_type_id() = 0;
 };
 
     class Int : public Type {
+
         std::string to_string() override;
 
-        type::id get_type_id() override { return type::Int; }
     };
 
     class Array : public Type {
@@ -36,8 +29,6 @@ public:
         int length = 0;
 
         std::string to_string() override;
-
-        type::id get_type_id() override { return type::Array; }
 
         Array(Type *elem_type, int length) : elem_type(elem_type), length(length) {}
 
@@ -49,8 +40,6 @@ public:
         Type *pointed_type = nullptr;
 
         std::string to_string() override;
-
-        type::id get_type_id() override { return type::Pointer; }
 
         Pointer(Type *pointed_type) : pointed_type(pointed_type) {}
 
@@ -64,8 +53,6 @@ public:
 
         std::string to_string() override;
 
-        type::id get_type_id() override { return type::FuncType; }
-
         FuncType(std::vector<Type *> *arg_types, Type *ret_type) :
             arg_types(arg_types), ret_type(ret_type) {}
 
@@ -74,15 +61,11 @@ public:
 
     class Label : public Type {
 
-        type::id get_type_id() override { return type::Label; }
-
         std::string to_string() override;
 
     };
 
     class Void : public Type {
-
-        type::id get_type_id() override { return type::Void; }
 
         std::string to_string() override;
 
@@ -211,19 +194,21 @@ class Stmt : virtual public Base {
             ~GetElemPtr() override;
         };
 
-        enum BINARY_OP {
-            NE, EQ, GT, LT, GE, LE, ADD, SUB, MUL,
-            DIV, MOD, AND, OR, XOR, SHL, SHR, SAR,
-        };
+        namespace op {
+            enum Op {
+                NE, EQ, GT, LT, GE, LE, ADD, SUB, MUL,
+                DIV, MOD, AND, OR, XOR, SHL, SHR, SAR,
+            };  
+        }
 
         class Expr : public Rvalue {
         public:
-            BINARY_OP op;
+            op::Op op;
             Value *lv, *rv = nullptr;
 
             std::string to_string() override;
 
-            Expr(BINARY_OP op, Value *lv, Value *rv) : op(op), lv(lv), rv(rv) {}
+            Expr(op::Op op, Value *lv, Value *rv) : op(op), lv(lv), rv(rv) {}
 
             ~Expr() override;
         };
