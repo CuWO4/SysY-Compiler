@@ -10,6 +10,8 @@ class Base {
 public:
     virtual std::string to_string() = 0;
 
+    // virtual std::string to_riscv() = 0;
+
     virtual ~Base() = default;
 };
 
@@ -276,8 +278,8 @@ class EndStmt : public Base {
 
         std::string to_string() override;
 
-        Branch(Value *cond, Id *target1, Id *target2) : cond(cond),
-            target1(target1), target2(target2) {}
+        Branch(Value *cond, Id *target1, Id *target2) : 
+            cond(cond), target1(target1), target2(target2) {}
 
         ~Branch() override;
     };
@@ -313,10 +315,15 @@ class GlobalStmt : public Base {
         std::vector<Stmt *> *stmts      = nullptr;
         EndStmt             *end_stmt   = nullptr;
 
+        std::vector<std::string> preds;
+        std::vector<std::string> succs;
+
         std::string to_string() override;
 
         Block(Id *id, std::vector<Stmt *> *stmts, EndStmt *end_stmt) :
-            id(id), stmts(stmts), end_stmt(end_stmt) {}
+            id(id), stmts(stmts), end_stmt(end_stmt) {
+            preds = {}; succs = {};
+        }
 
         ~Block() override;
     };
@@ -396,7 +403,8 @@ public:
 
     std::string to_string() override;
 
-    Program(std::vector<GlobalStmt *> *global_stmts) : global_stmts(global_stmts) {}
+    Program(std::vector<GlobalStmt *> *global_stmts) : 
+        global_stmts(global_stmts) {}
 
     ~Program() override;
 };

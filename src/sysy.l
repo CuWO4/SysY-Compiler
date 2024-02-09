@@ -11,7 +11,7 @@
 
 %}
 
-WhiteSpace      [ \t\n\r]*
+WhiteSpace      [ \t\n\r]
 LineComment     "//".*
 BlockComment    "/"\*.*?\*"/"
 
