@@ -8,21 +8,21 @@ namespace koopa {
 
 class Base {
 public:
-    virtual std::string to_string() = 0;
+    virtual std::string to_string() const = 0;
 
-    virtual std::string to_riscv() = 0;
+    virtual std::string to_riscv() const = 0;
 
     virtual ~Base() = default;
 };
 
 class Type : public Base {
 public:
-    std::string to_riscv() override { return ""; }
+    std::string to_riscv() const override { return ""; }
 };
 
     class Int : public Type {
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
     };
 
@@ -31,7 +31,7 @@ public:
         Type *elem_type = nullptr;
         int length = 0;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         Array(Type *elem_type, int length) : elem_type(elem_type), length(length) {}
 
@@ -42,7 +42,7 @@ public:
     public:
         Type *pointed_type = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         Pointer(Type *pointed_type) : pointed_type(pointed_type) {}
 
@@ -54,7 +54,7 @@ public:
         std::vector<Type *>     *arg_types  = nullptr;
         Type                    *ret_type   = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         FuncType(std::vector<Type *> *arg_types, Type *ret_type) :
             arg_types(arg_types), ret_type(ret_type) {}
@@ -64,13 +64,13 @@ public:
 
     class Label : public Type {
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
     };
 
     class Void : public Type {
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
     };
 
@@ -82,9 +82,9 @@ class Value : public Base {
         Type        *type   = nullptr;
         std::string *lit    = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
-        std::string to_riscv() override;
+        std::string to_riscv() const override;
 
         Id(Type *type, std::string *lit) : type(type), lit(lit) {}
 
@@ -95,16 +95,16 @@ class Value : public Base {
     public:
         int val = 0;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
-        std::string to_riscv() override;
+        std::string to_riscv() const override;
 
         Const(int val) : val(val) {}
     };
 
     class Undef : public Value {
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
     };
 
@@ -115,7 +115,7 @@ class Initializer : public Base {
     public:
         int val = 0;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         ConstInitializer(int val) : val(val) {}
     };
@@ -124,7 +124,7 @@ class Initializer : public Base {
     public:
         std::vector<Initializer *> *initializers = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         Aggregate(std::vector<Initializer *> *initializers) : initializers(initializers) {}
 
@@ -133,13 +133,13 @@ class Initializer : public Base {
 
     class Zeroinit : public Initializer {
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
     };
 
     class UndefInitializer : public Initializer {
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
     };
 
@@ -159,7 +159,7 @@ class Stmt : virtual public Base {
         public:
             Type *type = nullptr;
 
-            std::string to_string() override;
+            std::string to_string() const override;
 
             MemoryDecl(Type *type) : type(type) {}
 
@@ -170,7 +170,7 @@ class Stmt : virtual public Base {
         public:
             Id *addr = nullptr;
 
-            std::string to_string() override;
+            std::string to_string() const override;
 
             Load(Id *addr) : addr(addr) {}
 
@@ -182,7 +182,7 @@ class Stmt : virtual public Base {
             Id      *base   = nullptr;
             Value   *offset = nullptr;
 
-            std::string to_string() override;
+            std::string to_string() const override;
 
             GetPtr(Id *base, Value *offset) : base(base), offset(offset) {}
 
@@ -194,7 +194,7 @@ class Stmt : virtual public Base {
             Id      *base   = nullptr;
             Value   *offset = nullptr;
 
-            std::string to_string() override;
+            std::string to_string() const override;
 
             GetElemPtr(Id *base, Value *offset) : base(base), offset(offset) {}
 
@@ -213,7 +213,7 @@ class Stmt : virtual public Base {
             op::Op op;
             Value *lv, *rv = nullptr;
 
-            std::string to_string() override;
+            std::string to_string() const override;
 
             Expr(op::Op op, Value *lv, Value *rv) : op(op), lv(lv), rv(rv) {}
 
@@ -225,7 +225,7 @@ class Stmt : virtual public Base {
             Id                      *id     = nullptr;
             std::vector<Value *>    *args   = nullptr;
 
-            std::string to_string() override;
+            std::string to_string() const override;
 
             FuncCall(Id *id, std::vector<Value *> *args) : id(id), args(args) {}
 
@@ -237,7 +237,7 @@ class Stmt : virtual public Base {
         Id      *id     = nullptr;
         Rvalue  *val    = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         SymbolDef(Id *id, Rvalue *val) : id(id), val(val) {}
 
@@ -252,7 +252,7 @@ class Stmt : virtual public Base {
             Value   *value  = nullptr;
             Id      *addr   = nullptr;
 
-            std::string to_string() override;
+            std::string to_string() const override;
 
             StoreValue(Value *value, Id *addr) : value(value), addr(addr) {}
 
@@ -264,7 +264,7 @@ class Stmt : virtual public Base {
             Initializer *initializer    = nullptr;
             Id          *addr           = nullptr;
 
-            std::string to_string() override;
+            std::string to_string() const override;
 
             StoreInitializer(Initializer *initializer, Id *addr) :
                 initializer(initializer), addr(addr) {}
@@ -281,7 +281,7 @@ class EndStmt : public Base {
         Id      *target1    = nullptr;
         Id      *target2    = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         Branch(Value *cond, Id *target1, Id *target2) : 
             cond(cond), target1(target1), target2(target2) {}
@@ -293,7 +293,7 @@ class EndStmt : public Base {
     public:
         Id *target = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         Jump(Id *target) : target(target) {}
 
@@ -304,9 +304,9 @@ class EndStmt : public Base {
     public:
         Value *val = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
-        std::string to_riscv() override;
+        std::string to_riscv() const override;
 
         Return(Value *val) : val(val) {}
 
@@ -325,9 +325,9 @@ class GlobalStmt : public Base {
         std::vector<std::string> preds;
         std::vector<std::string> succs;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
-        std::string to_riscv() override;
+        std::string to_riscv() const override;
 
         Block(Id *id, std::vector<Stmt *> *stmts, EndStmt *end_stmt) :
             id(id), stmts(stmts), end_stmt(end_stmt) {
@@ -342,7 +342,7 @@ class GlobalStmt : public Base {
         Id      *id     = nullptr;
         Type    *type   = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         FuncParamDecl(Id *id, Type *type) :
             id(id), type(type) {}
@@ -357,9 +357,9 @@ class GlobalStmt : public Base {
         Type                            *ret_type           = nullptr;
         std::vector<Block *>            *blocks             = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
-        std::string to_riscv() override;
+        std::string to_riscv() const override;
 
         FuncDef(Id *id, std::vector<FuncParamDecl *> *func_param_decls,
                 Type *ret_type, std::vector<Block *> *blocks) :
@@ -374,7 +374,7 @@ class GlobalStmt : public Base {
         std::vector<Type *> *param_types    = nullptr;
         Type                *ret_type       = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         FuncDecl(Id *id, std::vector<Type *> *param_types, Type *ret_type) :
             id(id), param_types(param_types), ret_type(ret_type) {}
@@ -387,7 +387,7 @@ class GlobalStmt : public Base {
         Type        *type           = nullptr;
         Initializer *initializer    = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         GlobalMemoryDecl(Type *type, Initializer *initializer) :
             type(type), initializer(initializer) {}
@@ -400,7 +400,7 @@ class GlobalStmt : public Base {
         Id                  *id     = nullptr;
         GlobalMemoryDecl    *decl   = nullptr;
 
-        std::string to_string() override;
+        std::string to_string() const override;
 
         GlobalSymbolDef(Id *id, GlobalMemoryDecl *decl) :
             id(id), decl(decl) {}
@@ -412,9 +412,9 @@ class Program : public Base {
 public:
     std::vector<GlobalStmt*> *global_stmts = nullptr;
 
-    std::string to_string() override;
+    std::string to_string() const override;
 
-    std::string to_riscv() override;
+    std::string to_riscv() const override;
 
     Program(std::vector<GlobalStmt *> *global_stmts) : 
         global_stmts(global_stmts) {}

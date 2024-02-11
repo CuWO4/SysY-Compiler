@@ -2,20 +2,20 @@
 
 #include <string>
 
-std::string koopa::Int::to_string() {
+std::string koopa::Int::to_string() const {
     return "i32";
 }
 
-std::string koopa::Array::to_string() {
+std::string koopa::Array::to_string() const {
     return '[' + elem_type->to_string() + ',' 
             + std::to_string(length) + ']';
 }
 
-std::string koopa::Pointer::to_string() {
+std::string koopa::Pointer::to_string() const {
     return '*' + pointed_type->to_string();
 }
 
-std::string koopa::FuncType::to_string() {
+std::string koopa::FuncType::to_string() const {
     auto res = std::string("");
 
     res += '(';
@@ -31,15 +31,15 @@ std::string koopa::FuncType::to_string() {
     return res;
 }
 
-std::string koopa::Label::to_string() {
+std::string koopa::Label::to_string() const {
     return "label";
 }
 
-std::string koopa::Void::to_string() {
+std::string koopa::Void::to_string() const {
     return "void";
 }
 
-std::string koopa::Id::to_string() {
+std::string koopa::Id::to_string() const {
     auto res = std::string(lit != nullptr ? *lit : "");
     if ((typeid(type) == typeid(koopa::Int))
         || (typeid(type) == typeid(koopa::Array))
@@ -49,19 +49,19 @@ std::string koopa::Id::to_string() {
     return res;
 }
 
-std::string koopa::Const::to_string() {
+std::string koopa::Const::to_string() const {
     return std::to_string(val);
 }
 
-std::string koopa::Undef::to_string() {
+std::string koopa::Undef::to_string() const {
     return "undef";
 }
 
-std::string koopa::ConstInitializer::to_string() {
+std::string koopa::ConstInitializer::to_string() const {
     return std::to_string(val);
 }
 
-std::string koopa::Aggregate::to_string() {
+std::string koopa::Aggregate::to_string() const {
     auto res = std::string("");
 
     res += '{';
@@ -74,27 +74,27 @@ std::string koopa::Aggregate::to_string() {
     return res;
 }
 
-std::string koopa::Zeroinit::to_string() {
+std::string koopa::Zeroinit::to_string() const {
     return "zeroinit";
 }
 
-std::string koopa::UndefInitializer::to_string() {
+std::string koopa::UndefInitializer::to_string() const {
     return "undef";
 }
 
-std::string koopa::MemoryDecl::to_string() {
+std::string koopa::MemoryDecl::to_string() const {
     return "alloc\t" + type->to_string();
 }
 
-std::string koopa::Load::to_string() {
+std::string koopa::Load::to_string() const {
     return "load\t" + addr->to_string();
 }
 
-std::string koopa::GetPtr::to_string() {
+std::string koopa::GetPtr::to_string() const {
     return "getptr\t" + base->to_string() + ',' + offset->to_string();
 }
 
-std::string koopa::GetElemPtr::to_string() {
+std::string koopa::GetElemPtr::to_string() const {
     return "getelemptr\t" + base->to_string() + ',' + offset->to_string();
 }
 
@@ -103,11 +103,11 @@ static std::string BINARY_OP_NAME[] = {
     "div", "mod", "and", "or", "xor", "shl", "shr", "sar",
 };
 
-std::string koopa::Expr::to_string() {
+std::string koopa::Expr::to_string() const {
     return BINARY_OP_NAME[op] + '	' + lv->to_string() + ',' + rv->to_string();
 }
 
-std::string koopa::FuncCall::to_string() {
+std::string koopa::FuncCall::to_string() const {
     auto res = std::string("");
 
     res += "call\t" + id->to_string() + '(';
@@ -120,32 +120,32 @@ std::string koopa::FuncCall::to_string() {
     return res;
 }
 
-std::string koopa::SymbolDef::to_string() {
+std::string koopa::SymbolDef::to_string() const {
     return id->to_string() + '=' +val->to_string();
 }
 
-std::string koopa::StoreValue::to_string() {
+std::string koopa::StoreValue::to_string() const {
     return "store\t" + value->to_string() + ',' + addr->to_string();
 }
 
-std::string koopa::StoreInitializer::to_string() {
+std::string koopa::StoreInitializer::to_string() const {
     return "store\t" + initializer->to_string() + ',' + addr->to_string();
 }
 
-std::string koopa::Branch::to_string() {
+std::string koopa::Branch::to_string() const {
     return "br\t" + cond->to_string() + ',' 
         + target1->to_string() + ',' + target2->to_string();
 }
 
-std::string koopa::Jump::to_string() {
+std::string koopa::Jump::to_string() const {
     return "jump\t" + target->to_string();
 }
 
-std::string koopa::Return::to_string() {
+std::string koopa::Return::to_string() const {
     return "ret\t" + val->to_string();
 }
 
-std::string koopa::Block::to_string() {
+std::string koopa::Block::to_string() const {
     auto res = std::string("");
 
     if (preds.size() > 0) {
@@ -169,11 +169,11 @@ std::string koopa::Block::to_string() {
     return res;
 }
 
-std::string koopa::FuncParamDecl::to_string() {
+std::string koopa::FuncParamDecl::to_string() const {
     return id->to_string() + ": " + type->to_string();
 }
 
-std::string koopa::FuncDef::to_string() {
+std::string koopa::FuncDef::to_string() const {
     auto res = std::string("");
 
     res += "//! type: " + id->type->to_string() + '\n';
@@ -200,7 +200,7 @@ std::string koopa::FuncDef::to_string() {
     return res;
 }
 
-std::string koopa::FuncDecl::to_string() {
+std::string koopa::FuncDecl::to_string() const {
     auto res = std::string("");
 
     res += "//! type: " + id->type->to_string() + '\n';
@@ -223,15 +223,15 @@ std::string koopa::FuncDecl::to_string() {
     return res;
 }
 
-std::string koopa::GlobalMemoryDecl::to_string() {
+std::string koopa::GlobalMemoryDecl::to_string() const {
     return "alloc\t" + type->to_string() + ',' + initializer->to_string();
 }
 
-std::string koopa::GlobalSymbolDef::to_string() {
+std::string koopa::GlobalSymbolDef::to_string() const {
     return "global\t" + id->to_string() + '=' + decl->to_string();
 }
 
-std::string koopa::Program::to_string() {
+std::string koopa::Program::to_string() const {
     auto res = std::string("");
 
     for (auto global_stmt : *global_stmts) {
