@@ -21,8 +21,8 @@
 %token <str_val> TK_IDENT
 %token <int_val> TK_INT_CONST
 
-%type   <ast_val> comp_unit func_def func_type block stmt
-%type   <int_val> expr number
+%type   <ast_val> comp_unit func_def func_type block stmt expr
+%type   <int_val> number
 
 %left TK_LOGIC_OR
 %left TK_LOGIC_AND
@@ -30,22 +30,22 @@
 %left '<' '>' TK_LEQ TK_GEQ
 %left '+' '-'
 %left '*' '/' '%'
-%right TK_UNARY_OP
+%right PREC_UNARY_OP
 
 %%
 
 comp_unit
     : func_def {
-        ast = new ast::CompUnit((ast::FuncDef *) $1);
+        ast = new ast::CompUnit(static_cast<ast::FuncDef *>($1));
     }
 ;
 
 func_def
     : func_type TK_IDENT '(' ')' block {
         $$ = new ast::FuncDef(
-            (ast::Type *) $1, 
+            static_cast<ast::Type *>($1), 
             $2, 
-            (ast::Block *) $5
+            static_cast<ast::Block *>($5)
         );
     }
 ;
@@ -58,36 +58,70 @@ func_type
 
 block
     : '{' stmt '}' {
-        $$ = new ast::Block((ast::Stmt *) $2);
+        $$ = new ast::Block(static_cast<ast::Stmt *>($2));
     }
 ;
 
 stmt
     : TK_RETURN expr ';' {
-        $$ = new ast::Return($2);
+        $$ = new ast::Return(static_cast<ast::Expr *>($2));
     }
 ;
 
 expr
-    : '(' expr ')'                  {}
+    : '(' expr ')'                  { $$ = $2; }
     /* TODO short circuit evaluation */
-    | expr TK_LOGIC_OR expr         {}
-    | expr TK_LOGIC_AND expr        {}
-    | expr TK_EQ expr               {}
-    | expr TK_NEQ expr              {}
-    | expr '<' expr                 {}
-    | expr '>' expr                 {}
-    | expr TK_LEQ expr              {}
-    | expr TK_GEQ expr              {}
-    | expr '+' expr                 {}
-    | expr '-' expr                 {}
-    | expr '*' expr                 {}
-    | expr '/' expr                 {}
-    | expr '%' expr                 {}
-    | '-' expr %prec TK_UNARY_OP    {}
-    | '+' expr %prec TK_UNARY_OP    {}
-    | '!' expr %prec TK_UNARY_OP    {}
-    | number                        {}
+    | expr TK_LOGIC_OR expr         {
+		$$ = new ast::BinaryExpr(ast::op::LOGIC_OR, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr TK_LOGIC_AND expr        {
+		$$ = new ast::BinaryExpr(ast::op::LOGIC_AND, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr TK_EQ expr               {
+		$$ = new ast::BinaryExpr(ast::op::EQ, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr TK_NEQ expr              {
+		$$ = new ast::BinaryExpr(ast::op::NEQ, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr '<' expr                 {
+		$$ = new ast::BinaryExpr(ast::op::LT, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr '>' expr                 {
+		$$ = new ast::BinaryExpr(ast::op::GT, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr TK_LEQ expr              {
+		$$ = new ast::BinaryExpr(ast::op::LEQ, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr TK_GEQ expr              {
+		$$ = new ast::BinaryExpr(ast::op::GEQ, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr '+' expr                 {
+		$$ = new ast::BinaryExpr(ast::op::ADD, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr '-' expr                 {
+		$$ = new ast::BinaryExpr(ast::op::SUB, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr '*' expr                 {
+		$$ = new ast::BinaryExpr(ast::op::MUL, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr '/' expr                 {
+		$$ = new ast::BinaryExpr(ast::op::DIV, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | expr '%' expr                 {
+		$$ = new ast::BinaryExpr(ast::op::MOD, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
+}
+    | '-' expr %prec PREC_UNARY_OP    {
+		$$ = new ast::UnaryExpr(ast::op::NEG, static_cast<ast::Expr *>($2));
+}
+    | '+' expr %prec PREC_UNARY_OP    {
+		$$ = new ast::UnaryExpr(ast::op::POS, static_cast<ast::Expr *>($2));
+}
+    | '!' expr %prec PREC_UNARY_OP    {
+		$$ = new ast::UnaryExpr(ast::op::NOT, static_cast<ast::Expr *>($2));
+}
+    | number                        {
+		$$ = new ast::Number($1);
+}
 ;
 
 number 

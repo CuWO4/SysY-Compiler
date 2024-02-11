@@ -1,5 +1,5 @@
 int main() {
     // comment
     /* comment */
-    return 0;
+    return +(- -!6);
 } 

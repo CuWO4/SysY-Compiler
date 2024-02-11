@@ -34,13 +34,16 @@ int main(int argc, const char *argv[]) {
 
 	auto koopa = ast->to_koopa();
 
-	if (!strcmp(mode, "-koopa")) {
+	if (!strcmp(mode, "-test")) {
+		std::cout << ast->debug() << std::endl;
+	}
+	else if (!strcmp(mode, "-koopa")) {
 		os << koopa->to_string();
 	} 
 	else if (!strcmp(mode, "-riscv")) {
 		os << koopa->to_riscv();
 	}
-
+	
 	delete koopa;
 	delete ast;
 

@@ -1,31 +1,49 @@
 #include "../include/ast.h"
 
-#include <iostream>
+#include <string>
+#include <assert.h>
 
-void ast::Return::debug() const {
-    std::cout << "Return { " << return_val << " }, ";
+static const char *binary_op_name[] = {
+    "||", "&&", "==", "!=", "<", ">", "<=", ">=", 
+    "+", "-", "*", "/", "%",
+};
+
+static const char *unary_op_name[] = { "-", "+", "!" };
+
+
+std::string ast::BinaryExpr::debug() const {
+    return '(' + lv->debug() + ") " 
+        + binary_op_name[op] 
+        + " (" + rv->debug() + ')'
+        +'{' + std::to_string(val) + '}';
 }
 
-void ast::Block::debug() const {
-    std::cout << "Block { ";
-    stmt->debug();
-    std::cout << "}, ";
+std::string ast::UnaryExpr::debug() const {
+    return std::string(unary_op_name[op]) 
+        + '(' + lv->debug() + ')'
+        +'{' + std::to_string(val) + '}';
 }
 
-void ast::Int::debug() const {
-    std::cout << "Int, ";
+std::string ast::Number::debug() const {
+    return std::to_string(val);
 }
 
-void ast::FuncDef::debug() const {
-    std::cout << "FuncDef { ";
-    func_type->debug();
-    std::cout << *id << " , ";
-    block->debug();
-    std::cout << "}, ";
+std::string ast::Return::debug() const {
+    return "Return { " + ret_val->debug() + " }";
 }
 
-void ast::CompUnit::debug() const {
-    std::cout << "CompUnit { ";
-    func_def->debug();
-    std::cout << "} ";
+std::string ast::Block::debug() const {
+    return "\tBlock {\n\t\t" + stmt->debug() + "\n\t}";
+}
+
+std::string ast::Int::debug() const {
+    return "Int";
+}
+
+std::string ast::FuncDef::debug() const {
+    return "FuncDef { " + func_type->debug() + ' ' + *id + "\n" + block->debug()+ "\n}";
+}
+
+std::string ast::CompUnit::debug() const {
+    return func_def->debug();
 }

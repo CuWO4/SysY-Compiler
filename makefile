@@ -88,7 +88,7 @@ $(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y
 
 -include $(DEPS)
 
-.PHONY : clean once
+.PHONY : clean once lldb
 .PHONY : test-hello-koopa test-hello-riscv
 .PHONY : test-lv1-koopa test-lv1-riscv
 .PHONY : docker
@@ -98,6 +98,12 @@ once:
 
 clean:
 	-rm -rf $(BUILD_DIR)
+
+lldb : $(BUILD_DIR)/$(TARGET_EXEC)
+	lldb $(BUILD_DIR)/$(TARGET_EXEC) -- -test ./test/hello/hello.c -o ./test/hello/hello.koopa
+
+test-hello : $(BUILD_DIR)/$(TARGET_EXEC)
+	$(BUILD_DIR)/$(TARGET_EXEC) -test ./test/hello/hello.c -o ./test/hello/hello.koopa
 
 test-hello-koopa : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -koopa ./test/hello/hello.c -o ./test/hello/hello.koopa

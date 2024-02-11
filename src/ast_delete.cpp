@@ -1,5 +1,14 @@
 #include "../include/ast.h"
 
+ast::BinaryExpr::~BinaryExpr() {
+    if (lv != nullptr) { delete lv; lv = nullptr; }
+    if (rv != nullptr) { delete rv; rv = nullptr; }
+}
+
+ast::UnaryExpr::~UnaryExpr() {
+    if (lv != nullptr) { delete lv; lv = nullptr; }
+}
+
 ast::Block::~Block() {
     if (stmt != nullptr) { delete stmt; stmt = nullptr;  }
 }
