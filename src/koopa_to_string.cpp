@@ -41,10 +41,10 @@ std::string koopa::Void::to_string() const {
 
 std::string koopa::Id::to_string() const {
     auto res = std::string(lit != nullptr ? *lit : "");
-    if ((typeid(type) == typeid(koopa::Int))
-        || (typeid(type) == typeid(koopa::Array))
-        || (typeid(type) == typeid(koopa::Pointer))) {
-        res += "/*! type: " + type->to_string() + " */"; 
+    if ((typeid(*type) == typeid(koopa::Int))
+        || (typeid(*type) == typeid(koopa::Array))
+        || (typeid(*type) == typeid(koopa::Pointer))) {
+        res += " /*! type: " + type->to_string() + " */"; 
     }
     return res;
 }
