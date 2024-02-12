@@ -14,14 +14,12 @@ static const char *unary_op_name[] = { "-", "+", "!" };
 std::string ast::BinaryExpr::debug() const {
     return '(' + lv->debug() + ") " 
         + binary_op_name[op] 
-        + " (" + rv->debug() + ')'
-        +'{' + std::to_string(val) + '}';
+        + " (" + rv->debug() + ')';
 }
 
 std::string ast::UnaryExpr::debug() const {
     return std::string(unary_op_name[op]) 
-        + '(' + lv->debug() + ')'
-        +'{' + std::to_string(val) + '}';
+        + '(' + lv->debug() + ')';
 }
 
 std::string ast::Number::debug() const {

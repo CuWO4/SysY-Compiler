@@ -24,36 +24,12 @@ namespace op {
         ADD, SUB, MUL, DIV, MOD,
     };
 
-    static std::function<int(int, int)> BinaryOpFunc[] = {
-        [](int a, int b) { return a || b; },
-        [](int a, int b) { return a && b; },
-        [](int a, int b) { return a == b; },
-        [](int a, int b) { return a != b; },
-        [](int a, int b) { return a < b; },
-        [](int a, int b) { return a > b; },
-        [](int a, int b) { return a <= b; },
-        [](int a, int b) { return a >= b; },
-        [](int a, int b) { return a + b; },
-        [](int a, int b) { return a - b; },
-        [](int a, int b) { return a * b; },
-        [](int a, int b) { return a / b; },
-        [](int a, int b) { return a % b; },
-    };
-
     enum UnaryOp {
         NEG, POS, NOT,
-    };
-
-    static std::function<int(int)> UnaryOpFunc[] = {
-        [](int a) { return -a; },
-        [](int a) { return a; },
-        [](int a) { return !a; },
     };
 }
 
 class Expr : public Base {
-public:
-    int val = 0;
 };
 
     class BinaryExpr : public Expr {
@@ -63,9 +39,7 @@ public:
         Expr            *rv = nullptr;
 
         BinaryExpr(op::BinaryOp op, Expr *lv, Expr* rv) :
-            op(op), lv(lv), rv(rv) {
-            val = op::BinaryOpFunc[op](lv->val, rv->val);
-        }
+            op(op), lv(lv), rv(rv) {}
 
         koopa::Base *to_koopa() const override;
 
@@ -80,9 +54,7 @@ public:
         Expr            *lv = nullptr;
 
         UnaryExpr(op::UnaryOp op, Expr *lv) :
-            op(op), lv(lv) {
-            val = op::UnaryOpFunc[op](lv->val);
-        }
+            op(op), lv(lv) {}
 
         koopa::Base *to_koopa() const override;
 
@@ -93,7 +65,9 @@ public:
 
     class Number : public Expr {
     public:
-        Number(int val) { this->val = val; }
+        int val = 0;
+
+        Number(int val) : val(val) {}
 
         koopa::Base *to_koopa() const override;
 

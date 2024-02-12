@@ -70,7 +70,6 @@ stmt
 
 expr
     : '(' expr ')'                  { $$ = $2; }
-    /* TODO short circuit evaluation */
     | expr TK_LOGIC_OR expr         {
 		$$ = new ast::BinaryExpr(ast::op::LOGIC_OR, static_cast<ast::Expr *>($1), static_cast<ast::Expr *>($3));
 }

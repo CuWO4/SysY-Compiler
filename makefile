@@ -91,6 +91,7 @@ $(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y
 .PHONY : clean once lldb
 .PHONY : test-hello-koopa test-hello-riscv
 .PHONY : test-lv1-koopa test-lv1-riscv
+.PHONY : test-lv3-koopa test-lv3-riscv
 .PHONY : docker
 
 once:
@@ -116,6 +117,12 @@ test-lv1-koopa :
 
 test-lv1-riscv :
 	autotest -riscv -s lv1 /root/compiler
+
+test-lv3-koopa :
+	autotest -koopa -s lv3 /root/compiler
+
+test-lv3-riscv :
+	autotest -riscv -s lv3 /root/compiler
 
 docker :
 	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler  maxxing/compiler-dev bash

@@ -15,12 +15,20 @@
 extern FILE *yyin;
 extern int yyparse(ast::CompUnit *&ast);
 
+// #define DEBUG__
+
 int main(int argc, const char *argv[]) {
+	#ifndef DEBUG__
 	assert(argc == 5);
 
 	auto mode = argv[1];
 	auto input = argv[2];
 	auto output = argv[4];
+	#else 
+	auto mode = "-test";
+	auto input = "../test/hello/hello.c";
+	auto output = "../test/hello/hello.koopa";
+	#endif
 
 	yyin = fopen(input, "r");
 	assert(yyin);
@@ -35,7 +43,7 @@ int main(int argc, const char *argv[]) {
 	auto koopa = ast->to_koopa();
 
 	if (!strcmp(mode, "-test")) {
-		std::cout << ast->debug() << std::endl;
+		std::cout << koopa->to_string() << std::endl;
 	}
 	else if (!strcmp(mode, "-koopa")) {
 		os << koopa->to_string();
@@ -44,8 +52,8 @@ int main(int argc, const char *argv[]) {
 		os << koopa->to_riscv();
 	}
 	
-	delete koopa;
-	delete ast;
+	// delete koopa;		//! re-free bug in ast_to_koopa.cpp: ast::BinaryExpr::to_koopa() and ast::UnaryExpr::to_koopa()
+	// delete ast;			//? fix it by move the ownership of values to koopa::Program
 
 	return 0;
 }

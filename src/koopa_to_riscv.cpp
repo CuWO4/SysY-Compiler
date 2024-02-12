@@ -20,6 +20,16 @@ std::string koopa::Const::to_riscv() const {
     return std::to_string(val);
 }
 
+std::string koopa::Expr::to_riscv() const {
+    //TODO
+    return "";
+}
+
+std::string koopa::SymbolDef::to_riscv() const {
+    //TODO
+    return "";
+}
+
 std::string koopa::Return::to_riscv() const {
     return "\tli\ta0,\t" + val->to_riscv() + '\n'
         + "\tret\n";
@@ -31,7 +41,6 @@ std::string koopa::Block::to_riscv() const {
     for(auto stmt : *stmts) {
         res += stmt->to_riscv();
     }
-    res += end_stmt->to_riscv();
 
     return res;
 }

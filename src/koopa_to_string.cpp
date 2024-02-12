@@ -99,12 +99,12 @@ std::string koopa::GetElemPtr::to_string() const {
 }
 
 static std::string BINARY_OP_NAME[] = {
-    "ne", "eq", "gt", "lt", "geq", "leq", "add", "sub", "mul",
+    "ne", "eq", "gt", "lt", "ge", "le", "add", "sub", "mul",
     "div", "mod", "and", "or", "xor", "shl", "shr", "sar",
 };
 
 std::string koopa::Expr::to_string() const {
-    return BINARY_OP_NAME[op] + '	' + lv->to_string() + ',' + rv->to_string();
+    return BINARY_OP_NAME[op] + '\t' + lv->to_string() + ", " + rv->to_string();
 }
 
 std::string koopa::FuncCall::to_string() const {
@@ -121,7 +121,7 @@ std::string koopa::FuncCall::to_string() const {
 }
 
 std::string koopa::SymbolDef::to_string() const {
-    return id->to_string() + '=' +val->to_string();
+    return id->to_string() + "\t= " + val->to_string();
 }
 
 std::string koopa::StoreValue::to_string() const {
@@ -148,15 +148,15 @@ std::string koopa::Return::to_string() const {
 std::string koopa::Block::to_string() const {
     auto res = std::string("");
 
-    if (preds.size() > 0) {
+    if (preds->size() > 0) {
         res += "//! pred: ";
-        for (auto pred : preds) res += pred + ',';
+        for (auto pred : *preds) res += pred + ',';
         res.pop_back();
         res += '\n';
     }
-    if (succs.size() > 0) {
+    if (succs->size() > 0) {
         res += "//! succ: ";
-        for (auto succ : succs) res += succ + ',';
+        for (auto succ : *succs) res += succ + ',';
         res.pop_back();
         res += '\n';
     }
@@ -165,7 +165,6 @@ std::string koopa::Block::to_string() const {
     for (auto stmt : *stmts) {
         res += '\t' + stmt->to_string() + '\n';
     }
-    res += '\t' + end_stmt->to_string() + '\n';
     return res;
 }
 
