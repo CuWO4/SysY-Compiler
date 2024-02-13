@@ -40,7 +40,8 @@ int main(int argc, const char *argv[]) {
 	auto ret = yyparse(ast);
 	assert(!ret);
 
-	auto koopa = ast->to_koopa();
+	koopa::ValueSaver value_saver;
+	auto koopa = ast->to_koopa(value_saver);
 
 	if (!strcmp(mode, "-test")) {
 		std::cout << koopa->to_string() << std::endl;
@@ -52,8 +53,8 @@ int main(int argc, const char *argv[]) {
 		os << koopa->to_riscv();
 	}
 	
-	// delete koopa;		//! re-free bug in ast_to_koopa.cpp: ast::BinaryExpr::to_koopa() and ast::UnaryExpr::to_koopa()
-	// delete ast;			//? fix it by move the ownership of values to koopa::Program
+	delete koopa;
+	delete ast;
 
 	return 0;
 }

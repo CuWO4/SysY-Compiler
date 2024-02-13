@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_set>
 
 namespace koopa {
 
@@ -537,6 +538,39 @@ public:
     }
 
     ~Program() override;
+};
+
+class ValueSaver {
+public:
+    std::unordered_set<Value *> vals = {};
+    void insert_val(Value *new_val) { vals.insert(new_val); }
+
+    Id *new_id(Type *type, std::string *lit) {
+
+        auto res = new Id(type, lit);
+        insert_val(res);
+        return res;
+
+    }
+
+    Const *new_const(int val) {
+
+        auto res = new Const(val);
+        insert_val(res);
+        return res;
+
+    }
+
+    Undef *new_undef(){
+
+        // TODO
+        return nullptr;
+
+    }
+
+    ~ValueSaver() { 
+        for (auto val : vals) delete val;
+    }
 };
 
 }

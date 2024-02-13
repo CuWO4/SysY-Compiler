@@ -28,11 +28,11 @@ namespace koopa_trans {
 
 static int tmp_var_count = 0;
 
-koopa::Base *ast::BinaryExpr::to_koopa() const {
+koopa::Base *ast::BinaryExpr::to_koopa(koopa::ValueSaver &value_saver) const {
     auto res = new koopa_trans::Stmts;
 
-    auto lv_stmts = static_cast<koopa_trans::Stmts *>(lv->to_koopa());
-    auto rv_stmts = static_cast<koopa_trans::Stmts *>(rv->to_koopa());
+    auto lv_stmts = static_cast<koopa_trans::Stmts *>(lv->to_koopa(value_saver));
+    auto rv_stmts = static_cast<koopa_trans::Stmts *>(rv->to_koopa(value_saver));
 
     koopa_trans::merge(*res, *lv_stmts, *rv_stmts);
 
@@ -40,7 +40,7 @@ koopa::Base *ast::BinaryExpr::to_koopa() const {
 
     auto generator = [&] (koopa::op::Op op, koopa::Value *elv, koopa::Value *erv) -> koopa::SymbolDef * {
             
-        res->last_val = new koopa::Id(
+        res->last_val = value_saver.new_id(
             new koopa::Int,
             new std::string('%' + std::to_string(tmp_var_count++))
         );
@@ -49,7 +49,7 @@ koopa::Base *ast::BinaryExpr::to_koopa() const {
             static_cast<koopa::Id *>(res->last_val),
             new koopa::Expr(
                 op,
-                elv,     //! re-free bug
+                elv,
                 erv
             )
         );
@@ -57,17 +57,17 @@ koopa::Base *ast::BinaryExpr::to_koopa() const {
 
     switch (op) {
         case op::LOGIC_AND: {
-            res->stmts.push_back(generator(koopa::op::NE, lv_stmts->last_val, new koopa::Const(0)));
+            res->stmts.push_back(generator(koopa::op::NE, lv_stmts->last_val, value_saver.new_const(0)));
             auto tmpa = res->last_val;
-            res->stmts.push_back(generator(koopa::op::NE, rv_stmts->last_val, new koopa::Const(0)));
+            res->stmts.push_back(generator(koopa::op::NE, rv_stmts->last_val, value_saver.new_const(0)));
             auto tmpb = res->last_val;
             new_stmt = generator(koopa::op::AND, tmpa, tmpb);
             break;
         }
         case op::LOGIC_OR: {
-            res->stmts.push_back(generator(koopa::op::NE, lv_stmts->last_val, new koopa::Const(0)));
+            res->stmts.push_back(generator(koopa::op::NE, lv_stmts->last_val, value_saver.new_const(0)));
             auto tmpa = res->last_val;
-            res->stmts.push_back(generator(koopa::op::NE, rv_stmts->last_val, new koopa::Const(0)));
+            res->stmts.push_back(generator(koopa::op::NE, rv_stmts->last_val, value_saver.new_const(0)));
             auto tmpb = res->last_val;
             new_stmt = generator(koopa::op::OR, tmpa, tmpb);
             break;
@@ -93,14 +93,14 @@ koopa::Base *ast::BinaryExpr::to_koopa() const {
     return res;
 }
 
-koopa::Base *ast::UnaryExpr::to_koopa() const {
-    auto lv_stmts = static_cast<koopa_trans::Stmts *>(lv->to_koopa());
+koopa::Base *ast::UnaryExpr::to_koopa(koopa::ValueSaver &value_saver) const {
+    auto lv_stmts = static_cast<koopa_trans::Stmts *>(lv->to_koopa(value_saver));
     
     auto generator = [&](koopa::op::Op op) {
         koopa::NotEndStmt *new_stmt;
         koopa::Id *new_id;
 
-        new_id = new koopa::Id(
+        new_id = value_saver.new_id(
             new koopa::Int,
             new std::string('%' + std::to_string(tmp_var_count++))
         );
@@ -109,7 +109,7 @@ koopa::Base *ast::UnaryExpr::to_koopa() const {
             new_id,
             new koopa::Expr(
                 op,
-                new koopa::Const(0),
+                value_saver.new_const(0),
                 lv_stmts->last_val
             )
         );
@@ -137,14 +137,14 @@ koopa::Base *ast::UnaryExpr::to_koopa() const {
     return lv_stmts;
 }
 
-koopa::Base *ast::Number::to_koopa() const {
+koopa::Base *ast::Number::to_koopa(koopa::ValueSaver &value_saver) const {
     auto res = new koopa_trans::Stmts;
-    res->last_val = new koopa::Const(val);
+    res->last_val = value_saver.new_const(val);
     return res;
 }
 
-koopa::Base *ast::Return::to_koopa() const {
-    auto res = static_cast<koopa_trans::Stmts *>(ret_val->to_koopa());
+koopa::Base *ast::Return::to_koopa(koopa::ValueSaver &value_saver) const {
+    auto res = static_cast<koopa_trans::Stmts *>(ret_val->to_koopa(value_saver));
     
     res->stmts.push_back(
         new koopa::Return(
@@ -155,42 +155,42 @@ koopa::Base *ast::Return::to_koopa() const {
     return res;
 }
 
-koopa::Base *ast::Block::to_koopa() const {
-    auto stmts = static_cast<koopa_trans::Stmts *>(stmt->to_koopa());
+koopa::Base *ast::Block::to_koopa(koopa::ValueSaver &value_saver) const {
+    auto stmts = static_cast<koopa_trans::Stmts *>(stmt->to_koopa(value_saver));
 
     return new koopa::Block(
-        new koopa::Id(new koopa::Label, new std::string("%entry")),
+        value_saver.new_id(new koopa::Label, new std::string("%entry")),
         stmts->stmts
     );
 }
 
-koopa::Base *ast::Int::to_koopa() const {
+koopa::Base *ast::Int::to_koopa(koopa::ValueSaver &value_saver) const {
     return new koopa::Int;
 }
 
-koopa::Base *ast::FuncDef::to_koopa() const {
+koopa::Base *ast::FuncDef::to_koopa(koopa::ValueSaver &value_saver) const {
     auto func_id = new std::string("");
     *func_id += "@" + *id;
     return new koopa::FuncDef(
-        new koopa::Id(
+        value_saver.new_id(
             new koopa::FuncType(
                 std::vector<koopa::Type *>(), 
-                static_cast<koopa::Type *>(func_type->to_koopa())
+                static_cast<koopa::Type *>(func_type->to_koopa(value_saver))
             ),
             func_id
         ),
         std::vector<koopa::FuncParamDecl *>(),
-        static_cast<koopa::Type *>(func_type->to_koopa()),
+        static_cast<koopa::Type *>(func_type->to_koopa(value_saver)),
         std::vector<koopa::Block *> {
-            static_cast<koopa::Block *>(block->to_koopa())
+            static_cast<koopa::Block *>(block->to_koopa(value_saver))
         }
     );
 }
 
-koopa::Base *ast::CompUnit::to_koopa() const {
+koopa::Base *ast::CompUnit::to_koopa(koopa::ValueSaver &value_saver) const {
     return new koopa::Program(
         std::vector<koopa::GlobalStmt *> {
-            static_cast<koopa::GlobalStmt *>(func_def->to_koopa())
+            static_cast<koopa::GlobalStmt *>(func_def->to_koopa(value_saver))
         }
     );
 }
