@@ -57,15 +57,15 @@ public:
 
     class FuncType : public Type {
     public:
-        std::vector<Type *>     *arg_types  = nullptr;
+        std::vector<Type *>     arg_types   = {};
         Type                    *ret_type   = nullptr;
 
         std::string to_string() const override;
 
-        FuncType(std::vector<Type *> *arg_types, Type *ret_type) :
+        FuncType(std::vector<Type *> arg_types, Type *ret_type) :
             arg_types(arg_types), ret_type(ret_type) {
 
-            for (auto arg_type : *arg_types) arg_type->pa = this;
+            for (auto arg_type : arg_types) arg_type->pa = this;
             ret_type->pa = this;
 
         }
@@ -135,13 +135,13 @@ class Initializer : public Base {
 
     class Aggregate : public Initializer {
     public:
-        std::vector<Initializer *> *initializers = nullptr;
+        std::vector<Initializer *> initializers = {};
 
         std::string to_string() const override;
 
-        Aggregate(std::vector<Initializer *> *initializers) : initializers(initializers) {
+        Aggregate(std::vector<Initializer *> initializers) : initializers(initializers) {
 
-            for (auto initializer : *initializers) initializer->pa = this;
+            for (auto initializer : initializers) initializer->pa = this;
 
         }
 
@@ -268,16 +268,16 @@ class Stmt : public Base {
             class FuncCall : public Rvalue, public NotEndStmt {
             public:
                 Id                      *id     = nullptr;
-                std::vector<Value *>    *args   = nullptr;
+                std::vector<Value *>    args    = {};
 
                 std::string to_string() const override;
 
-                FuncCall(Id *id, std::vector<Value *> *args) : id(id), args(args) {
+                FuncCall(Id *id, std::vector<Value *> args) : id(id), args(args) {
 
                     auto base_this = static_cast<Base *>(static_cast<NotEndStmt *>(this));
 
                     id->pa = base_this;
-                    for (auto arg : *args) arg->pa = base_this;
+                    for (auto arg : args) arg->pa = base_this;
 
                 }
 
@@ -402,23 +402,21 @@ class Stmt : public Base {
         class Block : public Base {
         public:
             Id                  *id         = nullptr;
-            std::vector<Stmt *> *stmts      = nullptr;
+            std::vector<Stmt *> stmts       = {};
 
-            std::vector<std::string> *preds;
-            std::vector<std::string> *succs;
+            std::vector<std::string> preds;
+            std::vector<std::string> succs;
 
             std::string to_string() const override;
 
             std::string to_riscv() const override;
 
-            Block(Id *id, std::vector<Stmt *> *stmts) :
+            Block(Id *id, std::vector<Stmt *> stmts) :
                 id(id), stmts(stmts) {
 
                 id->pa = this;
-                for (auto stmt : *stmts) stmt->pa = this;
+                for (auto stmt : stmts) stmt->pa = this;
 
-                preds = new std::vector<std::string>(); 
-                succs = new std::vector<std::string>();
             }
 
             ~Block() override;
@@ -445,22 +443,22 @@ class Stmt : public Base {
         class FuncDef : public GlobalStmt {
         public:
             Id                              *id                 = nullptr;
-            std::vector<FuncParamDecl *>    *func_param_decls   = nullptr;
+            std::vector<FuncParamDecl *>    func_param_decls    = {};
             Type                            *ret_type           = nullptr;
-            std::vector<Block *>            *blocks             = nullptr;
+            std::vector<Block *>            blocks              = {};
 
             std::string to_string() const override;
 
             std::string to_riscv() const override;
 
-            FuncDef(Id *id, std::vector<FuncParamDecl *> *func_param_decls,
-                    Type *ret_type, std::vector<Block *> *blocks) :
+            FuncDef(Id *id, std::vector<FuncParamDecl *> func_param_decls,
+                    Type *ret_type, std::vector<Block *> blocks) :
                 id(id), func_param_decls(func_param_decls), ret_type(ret_type), blocks(blocks) {
 
                 id->pa = this;
-                for (auto func_param_decl : *func_param_decls) func_param_decl->pa = this;
+                for (auto func_param_decl : func_param_decls) func_param_decl->pa = this;
                 ret_type->pa = this;
-                for (auto block : *blocks) block->pa = this;
+                for (auto block : blocks) block->pa = this;
 
             }
 
@@ -470,16 +468,16 @@ class Stmt : public Base {
         class FuncDecl : public GlobalStmt {
         public:
             Id                  *id             = nullptr;
-            std::vector<Type *> *param_types    = nullptr;
+            std::vector<Type *> param_types     = {};
             Type                *ret_type       = nullptr;
 
             std::string to_string() const override;
 
-            FuncDecl(Id *id, std::vector<Type *> *param_types, Type *ret_type) :
+            FuncDecl(Id *id, std::vector<Type *> param_types, Type *ret_type) :
                 id(id), param_types(param_types), ret_type(ret_type) {
 
                 id->pa = this;
-                for (auto param_type : *param_types) param_type->pa = this;
+                for (auto param_type : param_types) param_type->pa = this;
                 ret_type->pa = this;
 
             }
@@ -525,16 +523,16 @@ class Stmt : public Base {
 
 class Program : public Base {
 public:
-    std::vector<GlobalStmt*> *global_stmts = nullptr;
+    std::vector<GlobalStmt*> global_stmts;
 
     std::string to_string() const override;
 
     std::string to_riscv() const override;
 
-    Program(std::vector<GlobalStmt *> *global_stmts) : 
+    Program(std::vector<GlobalStmt *> global_stmts) : 
         global_stmts(global_stmts) {
 
-        for (auto global_stmt : *global_stmts) global_stmt->pa = this;
+        for (auto global_stmt : global_stmts) global_stmt->pa = this;
 
     }
 

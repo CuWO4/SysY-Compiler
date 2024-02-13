@@ -6,20 +6,17 @@
 namespace koopa_trans {
     class Stmts : public koopa::Base {
     public:
-        std::vector<koopa::Stmt *> *stmts = nullptr;
+        std::vector<koopa::Stmt *> stmts = {};
         koopa::Value *last_val = nullptr;
-
-        Stmts() { stmts = new std::vector<koopa::Stmt *>(); }
-        ~Stmts() { delete stmts; }
 
         std::string to_string() const { return ""; }
         std::string to_riscv() const { return ""; }
     };
 
     void merge(Stmts &res, Stmts &a, Stmts &b) {
-        auto &res_vec = *res.stmts;
-        auto &a_vec = *a.stmts;
-        auto &b_vec = *b.stmts;
+        auto &res_vec = res.stmts;
+        auto &a_vec = a.stmts;
+        auto &b_vec = b.stmts;
         res_vec.clear();
         res_vec.reserve(a_vec.size() + b_vec.size() + 5);
         res_vec.insert(res_vec.end(), a_vec.begin(), a_vec.end());
@@ -60,17 +57,17 @@ koopa::Base *ast::BinaryExpr::to_koopa() const {
 
     switch (op) {
         case op::LOGIC_AND: {
-            res->stmts->push_back(generator(koopa::op::NE, lv_stmts->last_val, new koopa::Const(0)));
+            res->stmts.push_back(generator(koopa::op::NE, lv_stmts->last_val, new koopa::Const(0)));
             auto tmpa = res->last_val;
-            res->stmts->push_back(generator(koopa::op::NE, rv_stmts->last_val, new koopa::Const(0)));
+            res->stmts.push_back(generator(koopa::op::NE, rv_stmts->last_val, new koopa::Const(0)));
             auto tmpb = res->last_val;
             new_stmt = generator(koopa::op::AND, tmpa, tmpb);
             break;
         }
         case op::LOGIC_OR: {
-            res->stmts->push_back(generator(koopa::op::NE, lv_stmts->last_val, new koopa::Const(0)));
+            res->stmts.push_back(generator(koopa::op::NE, lv_stmts->last_val, new koopa::Const(0)));
             auto tmpa = res->last_val;
-            res->stmts->push_back(generator(koopa::op::NE, rv_stmts->last_val, new koopa::Const(0)));
+            res->stmts.push_back(generator(koopa::op::NE, rv_stmts->last_val, new koopa::Const(0)));
             auto tmpb = res->last_val;
             new_stmt = generator(koopa::op::OR, tmpa, tmpb);
             break;
@@ -88,7 +85,7 @@ koopa::Base *ast::BinaryExpr::to_koopa() const {
         case op::MOD: new_stmt = generator(koopa::op::MOD, lv_stmts->last_val, rv_stmts->last_val); break;
     }
 
-    res->stmts->push_back(new_stmt);
+    res->stmts.push_back(new_stmt);
 
     delete lv_stmts;
     delete rv_stmts;
@@ -117,7 +114,7 @@ koopa::Base *ast::UnaryExpr::to_koopa() const {
             )
         );
 
-        lv_stmts->stmts->push_back(new_stmt);   
+        lv_stmts->stmts.push_back(new_stmt);   
         lv_stmts->last_val = new_id;
     };
 
@@ -149,7 +146,7 @@ koopa::Base *ast::Number::to_koopa() const {
 koopa::Base *ast::Return::to_koopa() const {
     auto res = static_cast<koopa_trans::Stmts *>(ret_val->to_koopa());
     
-    res->stmts->push_back(
+    res->stmts.push_back(
         new koopa::Return(
             res->last_val
         )
@@ -177,14 +174,14 @@ koopa::Base *ast::FuncDef::to_koopa() const {
     return new koopa::FuncDef(
         new koopa::Id(
             new koopa::FuncType(
-                new std::vector<koopa::Type *>(), 
+                std::vector<koopa::Type *>(), 
                 static_cast<koopa::Type *>(func_type->to_koopa())
             ),
             func_id
         ),
-        new std::vector<koopa::FuncParamDecl *>(),
+        std::vector<koopa::FuncParamDecl *>(),
         static_cast<koopa::Type *>(func_type->to_koopa()),
-        new std::vector<koopa::Block *> {
+        std::vector<koopa::Block *> {
             static_cast<koopa::Block *>(block->to_koopa())
         }
     );
@@ -192,7 +189,7 @@ koopa::Base *ast::FuncDef::to_koopa() const {
 
 koopa::Base *ast::CompUnit::to_koopa() const {
     return new koopa::Program(
-        new std::vector<koopa::GlobalStmt *> {
+        std::vector<koopa::GlobalStmt *> {
             static_cast<koopa::GlobalStmt *>(func_def->to_koopa())
         }
     );

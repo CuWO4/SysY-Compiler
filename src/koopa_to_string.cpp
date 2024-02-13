@@ -19,10 +19,10 @@ std::string koopa::FuncType::to_string() const {
     auto res = std::string("");
 
     res += '(';
-    for (auto arg_type : *arg_types) {
+    for (auto arg_type : arg_types) {
         res += arg_type->to_string() + ',';
     }
-    if (arg_types->size() > 0) res.pop_back();
+    if (arg_types.size() > 0) res.pop_back();
     res += ")";
 
     if (!(typeid(ret_type) == typeid(koopa::Void))) {
@@ -65,10 +65,10 @@ std::string koopa::Aggregate::to_string() const {
     auto res = std::string("");
 
     res += '{';
-    for (auto initializer : *initializers) {
+    for (auto initializer : initializers) {
         res += initializer->to_string() + ',';
     }
-    if (initializers->size() > 0) res.pop_back();
+    if (initializers.size() > 0) res.pop_back();
     res += '}';
 
     return res;
@@ -111,10 +111,10 @@ std::string koopa::FuncCall::to_string() const {
     auto res = std::string("");
 
     res += "call\t" + id->to_string() + '(';
-    for (auto arg : *args) {
+    for (auto arg : args) {
         res += arg->to_string() + ',';
     }
-    if (args->size() > 0) res.pop_back();
+    if (args.size() > 0) res.pop_back();
     res += ')';
 
     return res;
@@ -148,21 +148,21 @@ std::string koopa::Return::to_string() const {
 std::string koopa::Block::to_string() const {
     auto res = std::string("");
 
-    if (preds->size() > 0) {
+    if (preds.size() > 0) {
         res += "//! pred: ";
-        for (auto pred : *preds) res += pred + ',';
+        for (auto pred : preds) res += pred + ',';
         res.pop_back();
         res += '\n';
     }
-    if (succs->size() > 0) {
+    if (succs.size() > 0) {
         res += "//! succ: ";
-        for (auto succ : *succs) res += succ + ',';
+        for (auto succ : succs) res += succ + ',';
         res.pop_back();
         res += '\n';
     }
 
     res += id->to_string() + ":\n";
-    for (auto stmt : *stmts) {
+    for (auto stmt : stmts) {
         res += '\t' + stmt->to_string() + '\n';
     }
     return res;
@@ -180,17 +180,17 @@ std::string koopa::FuncDef::to_string() const {
     res += "fun\t" + id->to_string();
 
     res += '(';
-    for (auto func_param_decl : *func_param_decls) {
+    for (auto func_param_decl : func_param_decls) {
         res += func_param_decl->to_string() + ',';
     }
-    if (func_param_decls->size() > 0) res.pop_back();
+    if (func_param_decls.size() > 0) res.pop_back();
     res += ')';
 
     if (!(typeid(ret_type) == typeid(koopa::Void))) {
         res += ": " + ret_type->to_string();
     }
     
-    for (auto block : *blocks) {
+    for (auto block : blocks) {
         res += "{\n";
         res += block->to_string();
         res += "}\n";
@@ -209,10 +209,10 @@ std::string koopa::FuncDecl::to_string() const {
     res += id->to_string();
 
     res += '(';
-    for (auto param_type : *param_types) {
+    for (auto param_type : param_types) {
         res += param_type->to_string() + ',';
     }
-    if (param_types->size() > 0) res.pop_back();
+    if (param_types.size() > 0) res.pop_back();
     res += ')';
 
     if (!(typeid(ret_type) == typeid(koopa::Void))) {
@@ -233,7 +233,7 @@ std::string koopa::GlobalSymbolDef::to_string() const {
 std::string koopa::Program::to_string() const {
     auto res = std::string("");
 
-    for (auto global_stmt : *global_stmts) {
+    for (auto global_stmt : global_stmts) {
         res += global_stmt->to_string() + '\n';
     }
 

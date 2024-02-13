@@ -9,10 +9,10 @@ koopa::Pointer::~Pointer() {
 }
 
 koopa::FuncType::~FuncType() {
-    for (auto arg_type : *arg_types) {
+    for (auto arg_type : arg_types) {
         if (arg_type != nullptr) delete arg_type;
     }
-    if (arg_types != nullptr) delete arg_types;
+
     if (ret_type != nullptr) delete ret_type;
 
 }
@@ -23,10 +23,9 @@ koopa::Id::~Id() {
 }
 
 koopa::Aggregate::~Aggregate() {
-    for (auto initializer : *initializers) {
+    for (auto initializer : initializers) {
         if (initializer != nullptr) delete initializer;
     }
-    if (initializers != nullptr) delete initializers;
 }
 
 koopa::MemoryDecl::~MemoryDecl() {
@@ -54,10 +53,9 @@ koopa::Expr::~Expr() {
 
 koopa::FuncCall::~FuncCall() {
     if (id != nullptr) delete id;
-    for (auto arg : *args) {
+    for (auto arg : args) {
         if (arg != nullptr) delete arg;
     }
-    if (args != nullptr) delete args;
 }
 
 koopa::SymbolDef::~SymbolDef() {
@@ -91,13 +89,9 @@ koopa::Return::~Return() {
 
 koopa::Block::~Block() {
     if (id != nullptr) delete id;
-    for (auto stmt : *stmts) {
+    for (auto stmt : stmts) {
         if (stmt != nullptr) delete stmt;
     }
-    if (stmts != nullptr) delete stmts;
-
-    if (preds != nullptr) delete preds;
-    if (succs != nullptr) delete succs;
 }
 
 koopa::FuncParamDecl::~FuncParamDecl() {
@@ -107,23 +101,20 @@ koopa::FuncParamDecl::~FuncParamDecl() {
 
 koopa::FuncDef::~FuncDef() {
     if (id != nullptr) delete id;
-    for (auto func_param_decl : *func_param_decls) {
+    for (auto func_param_decl : func_param_decls) {
         if (func_param_decl != nullptr) delete func_param_decl;
     }
-    if (func_param_decls != nullptr) delete func_param_decls;
     if (ret_type != nullptr) delete ret_type;
-    for (auto block : *blocks) {
+    for (auto block : blocks) {
         if (block != nullptr) delete block;
     }
-    if (blocks != nullptr) delete blocks;
 }
 
 koopa::FuncDecl::~FuncDecl() {
     if (id != nullptr) delete id;
-    for (auto param_type : *param_types) {
+    for (auto param_type : param_types) {
         if (param_type != nullptr) delete param_type;
     }
-    if (param_types != nullptr) delete param_types;
     if (ret_type != nullptr) delete ret_type;
 }
 
@@ -138,9 +129,8 @@ koopa::GlobalSymbolDef::~GlobalSymbolDef() {
 }
 
 koopa::Program::~Program() {
-    for (auto global_stmt : *global_stmts) {
+    for (auto global_stmt : global_stmts) {
         if (global_stmt != nullptr) delete global_stmt;
     }
-    if (global_stmts != nullptr) delete global_stmts;
 }
 

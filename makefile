@@ -18,8 +18,8 @@ CXXFLAGS += -O2
 else
 # CFLAGS += -g -O0
 # CXXFLAGS += -g -O0
-CFLAGS += -O2
-CXXFLAGS += -O2
+CFLAGS += -O0
+CXXFLAGS += -O0
 endif
 
 # Compilers

@@ -38,7 +38,7 @@ std::string koopa::Return::to_riscv() const {
 std::string koopa::Block::to_riscv() const {
     auto res = std::string("");
 
-    for(auto stmt : *stmts) {
+    for(auto stmt : stmts) {
         res += stmt->to_riscv();
     }
 
@@ -50,7 +50,7 @@ std::string koopa::FuncDef::to_riscv() const {
 
     res += id->to_riscv() + ":\n";
 
-    for (auto block : *blocks) {
+    for (auto block : blocks) {
         res += block->to_riscv();
     }
 
@@ -63,7 +63,7 @@ std::string koopa::Program::to_riscv() const {
     res += "\t.text\n";
     res += "\t.global main\n";
 
-    for (auto global_stmt : *global_stmts) {
+    for (auto global_stmt : global_stmts) {
         res += global_stmt->to_riscv();
     }
 
