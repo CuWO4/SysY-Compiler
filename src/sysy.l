@@ -27,15 +27,16 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 {LineComment}
 {BlockComment}
 
-"||"              { return TK_LOGIC_OR; }
-"&&"              { return TK_LOGIC_AND; }
-"=="              { return TK_EQ; }
-"!="              { return TK_NEQ; }
-"<="              { return TK_LEQ; }
-">="              { return TK_GEQ; }
+"||"            { return TK_LOGIC_OR; }
+"&&"            { return TK_LOGIC_AND; }
+"=="            { return TK_EQ; }
+"!="            { return TK_NEQ; }
+"<="            { return TK_LEQ; }
+">="            { return TK_GEQ; }
 
 "int"           { return TK_INT; }
 "return"        { return TK_RETURN; }
+"const"         { return TK_CONST; }
 
 {Identifier}    { yylval.str_val = new std::string(yytext); return TK_IDENT; }
 

@@ -41,11 +41,11 @@ std::string koopa::Void::to_string() const {
 
 std::string koopa::Id::to_string() const {
     auto res = std::string(lit != nullptr ? *lit : "");
-    if ((typeid(*type) == typeid(koopa::Int))
-        || (typeid(*type) == typeid(koopa::Array))
-        || (typeid(*type) == typeid(koopa::Pointer))) {
-        res += " /*! type: " + type->to_string() + " */"; 
-    }
+    // if ((typeid(*type) == typeid(koopa::Int))
+    //     || (typeid(*type) == typeid(koopa::Array))
+    //     || (typeid(*type) == typeid(koopa::Pointer))) {
+    //     res += " /*! type: " + type->to_string() + " */"; 
+    // }
     return res;
 }
 
@@ -125,11 +125,11 @@ std::string koopa::SymbolDef::to_string() const {
 }
 
 std::string koopa::StoreValue::to_string() const {
-    return "store\t" + value->to_string() + ',' + addr->to_string();
+    return "store\t" + value->to_string() + ", " + addr->to_string();
 }
 
 std::string koopa::StoreInitializer::to_string() const {
-    return "store\t" + initializer->to_string() + ',' + addr->to_string();
+    return "store\t" + initializer->to_string() + ", " + addr->to_string();
 }
 
 std::string koopa::Branch::to_string() const {

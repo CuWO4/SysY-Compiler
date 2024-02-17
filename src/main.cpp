@@ -15,8 +15,6 @@
 extern FILE *yyin;
 extern int yyparse(ast::CompUnit *&ast);
 
-// #define DEBUG__
-
 int main(int argc, const char *argv[]) {
 	#ifndef DEBUG__
 	assert(argc == 5);
@@ -25,7 +23,7 @@ int main(int argc, const char *argv[]) {
 	auto input = argv[2];
 	auto output = argv[4];
 	#else 
-	auto mode = "-riscv";
+	auto mode = "-test";
 	auto input = "../test/hello/hello.c";
 	auto output = "../test/hello/hello.koopa";
 	#endif
@@ -36,31 +34,37 @@ int main(int argc, const char *argv[]) {
 	std::ofstream os;
 	os.open(output, std::ios::out);
 
-	ast::CompUnit *ast;
-	auto ret = yyparse(ast);
-	assert(!ret);
+	try {
 
-	koopa::ValueSaver value_saver;
-	auto koopa = ast->to_koopa(value_saver);
+		ast::CompUnit *ast;
+		auto ret = yyparse(ast);
+		assert(!ret);
 
-	if (!strcmp(mode, "-test")) {
-		std::cout << koopa->to_string() << std::endl;
-	}
-	else if (!strcmp(mode, "-koopa")) {
-		os << koopa->to_string();
+		koopa::ValueSaver value_saver;
+			auto koopa = ast->to_koopa(value_saver);
+
+		if (!strcmp(mode, "-test")) {
+			std::cout << ast->debug() << std::endl;
+		}
+		else if (!strcmp(mode, "-koopa")) {
+			os << koopa->to_string();
+		} 
+		else if (!strcmp(mode, "-riscv")) {
+
+			std::string riscv_string = "";
+			riscv_trans::Info riscv_info = riscv_trans::Info();
+
+			koopa->to_riscv(riscv_string, riscv_info);
+
+			os << riscv_string;
+		}
+
+	} catch (std::string &s) {
+		std::cerr << s << std::endl;
 	} 
-	else if (!strcmp(mode, "-riscv")) {
-
-		std::string riscv_string = "";
-		riscv_trans::Info riscv_info = riscv_trans::Info();
-
-		koopa->to_riscv(riscv_string, riscv_info);
-
-		os << riscv_string;
-	}
 	
-	delete koopa;
-	delete ast;
+	// delete koopa;
+	// delete ast;
 
 	return 0;
 }

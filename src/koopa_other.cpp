@@ -21,3 +21,27 @@ void koopa::Block::set_id_offset(int &offset) {
     }
 
 }
+
+namespace koopa {
+    namespace op {
+        std::function<int(int, int)> op_func[] = {
+            [] (int a, int b) { return a != b; },
+            [] (int a, int b) { return a == b; },
+            [] (int a, int b) { return a > b; },
+            [] (int a, int b) { return a < b; },
+            [] (int a, int b) { return a >= b; },
+            [] (int a, int b) { return a <= b; },
+            [] (int a, int b) { return a + b; },
+            [] (int a, int b) { return a - b; },
+            [] (int a, int b) { return a * b; },
+            [] (int a, int b) { return a / b; },
+            [] (int a, int b) { return a % b; },
+            [] (int a, int b) { return a & b; },
+            [] (int a, int b) { return a | b; },
+            [] (int a, int b) { return a ^ b; },
+            [] (int a, int b) { return a << b; },
+            [] (int a, int b) { return (unsigned)a >> (unsigned)b; },
+            [] (int a, int b) { return a >> b; },
+        };
+    }
+}

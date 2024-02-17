@@ -5,7 +5,9 @@
 #include <assert.h>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <unordered_set>
+#include <functional>
 
 namespace riscv_trans {
     class Info {
@@ -115,6 +117,9 @@ public:
     };
 
 class Value : public Base {
+public:
+    bool is_const = false;
+    int val = 0;
 };
 
     class Id : public Value {
@@ -128,7 +133,12 @@ class Value : public Base {
 
         void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-        Id(Type *type, std::string *lit) : type(type), lit(lit) {
+        Id(Type *type, std::string *lit, bool is_const = false, int val = 0) 
+            : type(type), lit(lit) {
+                
+            this->val = val;
+            this->is_const = is_const;
+
             type->pa = this;
         }
 
@@ -137,13 +147,14 @@ class Value : public Base {
 
     class Const : public Value {
     public:
-        int val = 0;
-
         std::string to_string() const override;
 
         void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-        Const(int val) : val(val) {}
+        Const(int val)  {
+            this->val = val;
+            this->is_const = true;
+        }
     };
 
     class Undef : public Value {
@@ -212,13 +223,15 @@ public:
             public:
                 Type *type = nullptr;
 
-                std::string to_string() const override;
-
                 MemoryDecl(Type *type) : type(type) {
 
                     type->pa = this;
 
                 }
+
+                std::string to_string() const override;
+
+                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
                 ~MemoryDecl() override;
             };
@@ -227,13 +240,15 @@ public:
             public:
                 Id *addr = nullptr;
 
-                std::string to_string() const override;
-
                 Load(Id *addr) : addr(addr) {
 
                     addr->pa = this;
 
                 }
+
+                std::string to_string() const override;
+
+                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
                 ~Load() override;
             };
@@ -277,6 +292,8 @@ public:
                     NE, EQ, GT, LT, GE, LE, ADD, SUB, MUL,
                     DIV, MOD, AND, OR, XOR, SHL, SHR, SAR,
                 };  
+
+                extern std::function<int(int, int)> op_func[17];
             }
 
             class Expr : public Rvalue {
@@ -284,11 +301,15 @@ public:
                 op::Op op;
                 Value *lv, *rv = nullptr;
 
+                bool is_const = false;
+                int val = 0;
+
                 std::string to_string() const override;
 
                 void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-                Expr(op::Op op, Value *lv, Value *rv) : op(op), lv(lv), rv(rv) {
+                Expr(op::Op op, Value *lv, Value *rv, bool is_const = false) 
+                    : op(op), lv(lv), rv(rv), is_const(is_const) {
 
                     lv->pa = this;
                     rv->pa = this;
@@ -346,14 +367,16 @@ public:
                 Value   *value  = nullptr;
                 Id      *addr   = nullptr;
 
-                std::string to_string() const override;
-
                 StoreValue(Value *value, Id *addr) : value(value), addr(addr) {
 
                     value->pa = this;
                     addr->pa = this;
 
                 }
+
+                std::string to_string() const override;
+
+                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
                 ~StoreValue() override;
             };
@@ -580,34 +603,60 @@ public:
 
 class ValueSaver {
 public:
-    std::unordered_set<Value *> vals = {};
-    void insert_val(Value *new_val) { vals.insert(new_val); }
+    std::unordered_map<std::string, Id *> ids = {};
+    void insert_id(Id *new_id) { 
+        ids.insert(
+            std::pair<std::string, Id *>(*new_id->lit, new_id)
+        ); 
+    }
 
-    Id *new_id(Type *type, std::string *lit) {
+    Id *new_id(Type *type, std::string *lit, bool is_const = false, int val = 0) {
 
-        auto res = new Id(type, lit);
-        insert_val(res);
+        auto res = new Id(type, lit, is_const, val);
+        insert_id(res);
         return res;
 
+    }
+
+    /* return nullptr if id is not defined */
+    Id *get_id(std::string lit) {
+        auto res = ids.find(lit);
+
+        if (res == ids.end()) {
+            return nullptr;
+        }
+        else {
+            return res->second;
+        }
+    }
+
+    std::unordered_set<Const *> consts = {};
+    void insert_const(Const *new_const) {
+        consts.insert(new_const);
     }
 
     Const *new_const(int val) {
 
         auto res = new Const(val);
-        insert_val(res);
+        insert_const(res);
         return res;
 
     }
 
-    Undef *new_undef(){
+    Undef *undef = nullptr;
+    ValueSaver() {
+        //TODO
+        // undef = new Undef;
+    }
 
-        // TODO
-        return nullptr;
-
+    Undef *new_undef() {
+        return undef;
     }
 
     ~ValueSaver() { 
-        for (auto val : vals) delete val;
+        for (auto id_pair : ids) delete id_pair.second;
+        for (auto const_val : consts) delete const_val;
+        if (undef != nullptr) delete undef;
     }
 };
 

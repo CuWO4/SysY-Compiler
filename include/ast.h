@@ -10,13 +10,35 @@ namespace ast {
 
 class Base {
 public:
-    virtual ~Base() = default;
-
     virtual koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const = 0;
 
     virtual std::string debug() const = 0;
+
+    virtual ~Base() = default;
 };
 
+class Type : public Base {
+};
+
+    class Int : public Type {
+    public:
+        koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override;
+
+        std::string debug() const override;
+    };
+
+class Id : public Base {
+public:
+    std::string *lit;
+
+    Id(std::string *lit) : lit(lit) {}
+
+    koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override;
+
+    std::string debug() const override;
+
+    ~Id() override;
+};
 
 namespace op {
     enum BinaryOp {
@@ -77,6 +99,52 @@ class Expr : public Base {
 class Stmt : public Base {
 };
 
+    class VarDef : public Base{
+    public:
+        Id *id = nullptr;
+        bool has_init = false;
+        Expr *init = nullptr;
+
+        VarDef(Id *id) : id(id) {}
+        VarDef(Id *id, Expr *init) : id(id), init(init) { has_init = true; }
+
+        koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override { return nullptr; }
+
+        std::string debug() const override;
+
+        ~VarDef();
+    };
+    class VarDecl : public Stmt {
+    public:
+        Type *type = nullptr;
+        std::vector<VarDef *> var_defs = {};
+        bool is_const = false;
+
+        VarDecl(Type *type, std::vector<VarDef *> var_defs, 
+                bool is_const = false) :
+            type(type), var_defs(var_defs), is_const(is_const) {}
+
+        koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override;
+
+        std::string debug() const override;
+
+        ~VarDecl() override;
+    };
+
+    class Assign : public Stmt {
+    public:
+        Id *id = nullptr;
+        Expr *rval = nullptr;
+
+        Assign(Id *id, Expr *rval) : id(id), rval(rval) {}
+
+        koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override;
+
+        std::string debug() const override;
+
+        ~Assign() override;
+    };
+
     class Return : public Stmt {
     public:
         Expr *ret_val = nullptr;
@@ -86,13 +154,15 @@ class Stmt : public Base {
         koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override;
 
         std::string debug() const override;
+
+        ~Return() override;
     };
 
 class Block : public Base {
 public:
-    Stmt *stmt = nullptr;
+    std::vector<Stmt *> stmts = {};
 
-    Block(Stmt *stmt) : stmt(stmt) {}
+    Block(std::vector<Stmt *> stmts) : stmts(stmts) {}
 
     koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override;
 
@@ -100,16 +170,6 @@ public:
 
     ~Block() override;
 };
-
-class Type : public Base {
-};
-
-    class Int : public Type {
-    public:
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override;
-
-        std::string debug() const override;
-    };
 
 class FuncDef : public Base {
 public:
