@@ -17,21 +17,9 @@ namespace riscv_trans {
         std::string res_lit = "";
 
         bool is_reg_used[7] = { 0 };
-        std::string get_unused_reg() {
-            for (int i = 0; i < 7; i++) {
-                if (is_reg_used[i] == false) {
-                    is_reg_used[i] = true;
-                    return 't' + std::to_string(i);
-                }
-            }
-            throw "not enough reg";
-        }
+        std::string get_unused_reg();
 
-        void refresh_reg(std::string lit) {
-            int i = atoi(lit.substr(1, 1).c_str());
-            assert(i >= 0 && i <= 6);
-            is_reg_used[i] = false;
-        }
+        void refresh_reg(std::string lit);
     };
 }
 

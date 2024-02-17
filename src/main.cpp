@@ -23,7 +23,7 @@ int main(int argc, const char *argv[]) {
 	auto input = argv[2];
 	auto output = argv[4];
 	#else 
-	auto mode = "-test";
+	auto mode = "-riscv";
 	auto input = "../test/hello/hello.c";
 	auto output = "../test/hello/hello.koopa";
 	#endif
@@ -59,12 +59,12 @@ int main(int argc, const char *argv[]) {
 			os << riscv_string;
 		}
 
+		delete koopa;
+		delete ast;
+
 	} catch (std::string &s) {
 		std::cerr << s << std::endl;
 	} 
-	
-	// delete koopa;
-	// delete ast;
 
 	return 0;
 }

@@ -133,18 +133,27 @@ void koopa::Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
 }
 
 void koopa::MemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    //TODO
 }
 
 void koopa::Load::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    //TODO
+    auto target_reg = info.get_unused_reg();
+
+    str += build_inst("lw", target_reg, build_mem(addr->sf_offset));
 }
 
 void koopa::StoreValue::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    //TODO
+    value->to_riscv(str, info);
+    auto val_reg = info.res_lit;
+
+    str += build_inst("sw", val_reg, build_mem(addr->sf_offset));
+
+    info.refresh_reg(val_reg);
 }
 
 void koopa::SymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
+
+    if (typeid(*val) == typeid(koopa::MemoryDecl)) return;
+
     val->to_riscv(str, info);
     auto source_reg = info.res_lit;
 

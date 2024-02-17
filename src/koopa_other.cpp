@@ -45,3 +45,19 @@ namespace koopa {
         };
     }
 }
+
+std::string riscv_trans::Info::get_unused_reg() {
+    for (int i = 0; i < 7; i++) {
+        if (is_reg_used[i] == false) {
+            is_reg_used[i] = true;
+            return 't' + std::to_string(i);
+        }
+    }
+    throw "not enough reg";
+}
+
+void riscv_trans::Info::refresh_reg(std::string lit) {
+    int i = lit.at(1) - '0';
+    assert(i >= 0 && i <= 6);
+    is_reg_used[i] = false;
+}

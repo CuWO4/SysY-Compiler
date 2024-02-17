@@ -186,7 +186,7 @@ koopa::Base *ast::Id::to_koopa(koopa::ValueSaver &value_saver) const {
     else {
 
         auto new_id = new koopa::Id(
-            static_cast<koopa::Pointer *>(id_koopa->type)->pointed_type, //! re-free bug
+            static_cast<koopa::Pointer *>(id_koopa->type)->pointed_type, //!? re-free bug
             new std::string('%' + std::to_string(tmp_var_count++))
         );
 
