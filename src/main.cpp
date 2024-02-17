@@ -25,7 +25,7 @@ int main(int argc, const char *argv[]) {
 	auto input = argv[2];
 	auto output = argv[4];
 	#else 
-	auto mode = "-test";
+	auto mode = "-riscv";
 	auto input = "../test/hello/hello.c";
 	auto output = "../test/hello/hello.koopa";
 	#endif
@@ -50,7 +50,13 @@ int main(int argc, const char *argv[]) {
 		os << koopa->to_string();
 	} 
 	else if (!strcmp(mode, "-riscv")) {
-		os << koopa->to_riscv();
+
+		std::string riscv_string = "";
+		riscv_trans::Info riscv_info = riscv_trans::Info();
+
+		koopa->to_riscv(riscv_string, riscv_info);
+
+		os << riscv_string;
 	}
 	
 	delete koopa;

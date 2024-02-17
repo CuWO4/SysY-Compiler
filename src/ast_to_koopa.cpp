@@ -10,7 +10,7 @@ namespace koopa_trans {
         koopa::Value *last_val = nullptr;
 
         std::string to_string() const { return ""; }
-        std::string to_riscv() const { return ""; }
+        void to_riscv(std::string &str, riscv_trans::Info &info) const {}
     };
 
     void merge(Stmts &res, Stmts &a, Stmts &b) {

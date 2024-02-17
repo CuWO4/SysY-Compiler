@@ -1,5 +1,5 @@
 int main() {
     // comment
     /* comment */
-    return 2 && 4;
+    return +(- -!6) || 3 + 1 != 5;
 } 

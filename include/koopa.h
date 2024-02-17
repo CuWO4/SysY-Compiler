@@ -2,8 +2,36 @@
 #define KOOPA_H_
 
 #include <iostream>
+#include <assert.h>
+#include <string>
 #include <vector>
 #include <unordered_set>
+
+namespace riscv_trans {
+    class Info {
+    public:
+        int stack_frame_size = 0;
+
+        std::string res_lit = "";
+
+        bool is_reg_used[7] = { 0 };
+        std::string get_unused_reg() {
+            for (int i = 0; i < 7; i++) {
+                if (is_reg_used[i] == false) {
+                    is_reg_used[i] = true;
+                    return 't' + std::to_string(i);
+                }
+            }
+            throw "not enough reg";
+        }
+
+        void refresh_reg(std::string lit) {
+            int i = atoi(lit.substr(1, 1).c_str());
+            assert(i >= 0 && i <= 6);
+            is_reg_used[i] = false;
+        }
+    };
+}
 
 namespace koopa {
 
@@ -13,14 +41,14 @@ public:
 
     virtual std::string to_string() const = 0;
 
-    virtual std::string to_riscv() const = 0;
+    virtual void to_riscv(std::string &str, riscv_trans::Info &info) const = 0;
 
     virtual ~Base() = default;
 };
 
 class Type : public Base {
 public:
-    std::string to_riscv() const override { return ""; }
+    void to_riscv(std::string &str, riscv_trans::Info &info) const override {}
 };
 
     class Int : public Type {
@@ -94,9 +122,11 @@ class Value : public Base {
         Type        *type   = nullptr;
         std::string *lit    = nullptr;
 
+        int sf_offset = 0;
+
         std::string to_string() const override;
 
-        std::string to_riscv() const override;
+        void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
         Id(Type *type, std::string *lit) : type(type), lit(lit) {
             type->pa = this;
@@ -111,7 +141,7 @@ class Value : public Base {
 
         std::string to_string() const override;
 
-        std::string to_riscv() const override;
+        void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
         Const(int val) : val(val) {}
     };
@@ -169,6 +199,8 @@ class Initializer : public Base {
 //
 
 class Stmt : public Base {
+public:
+    bool is_unit = true;
 };
     class NotEndStmt : public Stmt {
     };
@@ -254,7 +286,7 @@ class Stmt : public Base {
 
                 std::string to_string() const override;
 
-                std::string to_riscv() const override;
+                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
                 Expr(op::Op op, Value *lv, Value *rv) : op(op), lv(lv), rv(rv) {
 
@@ -292,12 +324,14 @@ class Stmt : public Base {
 
             std::string to_string() const override;
 
-            std::string to_riscv() const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
             SymbolDef(Id *id, Rvalue *val) : id(id), val(val) {
 
                 id->pa = this;
                 val->pa = this;
+
+                is_unit = false;
 
             }
 
@@ -386,7 +420,7 @@ class Stmt : public Base {
 
             std::string to_string() const override;
 
-            std::string to_riscv() const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
             Return(Value *val) : val(val) {
 
@@ -408,9 +442,13 @@ class Stmt : public Base {
             std::vector<std::string> preds;
             std::vector<std::string> succs;
 
+            int get_stack_frame_size();
+
+            void set_id_offset(int &offset);
+
             std::string to_string() const override;
 
-            std::string to_riscv() const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
             Block(Id *id, std::vector<Stmt *> stmts) :
                 id(id), stmts(stmts) {
@@ -450,7 +488,7 @@ class Stmt : public Base {
 
             std::string to_string() const override;
 
-            std::string to_riscv() const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
             FuncDef(Id *id, std::vector<FuncParamDecl *> func_param_decls,
                     Type *ret_type, std::vector<Block *> blocks) :
@@ -528,7 +566,7 @@ public:
 
     std::string to_string() const override;
 
-    std::string to_riscv() const override;
+    void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
     Program(std::vector<GlobalStmt *> global_stmts) : 
         global_stmts(global_stmts) {
