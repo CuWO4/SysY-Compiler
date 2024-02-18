@@ -29,7 +29,9 @@ int main(int argc, const char *argv[]) {
 	#endif
 
 	yyin = fopen(input, "r");
-	assert(yyin);
+	if (yyin == nullptr) {
+		std::cerr << "unable to open file `" << output << '`' <<std::endl;
+	}
 
 	std::ofstream os;
 	os.open(output, std::ios::out);
@@ -63,7 +65,7 @@ int main(int argc, const char *argv[]) {
 		delete ast;
 
 	} catch (std::string &s) {
-		std::cerr << s << std::endl;
+		std::cerr << "error: " << s << std::endl;
 	} 
 
 	return 0;

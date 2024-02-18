@@ -184,5 +184,5 @@ number
 %%
 
 void yyerror(ast::CompUnit *&ast, const char *s) {
-    std::cerr << "error: " << s << std::endl;
-	}
+    throw std::string("error: ") + s;
+}

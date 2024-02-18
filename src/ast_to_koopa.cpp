@@ -174,7 +174,7 @@ koopa::Base *ast::Id::to_koopa(koopa::ValueSaver &value_saver) const {
     auto id_koopa = value_saver.get_id('@' + *lit);
 
     if (id_koopa == nullptr) {
-        throw "unknown identifier `" + *lit + '`';
+        throw "undeclared identifier `" + *lit + '`';
     }
 
     if (id_koopa->is_const) {
@@ -278,6 +278,15 @@ koopa::Base *ast::VarDecl::to_koopa(koopa::ValueSaver &value_saver) const {
 
 koopa::Base *ast::Assign::to_koopa(koopa::ValueSaver &value_saver) const {
     auto res = static_cast<koopa_trans::Stmts *>(rval->to_koopa(value_saver));
+
+    auto id_koopa = value_saver.get_id('@' + *id->lit);
+    
+    if (id_koopa == nullptr) {
+        throw "undeclared identifier `" + *id->lit + '`';
+    }
+    if (id_koopa->is_const) {
+        throw "assigning to a const identifier `" + *id->lit + '`';
+    }
 
     res->stmts.push_back(
         new koopa::StoreValue(
