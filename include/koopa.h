@@ -190,7 +190,6 @@ class Initializer : public Base {
 
     };
 
-// Stmt and Rvalue virtually inherit Base because :
 //
 //#          *-> Stmt ----*-> FuncCall
 //#         /            /

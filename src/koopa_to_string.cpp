@@ -1,4 +1,5 @@
 #include "../include/koopa.h"
+#include "../include/assign.h"
 
 #include <string>
 
@@ -83,19 +84,19 @@ std::string koopa::UndefInitializer::to_string() const {
 }
 
 std::string koopa::MemoryDecl::to_string() const {
-    return "alloc\t" + type->to_string();
+    return assign("alloc") + type->to_string();
 }
 
 std::string koopa::Load::to_string() const {
-    return "load\t" + addr->to_string();
+    return assign("load") + addr->to_string();
 }
 
 std::string koopa::GetPtr::to_string() const {
-    return "getptr\t" + base->to_string() + ',' + offset->to_string();
+    return assign("getptr") + base->to_string() + ',' + offset->to_string();
 }
 
 std::string koopa::GetElemPtr::to_string() const {
-    return "getelemptr\t" + base->to_string() + ',' + offset->to_string();
+    return assign("getelemptr", 12) + base->to_string() + ',' + offset->to_string();
 }
 
 static std::string BINARY_OP_NAME[] = {
@@ -104,13 +105,13 @@ static std::string BINARY_OP_NAME[] = {
 };
 
 std::string koopa::Expr::to_string() const {
-    return BINARY_OP_NAME[op] + '\t' + lv->to_string() + ", " + rv->to_string();
+    return assign(BINARY_OP_NAME[op]) + lv->to_string() + ", " + rv->to_string();
 }
 
 std::string koopa::FuncCall::to_string() const {
     auto res = std::string("");
 
-    res += "call\t" + id->to_string() + '(';
+    res += assign("call") + id->to_string() + '(';
     for (auto arg : args) {
         res += arg->to_string() + ',';
     }
@@ -125,24 +126,24 @@ std::string koopa::SymbolDef::to_string() const {
 }
 
 std::string koopa::StoreValue::to_string() const {
-    return "store\t" + value->to_string() + ", " + addr->to_string();
+    return assign("store") + value->to_string() + ", " + addr->to_string();
 }
 
 std::string koopa::StoreInitializer::to_string() const {
-    return "store\t" + initializer->to_string() + ", " + addr->to_string();
+    return assign("store") + initializer->to_string() + ", " + addr->to_string();
 }
 
 std::string koopa::Branch::to_string() const {
-    return "br\t" + cond->to_string() + ',' 
+    return assign("br") + cond->to_string() + ',' 
         + target1->to_string() + ',' + target2->to_string();
 }
 
 std::string koopa::Jump::to_string() const {
-    return "jump\t" + target->to_string();
+    return assign("jump") + target->to_string();
 }
 
 std::string koopa::Return::to_string() const {
-    return "ret\t" + val->to_string();
+    return assign("ret") + val->to_string();
 }
 
 std::string koopa::Block::to_string() const {
@@ -177,7 +178,7 @@ std::string koopa::FuncDef::to_string() const {
 
     res += "//! type: " + id->type->to_string() + '\n';
 
-    res += "fun\t" + id->to_string();
+    res += "fun " + id->to_string();
 
     res += '(';
     for (auto func_param_decl : func_param_decls) {
@@ -204,7 +205,7 @@ std::string koopa::FuncDecl::to_string() const {
 
     res += "//! type: " + id->type->to_string() + '\n';
 
-    res += "decl\t";
+    res += assign("decl");
 
     res += id->to_string();
 
@@ -223,11 +224,11 @@ std::string koopa::FuncDecl::to_string() const {
 }
 
 std::string koopa::GlobalMemoryDecl::to_string() const {
-    return "alloc\t" + type->to_string() + ',' + initializer->to_string();
+    return assign("alloc") + type->to_string() + ',' + initializer->to_string();
 }
 
 std::string koopa::GlobalSymbolDef::to_string() const {
-    return "global\t" + id->to_string() + '=' + decl->to_string();
+    return assign("global") + id->to_string() + '=' + decl->to_string();
 }
 
 std::string koopa::Program::to_string() const {

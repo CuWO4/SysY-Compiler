@@ -1,4 +1,5 @@
 #include "../include/koopa.h"
+#include "../include/assign.h"
 
 #include <string>
 
@@ -7,8 +8,8 @@ static std::string to_riscv_style(std::string symbol) {
 }
 
 static std::string build_inst(std::string op_code, std::string r1 = {}, std::string r2 = {}, std::string r3 = {}) {
-    auto res = '\t' + op_code;
-    if (r1 != "") res += '\t' + r1;
+    auto res = '\t' + assign(op_code);
+    if (r1 != "") res += r1;
     if (r2 != "") res += ", " + r2;
     if (r3 != "") res += ", " + r3;
     res += '\n';
