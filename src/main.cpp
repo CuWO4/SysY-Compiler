@@ -23,7 +23,7 @@ int main(int argc, const char *argv[]) {
 	auto input = argv[2];
 	auto output = argv[4];
 	#else 
-	auto mode = "-riscv";
+	auto mode = "-test";
 	auto input = "../test/hello/hello.c";
 	auto output = "../test/hello/hello.koopa";
 	#endif
@@ -42,26 +42,29 @@ int main(int argc, const char *argv[]) {
 		auto ret = yyparse(ast);
 		assert(!ret);
 
-		koopa::ValueSaver value_saver;
-			auto koopa = ast->to_koopa(value_saver);
+		// koopa::ValueSaver value_saver;
+		// 	auto koopa = ast->to_koopa(value_saver);
 
 		if (!strcmp(mode, "-test")) {
+			ast::CompUnit *ast;
+			auto ret = yyparse(ast);
+			assert(!ret);
 			std::cout << ast->debug() << std::endl;
 		}
 		else if (!strcmp(mode, "-koopa")) {
-			os << koopa->to_string();
+			// os << koopa->to_string();
 		} 
 		else if (!strcmp(mode, "-riscv")) {
 
 			std::string riscv_string = "";
 			riscv_trans::Info riscv_info = riscv_trans::Info();
 
-			koopa->to_riscv(riscv_string, riscv_info);
+			// koopa->to_riscv(riscv_string, riscv_info);
 
 			os << riscv_string;
 		}
 
-		delete koopa;
+		// delete koopa;
 		delete ast;
 
 	} catch (std::string &s) {

@@ -7,7 +7,12 @@
 
     int yylex();
     void yyerror(ast::CompUnit *&ast, const char *s);
-	}
+}
+
+%{
+    int cur_nesting_level = 0;
+    int cur_nesting_count[4096] = { 0 };
+%}
 
 %parse-param    { ast::CompUnit *&ast }
 
@@ -61,10 +66,18 @@ type
 ;
 
 block
-    : '{' block_items '}' {
-        $$ = new ast::Block(*$2);
+    : block_start block_items block_end {
+        $$ = new ast::Block(*$2, cur_nesting_level - 1, cur_nesting_count[cur_nesting_level - 1] - 1);
     }
 ;
+
+block_start : '{' {
+    cur_nesting_count[cur_nesting_level++]++;
+}
+
+block_end : '}' {
+    cur_nesting_level--;
+}
 
 block_items
     : block_items block_item {
@@ -79,6 +92,11 @@ block_items
 block_item
     : decl
     | stmt
+    | expr ';' {
+        // TODO
+    }
+    | block
+    | ';'           { /*do nothing */ }
     | error ';'     { yyerrok; }
 ;
 

@@ -2,6 +2,7 @@
 /tmp
 /.vscode
 /.VSCodeCounter
+/devlog
  
 *.txt
 *.tmp

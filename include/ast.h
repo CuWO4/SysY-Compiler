@@ -158,18 +158,21 @@ class Stmt : public Base {
         ~Return() override;
     };
 
-class Block : public Base {
-public:
-    std::vector<Stmt *> stmts = {};
+    class Block : public Stmt {
+    public:
+        std::vector<Stmt *> stmts = {};
 
-    Block(std::vector<Stmt *> stmts) : stmts(stmts) {}
+        int nesting_level, nesting_count;
 
-    koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override;
+        Block(std::vector<Stmt *> stmts, int nesting_level, int nesting_count) 
+            : stmts(stmts), nesting_level(nesting_level), nesting_count(nesting_count) {}
 
-    std::string debug() const override;
+        koopa::Base *to_koopa(koopa::ValueSaver &value_saver) const override;
 
-    ~Block() override;
-};
+        std::string debug() const override;
+
+        ~Block() override;
+    };
 
 class FuncDef : public Base {
 public:
