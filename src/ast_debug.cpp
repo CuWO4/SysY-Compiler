@@ -56,7 +56,7 @@ std::string ast::Return::debug() const {
 std::string ast::Block::debug() const {
     auto res = std::string("");
 
-    res += "\tBlock {\n";
+    res += "\tBlock (" + std::to_string(nesting_level) + ':' + std::to_string(nesting_count) + ") {\n";
 
     for (auto stmt : stmts) {
         res += "\t\t" + stmt->debug() + '\n';

@@ -67,7 +67,7 @@ type
 
 block
     : block_start block_items block_end {
-        $$ = new ast::Block(*$2, cur_nesting_level - 1, cur_nesting_count[cur_nesting_level - 1] - 1);
+        $$ = new ast::Block(*$2, cur_nesting_level, cur_nesting_count[cur_nesting_level] - 1); //? why
     }
 ;
 
@@ -202,5 +202,5 @@ number
 %%
 
 void yyerror(ast::CompUnit *&ast, const char *s) {
-    throw std::string("error: ") + s;
+    throw std::string(s);
 }

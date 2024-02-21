@@ -15,6 +15,12 @@
 extern FILE *yyin;
 extern int yyparse(ast::CompUnit *&ast);
 
+void test() {
+	ast::CompUnit *ast;
+	yyparse(ast);
+	std::cout << ast->debug() << std::endl;
+}
+
 int main(int argc, const char *argv[]) {
 	#ifndef DEBUG__
 	assert(argc == 5);
@@ -38,33 +44,31 @@ int main(int argc, const char *argv[]) {
 
 	try {
 
-		ast::CompUnit *ast;
-		auto ret = yyparse(ast);
-		assert(!ret);
-
-		// koopa::ValueSaver value_saver;
-		// 	auto koopa = ast->to_koopa(value_saver);
-
 		if (!strcmp(mode, "-test")) {
-			ast::CompUnit *ast;
-			auto ret = yyparse(ast);
-			assert(!ret);
-			std::cout << ast->debug() << std::endl;
+			test();
+			return 0;
 		}
-		else if (!strcmp(mode, "-koopa")) {
-			// os << koopa->to_string();
+
+		ast::CompUnit *ast;
+		yyparse(ast);
+
+		koopa::ValueSaver value_saver;
+			auto koopa = ast->to_koopa(value_saver);
+
+		if (!strcmp(mode, "-koopa")) {
+			os << koopa->to_string();
 		} 
 		else if (!strcmp(mode, "-riscv")) {
 
 			std::string riscv_string = "";
 			riscv_trans::Info riscv_info = riscv_trans::Info();
 
-			// koopa->to_riscv(riscv_string, riscv_info);
+			koopa->to_riscv(riscv_string, riscv_info);
 
 			os << riscv_string;
 		}
 
-		// delete koopa;
+		delete koopa;
 		delete ast;
 
 	} catch (std::string &s) {
