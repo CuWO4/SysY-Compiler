@@ -1,7 +1,6 @@
 #include "../include/ast.h"
 
 #include <string>
-#include <assert.h>
 
 static const char *binary_op_name[] = {
     "||", "&&", "==", "!=", "<", ">", "<=", ">=", 
@@ -56,7 +55,7 @@ std::string ast::Return::debug() const {
 std::string ast::Block::debug() const {
     auto res = std::string("");
 
-    res += "\tBlock (" + std::to_string(nesting_level) + ':' + std::to_string(nesting_count) + ") {\n";
+    res += "\tBlock (" + std::to_string(nesting_info->nesting_level) + ':' + std::to_string(nesting_info->nesting_count) + ") {\n";
 
     for (auto stmt : stmts) {
         res += "\t\t" + stmt->debug() + '\n';

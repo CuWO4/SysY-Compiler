@@ -122,7 +122,7 @@ std::string koopa::FuncCall::to_string() const {
 }
 
 std::string koopa::SymbolDef::to_string() const {
-    return id->to_string() + "\t= " + val->to_string();
+    return id->to_string() + " = " + val->to_string();
 }
 
 std::string koopa::StoreValue::to_string() const {

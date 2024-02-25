@@ -1,6 +1,8 @@
 #ifndef KOOPA_H_
 #define KOOPA_H_
 
+#include "ast.h"
+
 #include <iostream>
 #include <assert.h>
 #include <string>
@@ -597,20 +599,35 @@ public:
         ); 
     }
 
-    Id *new_id(Type *type, std::string *lit, bool is_const = false, int val = 0) {
+    static std::string *build_name(std::string *lit, ast::NestingInfo *nesting_info) {
+        if (!nesting_info->need_suffix) return lit;
+        
+        auto res = new std::string(*lit 
+            + '_' + std::to_string(nesting_info->nesting_level) 
+            + '_' + std::to_string(nesting_info->nesting_count));
+        return res;
+    }
 
-        auto res = new Id(type, lit, is_const, val);
+    Id *new_id(Type *type, std::string *lit, ast::NestingInfo *nesting_info, bool is_const = false, int val = 0) {
+
+        auto res = new Id(type, build_name(lit, nesting_info), is_const, val);
         insert_id(res);
         return res;
 
     }
 
+    bool is_id_declared(std::string lit, ast::NestingInfo *nesting_info) {
+        return ids.find(*build_name(&lit, nesting_info)) != ids.end();
+    }
+
     /* return nullptr if id is not defined */
-    Id *get_id(std::string lit) {
-        auto res = ids.find(lit);
+    Id *get_id(std::string lit, ast::NestingInfo *nesting_info) {
+        if (nesting_info == nullptr) return nullptr;
+
+        auto res = ids.find(*build_name(&lit, nesting_info));
 
         if (res == ids.end()) {
-            return nullptr;
+            return get_id(lit, nesting_info->pa);
         }
         else {
             return res->second;
@@ -641,9 +658,10 @@ public:
     }
 
     ~ValueSaver() { 
-        for (auto id_pair : ids) delete id_pair.second;
-        for (auto const_val : consts) delete const_val;
-        if (undef != nullptr) delete undef;
+        // TODO in koopa::Base *ast::Id::to_koopa(), refree of pointed type
+        // for (auto id_pair : ids) delete id_pair.second;
+        // for (auto const_val : consts) delete const_val;
+        // if (undef != nullptr) delete undef;
     }
 };
 

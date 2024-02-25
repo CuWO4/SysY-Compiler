@@ -140,6 +140,8 @@ void koopa::Load::to_riscv(std::string &str, riscv_trans::Info &info) const {
     auto target_reg = info.get_unused_reg();
 
     str += build_inst("lw", target_reg, build_mem(addr->sf_offset));
+
+    info.res_lit = target_reg;
 }
 
 void koopa::StoreValue::to_riscv(std::string &str, riscv_trans::Info &info) const {

@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <iostream>
 #include <fstream>
-#include <memory>
 #include <string>
 
 #include <string.h>
@@ -29,14 +28,14 @@ int main(int argc, const char *argv[]) {
 	auto input = argv[2];
 	auto output = argv[4];
 	#else 
-	auto mode = "-test";
+	auto mode = "-riscv";
 	auto input = "../test/hello/hello.c";
 	auto output = "../test/hello/hello.koopa";
 	#endif
 
 	yyin = fopen(input, "r");
 	if (yyin == nullptr) {
-		std::cerr << "unable to open file `" << output << '`' <<std::endl;
+		throw std::string("unable to open file `") + output + '`';
 	}
 
 	std::ofstream os;
@@ -53,7 +52,7 @@ int main(int argc, const char *argv[]) {
 		yyparse(ast);
 
 		koopa::ValueSaver value_saver;
-			auto koopa = ast->to_koopa(value_saver);
+		auto koopa = ast->to_koopa(value_saver, nullptr);
 
 		if (!strcmp(mode, "-koopa")) {
 			os << koopa->to_string();
@@ -68,8 +67,8 @@ int main(int argc, const char *argv[]) {
 			os << riscv_string;
 		}
 
-		delete koopa;
-		delete ast;
+		// delete koopa;
+		// delete ast;
 
 	} catch (std::string &s) {
 		std::cerr << "error: " << s << std::endl;

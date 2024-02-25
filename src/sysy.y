@@ -10,8 +10,11 @@
 }
 
 %{
+    #include "../include/ast.h"
+
     int cur_nesting_level = 0;
     int cur_nesting_count[4096] = { 0 };
+    ast::NestingInfo *cur_nesting_info = nullptr;
 %}
 
 %parse-param    { ast::CompUnit *&ast }
@@ -66,17 +69,21 @@ type
 ;
 
 block
-    : block_start block_items block_end {
-        $$ = new ast::Block(*$2, cur_nesting_level, cur_nesting_count[cur_nesting_level] - 1); //? why
+    : block_start block_items '}' {
+        $$ = new ast::Block(*$2, cur_nesting_info);
+
+        cur_nesting_level--;
+
+        cur_nesting_info = cur_nesting_info->pa;
     }
 ;
 
 block_start : '{' {
-    cur_nesting_count[cur_nesting_level++]++;
-}
+    auto new_nesting_info = new ast::NestingInfo(cur_nesting_level, cur_nesting_count[cur_nesting_level], cur_nesting_info);
+    cur_nesting_info = new_nesting_info;
 
-block_end : '}' {
-    cur_nesting_level--;
+    cur_nesting_count[cur_nesting_level]++;
+    cur_nesting_level++;
 }
 
 block_items

@@ -132,5 +132,11 @@ test-lv4-koopa :
 test-lv4-riscv :
 	autotest -riscv -s lv4 /root/compiler
 
+test-lv5-koopa :
+	autotest -koopa -s lv5 /root/compiler
+
+test-lv5-riscv :
+	autotest -riscv -s lv5 /root/compiler
+
 docker :
 	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler  maxxing/compiler-dev bash 
