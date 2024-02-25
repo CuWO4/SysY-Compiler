@@ -16,6 +16,10 @@ static std::string build_inst(std::string op_code, std::string r1 = {}, std::str
     return res;
 }
 
+static std::string build_comment(const koopa::Base *obj) {
+    return "\t# " + obj->to_string() + '\n';
+}
+
 static std::string build_mem(int offset, std::string base = "sp") { 
     return std::to_string(offset) + '(' + base + ')';
 }
@@ -145,6 +149,9 @@ void koopa::Load::to_riscv(std::string &str, riscv_trans::Info &info) const {
 }
 
 void koopa::StoreValue::to_riscv(std::string &str, riscv_trans::Info &info) const {
+
+    str += build_comment(this);
+
     value->to_riscv(str, info);
     auto val_reg = info.res_lit;
 
@@ -154,6 +161,8 @@ void koopa::StoreValue::to_riscv(std::string &str, riscv_trans::Info &info) cons
 }
 
 void koopa::SymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
+
+    str += build_comment(this);
 
     if (typeid(*val) == typeid(koopa::MemoryDecl)) return;
 
@@ -166,6 +175,8 @@ void koopa::SymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const
 }
 
 void koopa::Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
+
+    str += build_comment(this);
 
     val->to_riscv(str, info);
     str += build_inst("mv", "a0", info.res_lit);

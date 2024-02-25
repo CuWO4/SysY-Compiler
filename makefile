@@ -114,6 +114,12 @@ test-hello-koopa : $(BUILD_DIR)/$(TARGET_EXEC)
 test-hello-riscv : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S
 
+test-all-koopa :
+	autotest -koopa /root/compiler
+
+test-all-riscv :
+	autotest -riscv /root/compiler
+
 test-lv1-koopa :
 	autotest -koopa -s lv1 /root/compiler
 
