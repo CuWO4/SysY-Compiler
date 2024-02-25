@@ -88,7 +88,7 @@ block_start : '{' {
 
 block_items
     : block_items block_item {
-        $1->push_back(static_cast<ast::Stmt *>($2));
+        if ($2 != nullptr) $1->push_back(static_cast<ast::Stmt *>($2));
         $$ = $1;
     }
     | {
@@ -103,7 +103,7 @@ block_item
         // TODO
     }
     | block
-    | ';'           { /*do nothing */ }
+    | ';'           { $$ = nullptr; }
     | error ';'     { yyerrok; }
 ;
 
