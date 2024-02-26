@@ -442,12 +442,14 @@ public:
 
         class Return : public EndStmt {
         public:
+            bool has_return_val = true;
             Value *val = nullptr;
 
             std::string to_string() const override;
 
             void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
+            Return() : has_return_val(false) {}
             Return(Value *val) : val(val) {
 
                 val->pa = this;

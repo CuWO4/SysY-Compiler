@@ -147,7 +147,7 @@ std::string koopa::Jump::to_string() const {
 }
 
 std::string koopa::Return::to_string() const {
-    return assign("ret") + val->to_string();
+    return assign("ret") + (has_return_val ? val->to_string() : "");
 }
 
 std::string koopa::Block::to_string() const {

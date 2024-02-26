@@ -142,6 +142,9 @@ stmt
     | TK_RETURN expr ';' {
         $$ = new ast::Return(static_cast<ast::Expr *>($2));
     }
+    | TK_RETURN ';' {
+        $$ = new ast::Return();
+    }
 ;
 
 expr

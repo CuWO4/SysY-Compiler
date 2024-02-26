@@ -176,9 +176,11 @@ class Stmt : public Base {
 
     class Return : public Stmt {
     public:
+        bool has_return_val = true;
         Expr *ret_val = nullptr;
 
-        Return(Expr *ret_val = nullptr) : ret_val(ret_val) {}
+        Return() : has_return_val(false) {}
+        Return(Expr *ret_val) : ret_val(ret_val) {}
 
         koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
 

@@ -187,9 +187,13 @@ void koopa::Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
 
     str += build_comment(this);
 
-    val->to_riscv(str, info);
-    str += build_inst("mv", "a0", info.res_lit);
-    info.refresh_reg(info.res_lit);
+    if (has_return_val) {
+
+        val->to_riscv(str, info);
+        str += build_inst("mv", "a0", info.res_lit);
+        info.refresh_reg(info.res_lit);
+        
+    }
 
     if (info.stack_frame_size != 0) {
         str += build_inst("addi", "sp", "sp", std::to_string(info.stack_frame_size));

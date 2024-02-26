@@ -53,7 +53,7 @@ std::string ast::Assign::debug() const {
 }
 
 std::string ast::Return::debug() const {
-    return "Return { " + ret_val->debug() + " }";
+    return has_return_val ? "Return { " + ret_val->debug() + " }" : "Return";
 }
 
 std::string ast::Block::debug() const {

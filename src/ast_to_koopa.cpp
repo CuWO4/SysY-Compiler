@@ -310,6 +310,14 @@ koopa::Base *ast::Assign::to_koopa(koopa::ValueSaver &value_saver, ast::NestingI
 }
 
 koopa::Base *ast::Return::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
+    if (!has_return_val) {
+        auto res = new koopa_trans::Stmts();
+        res->stmts.push_back(
+            new koopa::Return()
+        );
+        return res;
+    }
+
     auto res = static_cast<koopa_trans::Stmts *>(ret_val->to_koopa(value_saver, nesting_info));
     
     res->stmts.push_back(
