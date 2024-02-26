@@ -44,6 +44,10 @@ koopa::GetElemPtr::~GetElemPtr() {
 koopa::Expr::~Expr() {
 }
 
+koopa::ExprStmt::~ExprStmt() {
+    if (expr != nullptr) delete expr;
+}
+
 koopa::FuncCall::~FuncCall() {
 }
 

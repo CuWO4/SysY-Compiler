@@ -192,12 +192,6 @@ class Initializer : public Base {
 
     };
 
-//
-//#          *-> Stmt ----*-> FuncCall
-//#         /            /
-//#  Base -*---> Rvalue *
-//
-
 class Stmt : public Base {
 public:
     bool is_unit = true;
@@ -308,7 +302,20 @@ public:
                 ~Expr() override;
             };
 
-            class FuncCall : public Rvalue, public NotEndStmt {
+                class ExprStmt : public NotEndStmt {
+                public:
+                    Expr *expr = nullptr;
+
+                    ExprStmt(Expr *expr) : expr(expr) {}
+
+                    std::string to_string() const override;
+
+                    void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+
+                    ~ExprStmt() override;
+                };
+
+            class FuncCall : public Rvalue {
             public:
                 Id                      *id     = nullptr;
                 std::vector<Value *>    args    = {};
@@ -317,7 +324,7 @@ public:
 
                 FuncCall(Id *id, std::vector<Value *> args) : id(id), args(args) {
 
-                    auto base_this = static_cast<Base *>(static_cast<NotEndStmt *>(this));
+                    auto base_this = this;
 
                     id->pa = base_this;
                     for (auto arg : args) arg->pa = base_this;
@@ -326,6 +333,13 @@ public:
 
                 ~FuncCall() override;
             };
+
+                class FuncCallStmt : public NotEndStmt {
+                public:
+                    FuncCall *func_call = nullptr;
+
+                    // TODO
+                };
 
         class SymbolDef : public NotEndStmt {
         public:

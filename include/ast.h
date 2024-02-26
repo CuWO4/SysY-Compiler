@@ -115,6 +115,19 @@ class Expr : public Base {
 class Stmt : public Base {
 };
 
+    class ExprStmt : public Stmt {
+    public:
+        Expr *expr = nullptr;;
+
+        ExprStmt(Expr *expr) : expr(expr) {}
+
+        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+
+        std::string debug() const override;
+
+        ~ExprStmt() override;        
+    };
+
     class VarDef : public Base{
     public:
         Id *id = nullptr;

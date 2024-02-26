@@ -108,6 +108,10 @@ std::string koopa::Expr::to_string() const {
     return assign(BINARY_OP_NAME[op]) + lv->to_string() + ", " + rv->to_string();
 }
 
+std::string koopa::ExprStmt::to_string() const {
+    return expr->to_string();
+}
+
 std::string koopa::FuncCall::to_string() const {
     auto res = std::string("");
 

@@ -29,6 +29,10 @@ std::string ast::Number::debug() const {
     return std::to_string(val);
 }
 
+std::string ast::ExprStmt::debug() const {
+    return expr->debug();
+}
+
 std::string ast::VarDef::debug() const {
     return id->debug() +
         (has_init ? " = " + init->debug() : "") + ',';

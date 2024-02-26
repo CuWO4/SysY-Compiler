@@ -137,6 +137,15 @@ void koopa::Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
     info.res_lit = target_reg;
 }
 
+void koopa::ExprStmt::to_riscv(std::string &str, riscv_trans::Info &info) const {
+
+    str += build_comment(this);
+
+    expr->to_riscv(str, info);
+
+    info.refresh_reg(info.res_lit);
+}
+
 void koopa::MemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
 }
 

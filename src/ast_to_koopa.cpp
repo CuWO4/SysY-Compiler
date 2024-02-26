@@ -171,6 +171,10 @@ koopa::Base *ast::Number::to_koopa(koopa::ValueSaver &value_saver, ast::NestingI
     return res;
 }
 
+koopa::Base *ast::ExprStmt::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
+    return expr->to_koopa(value_saver, nesting_info);
+}
+
 koopa::Base *ast::Id::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
     auto res = new koopa_trans::Stmts;
 

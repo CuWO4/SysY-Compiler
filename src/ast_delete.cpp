@@ -13,6 +13,10 @@ ast::Id::~Id() {
     if (lit != nullptr) delete lit;
 }
 
+ast::ExprStmt::~ExprStmt() {
+    if (expr != nullptr) delete expr;
+}
+
 ast::VarDef::~VarDef() {
     if (id != nullptr) delete id;
     if (init != nullptr) delete init;

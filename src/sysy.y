@@ -100,7 +100,7 @@ block_item
     : decl
     | stmt
     | expr ';' {
-        // TODO
+        $$ = new ast::ExprStmt(static_cast<ast::Expr *>($1));
     }
     | block
     | ';'           { $$ = nullptr; }
