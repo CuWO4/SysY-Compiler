@@ -1,7 +1,12 @@
 #include "../include/ast.h"
 #include "../include/koopa.h"
 
+#define extern_
+#include "../include/def.h"
+#undef extern_
+
 #include "../build/sysy.tab.hpp"
+
 
 #include <cassert>
 #include <cstdio>
@@ -20,30 +25,46 @@ void test() {
 	std::cout << ast->debug() << std::endl;
 }
 
-int main(int argc, const char *argv[]) {
+// [mode, input, output]
+void handle_args(int argc, const char *argv[], std::string &mode, std::string &input, std::string &output) {
 	#ifndef DEBUG__
-	assert(argc == 5);
 
-	auto mode = argv[1];
-	auto input = argv[2];
-	auto output = argv[4];
-	#else 
-	auto mode = "-riscv";
-	auto input = "../test/hello/hello.c";
-	auto output = "../test/hello/hello.koopa";
-	#endif
+	debug_mode = false;
 
-	yyin = fopen(input, "r");
-	if (yyin == nullptr) {
-		throw std::string("unable to open file `") + output + '`';
+	for (int i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "-koopa") || !strcmp(argv[i], "-riscv")) mode = argv[i];
+		else if (!strcmp(argv[i], "-o")) {
+			assert(i + 1 < argc);
+			output = argv[++i];
+		}
+		else if (!strcmp(argv[i], "-debug")) debug_mode = true;
+		else input = argv[i];
 	}
 
-	std::ofstream os;
-	os.open(output, std::ios::out);
+	#else 
 
+	mode = "-riscv";
+	input = "../test/hello/hello.c";
+	output = "../test/hello/hello.koopa";
+	debug_mode = true;
+
+	#endif
+}
+
+int main(int argc, const char *argv[]) {
 	try {
+		std::string mode = {}, input = {}, output = {};
+		handle_args(argc, argv, mode, input, output);
 
-		if (!strcmp(mode, "-test")) {
+		yyin = fopen(input.c_str(), "r");
+		if (yyin == nullptr) {
+			throw std::string("unable to open file `") + output + '`';
+		}
+
+		std::ofstream os;
+		os.open(output, std::ios::out);
+
+		if (mode == "-test") {
 			test();
 			return 0;
 		}
@@ -54,10 +75,10 @@ int main(int argc, const char *argv[]) {
 		koopa::ValueSaver value_saver;
 		auto koopa = ast->to_koopa(value_saver, nullptr);
 
-		if (!strcmp(mode, "-koopa")) {
+		if (mode == "-koopa") {
 			os << koopa->to_string();
 		} 
-		else if (!strcmp(mode, "-riscv")) {
+		else if (mode == "-riscv") {
 
 			std::string riscv_string = "";
 			riscv_trans::Info riscv_info = riscv_trans::Info();

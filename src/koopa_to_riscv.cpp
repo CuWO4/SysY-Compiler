@@ -1,5 +1,6 @@
 #include "../include/koopa.h"
 #include "../include/assign.h"
+#include "../include/def.h"
 
 #include <string>
 
@@ -17,7 +18,7 @@ static std::string build_inst(std::string op_code, std::string r1 = {}, std::str
 }
 
 static std::string build_comment(const koopa::Base *obj) {
-    return "\t# " + obj->to_string() + '\n';
+    return debug_mode ? "\t# " + obj->to_string() + '\n' : "";
 }
 
 static std::string build_mem(int offset, std::string base = "sp") { 

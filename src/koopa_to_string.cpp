@@ -1,5 +1,6 @@
 #include "../include/koopa.h"
 #include "../include/assign.h"
+#include "../include/def.h"
 
 #include <string>
 
@@ -42,11 +43,13 @@ std::string koopa::Void::to_string() const {
 
 std::string koopa::Id::to_string() const {
     auto res = std::string(lit != nullptr ? *lit : "");
-    // if ((typeid(*type) == typeid(koopa::Int))
-    //     || (typeid(*type) == typeid(koopa::Array))
-    //     || (typeid(*type) == typeid(koopa::Pointer))) {
-    //     res += " /*! type: " + type->to_string() + " */"; 
-    // }
+    if (debug_mode) {
+        if ((typeid(*type) == typeid(koopa::Int))
+            || (typeid(*type) == typeid(koopa::Array))
+            || (typeid(*type) == typeid(koopa::Pointer))) {
+            res += " /*! type: " + type->to_string() + " */"; 
+        }
+    }
     return res;
 }
 
@@ -153,17 +156,19 @@ std::string koopa::Return::to_string() const {
 std::string koopa::Block::to_string() const {
     auto res = std::string("");
 
-    if (preds.size() > 0) {
-        res += "//! pred: ";
-        for (auto pred : preds) res += pred + ',';
-        res.pop_back();
-        res += '\n';
-    }
-    if (succs.size() > 0) {
-        res += "//! succ: ";
-        for (auto succ : succs) res += succ + ',';
-        res.pop_back();
-        res += '\n';
+    if (debug_mode) {
+        if (preds.size() > 0) {
+            res += "//! pred: ";
+            for (auto pred : preds) res += pred + ',';
+            res.pop_back();
+            res += '\n';
+        }
+        if (succs.size() > 0) {
+            res += "//! succ: ";
+            for (auto succ : succs) res += succ + ',';
+            res.pop_back();
+            res += '\n';
+        }
     }
 
     res += id->to_string() + ":\n";
@@ -180,7 +185,7 @@ std::string koopa::FuncParamDecl::to_string() const {
 std::string koopa::FuncDef::to_string() const {
     auto res = std::string("");
 
-    res += "//! type: " + id->type->to_string() + '\n';
+    if (debug_mode) res += "//! type: " + id->type->to_string() + '\n';
 
     res += "fun " + id->to_string();
 
@@ -207,7 +212,7 @@ std::string koopa::FuncDef::to_string() const {
 std::string koopa::FuncDecl::to_string() const {
     auto res = std::string("");
 
-    res += "//! type: " + id->type->to_string() + '\n';
+    if (debug_mode) res += "//! type: " + id->type->to_string() + '\n';
 
     res += assign("decl");
 

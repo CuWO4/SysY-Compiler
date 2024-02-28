@@ -114,6 +114,12 @@ test-hello-koopa : $(BUILD_DIR)/$(TARGET_EXEC)
 test-hello-riscv : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S
 
+test-hello-koopa-debug : $(BUILD_DIR)/$(TARGET_EXEC)
+	$(BUILD_DIR)/$(TARGET_EXEC) -koopa ./test/hello/hello.c -o ./test/hello/hello.koopa -debug
+
+test-hello-riscv-debug : $(BUILD_DIR)/$(TARGET_EXEC)
+	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S -debug
+
 test-all-koopa :
 	autotest -koopa /root/compiler
 
