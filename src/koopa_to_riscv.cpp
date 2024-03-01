@@ -20,7 +20,7 @@ static std::string build_inst(std::string op_code,
 }
 
 static std::string build_comment(const koopa::Base *obj) {
-    return debug_mode ? "\t# " + obj->to_string() + '\n' : "";
+    return debug_mode_riscv ? "\t# " + obj->to_string() + '\n' : "";
 }
 
 static std::string build_mem(int offset, std::string base = "sp") { 

@@ -5,6 +5,11 @@
 #define extern_ extern
 #endif
 
-extern_ bool debug_mode;
+/*  
+ * if debug_mode == true, there would be additional comments in 
+ * generated koopa/assembly containing relative information 
+ */
+extern_ bool debug_mode_koopa;
+extern_ bool debug_mode_riscv;
 
 #endif

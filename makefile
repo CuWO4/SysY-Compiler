@@ -90,12 +90,6 @@ $(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y
 
 -include $(DEPS)
 
-.PHONY : clean once lldb
-.PHONY : test-hello-koopa test-hello-riscv
-.PHONY : test-lv1-koopa test-lv1-riscv
-.PHONY : test-lv3-koopa test-lv3-riscv
-.PHONY : docker
-
 once:
 	$(CXX) $(SRCS) $(LDFLAGS) -lpthread -ldl -o $(BUILD_DIR)/$(TARGET_EXEC)
 
@@ -115,10 +109,10 @@ test-hello-riscv : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S
 
 test-hello-koopa-debug : $(BUILD_DIR)/$(TARGET_EXEC)
-	$(BUILD_DIR)/$(TARGET_EXEC) -koopa ./test/hello/hello.c -o ./test/hello/hello.koopa -debug
+	$(BUILD_DIR)/$(TARGET_EXEC) -koopa ./test/hello/hello.c -o ./test/hello/hello.koopa -dbg-k
 
 test-hello-riscv-debug : $(BUILD_DIR)/$(TARGET_EXEC)
-	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S -debug
+	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S -dbg-r
 
 test-all-koopa :
 	autotest -koopa /root/compiler
