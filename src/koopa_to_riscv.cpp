@@ -8,8 +8,10 @@ static std::string to_riscv_style(std::string symbol) {
     return symbol.substr(1, symbol.length() - 1);
 }
 
-static std::string build_inst(std::string op_code, std::string r1 = {}, std::string r2 = {}, std::string r3 = {}) {
-    auto res = '\t' + assign(op_code);
+static std::string build_inst(std::string op_code, 
+                              std::string r1 = {}, std::string r2 = {}, std::string r3 = {}, 
+                              bool is_i_type_inst = false) {
+    auto res = '\t' + assign(op_code + (is_i_type_inst ? "i" : ""));
     if (r1 != "") res += r1;
     if (r2 != "") res += ", " + r2;
     if (r3 != "") res += ", " + r3;
@@ -48,92 +50,155 @@ void koopa::Const::to_riscv(std::string &str, riscv_trans::Info &info) const {
     info.res_lit = target;
 }
 
+static bool is_commutative(koopa::op::Op op) {
+    switch (op) {
+        case koopa::op::EQ: case koopa::op::NE: case koopa::op::GT: case koopa::op::LT: 
+        case koopa::op::GE: case koopa::op::LE: case koopa::op::ADD: case koopa::op::MUL:
+        case koopa::op::AND: case koopa::op::OR: case koopa::op::XOR:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static bool has_i_type_inst(koopa::op::Op op) {
+    switch (op) {
+        case koopa::op::MUL: case koopa::op::MOD:
+            return false;
+        default:
+            return true; 
+    }
+}
+
+koopa::Expr *exchanged_expr(const koopa::Expr *expr) {
+    switch (expr->op) {
+        case koopa::op::EQ: case koopa::op::NE: case koopa::op::ADD: case koopa::op::MUL: 
+        case koopa::op::AND: case koopa::op::OR: case koopa::op::XOR:
+            return new koopa::Expr(expr->op, expr->rv, expr->lv);
+        case koopa::op::GT:
+            return new koopa::Expr(koopa::op::LT, expr->rv, expr->lv);
+        case koopa::op::LT:
+            return new koopa::Expr(koopa::op::GT, expr->rv, expr->lv);
+        case koopa::op::GE:
+            return new koopa::Expr(koopa::op::LE, expr->rv, expr->lv);
+        case koopa::op::LE:
+            return new koopa::Expr(koopa::op::GE, expr->rv, expr->lv);
+        default:
+            throw "try to exchange a not commutative expression";
+    }
+}
+
 void koopa::Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    lv->to_riscv(str, info);
-    auto first_reg = info.res_lit;
+    std::string first_reg, second_lit, target_reg;
+    bool is_i_type_inst = false;
+    
+    /* due to constant folding, it's impossible that lv->is_const && rv->is_const */
+    if (lv->is_const && !rv->is_const && is_commutative(op) && has_i_type_inst(op)) {
 
-    rv->to_riscv(str, info);
-    auto second_reg = info.res_lit;
+        //! memory leak
+        exchanged_expr(this)->to_riscv(str, info);
+        return;
+        
+    }
+    else if (!lv->is_const && rv->is_const && has_i_type_inst(op)) {
+        
+        is_i_type_inst = true;
 
-    auto target_reg = info.get_unused_reg();
+        lv->to_riscv(str, info);
+        first_reg = info.res_lit;
+        
+        second_lit = std::to_string(rv->val);
+
+    }
+    else {
+
+        lv->to_riscv(str, info);
+        first_reg = info.res_lit;
+
+        rv->to_riscv(str, info);
+        second_lit = info.res_lit;
+
+    }
+
+    target_reg = info.get_unused_reg();
 
     switch (op) {
         case koopa::op::NE: {
-            str += build_inst("xor", target_reg, first_reg, second_reg);
+            str += build_inst("xor", target_reg, first_reg, second_lit, is_i_type_inst);
             str += build_inst("snez", target_reg, target_reg);
             break;
         }
         case koopa::op::EQ: {
-            str += build_inst("xor", target_reg, first_reg, second_reg);
+            str += build_inst("xor", target_reg, first_reg, second_lit, is_i_type_inst);
             str += build_inst("seqz", target_reg, target_reg);
             break;
         }
         case koopa::op::GT: {
-            str += build_inst("sgt", target_reg, first_reg, second_reg);
+            str += build_inst("sgt", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::LT: {
-            str += build_inst("slt", target_reg, first_reg, second_reg);
+            str += build_inst("slt", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::GE: {
-            str += build_inst("slt", target_reg, first_reg, second_reg);
+            str += build_inst("slt", target_reg, first_reg, second_lit, is_i_type_inst);
             str += build_inst("xori", target_reg, target_reg, "1");
             break;
         }
         case koopa::op::LE: {
-            str += build_inst("sgt", target_reg, first_reg, second_reg);
+            str += build_inst("sgt", target_reg, first_reg, second_lit, is_i_type_inst);
             str += build_inst("xori", target_reg, target_reg, "1");
             break;
         }
         case koopa::op::ADD: {
-            str += build_inst("add", target_reg, first_reg, second_reg);
+            str += build_inst("add", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::SUB: {
-            str += build_inst("sub", target_reg, first_reg, second_reg);
+            str += build_inst("sub", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::MUL: {
-            str += build_inst("mul", target_reg, first_reg, second_reg);
+            str += build_inst("mul", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::DIV: {
-            str += build_inst("div", target_reg, first_reg, second_reg);
+            str += build_inst("div", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::MOD: {
-            str += build_inst("rem", target_reg, first_reg, second_reg);
+            str += build_inst("rem", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::AND: {
-            str += build_inst("and", target_reg, first_reg, second_reg);
+            str += build_inst("and", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::OR: {
-            str += build_inst("or", target_reg, first_reg, second_reg);
+            str += build_inst("or", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::XOR: {
-            str += build_inst("xor", target_reg, first_reg, second_reg);
+            str += build_inst("xor", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::SHL: {
-            str += build_inst("sll", target_reg, first_reg, second_reg);
+            str += build_inst("sll", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::SHR: {
-            str += build_inst("srl", target_reg, first_reg, second_reg);
+            str += build_inst("srl", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
         case koopa::op::SAR: {
-            str += build_inst("sra", target_reg, first_reg, second_reg);
+            str += build_inst("sra", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
     }
 
     info.refresh_reg(first_reg);
-    info.refresh_reg(second_reg);
+    if (!is_i_type_inst) info.refresh_reg(second_lit);
 
     info.res_lit = target_reg;
 }
