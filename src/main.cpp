@@ -48,7 +48,8 @@ void handle_args(int argc, const char *argv[], std::string &mode, std::string &i
 	mode = "-riscv";
 	input = "../test/hello/hello.c";
 	output = "../test/hello/hello.koopa";
-	debug_mode = true;
+	debug_mode_koopa = false;
+	debug_mode_riscv = true;
 
 	#endif
 }

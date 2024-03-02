@@ -474,6 +474,15 @@ public:
 
             void set_id_offset(int &offset);
 
+            friend void operator+=(Block &self, Stmt *stmt) {
+                self.stmts.push_back(stmt);
+            }
+
+            friend void operator+=(Block &self, std::vector<Stmt *> stmts) {
+                self.stmts.reserve(self.stmts.size() + stmts.size());
+                self.stmts.insert(self.stmts.end(), stmts.begin(), stmts.end());
+            }
+
             std::string to_string() const override;
 
             void to_riscv(std::string &str, riscv_trans::Info &info) const override;

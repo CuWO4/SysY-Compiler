@@ -3,32 +3,124 @@
 
 #include <string>
 
+static int block_count = 0;
+
 namespace koopa_trans {
-    class Stmts : public koopa::Base {
+    /**
+     *
+     *  serve as koopa translation intermediate variable
+     *
+     *  structure:
+     *
+     *          stmt        ----+
+     *          stmt            |====> active_stmts
+     *          ...             |       * do not belong to any block
+     *          stmt        ----+
+     *                                  * will be merged into the active block when merging two `Blocks` or converted
+     *      block           ----+         into a block by calling `to_raw_blocks`
+     *          stmt            |
+     *          stmt            |====> blocks
+     *          ...             |       * may be empty
+     *          stmt            |
+     *                          |       * the last block is active if one exists; otherwise, `active_stmts` would be treated
+     *      block               |         as an active block
+     *          stmt            |
+     *          stmt            |       * when merging two `Blocks`, the `active_stmts` of the latter one will be merged into the
+     *          ...             |         active block of the first, and then `blocks` will be appended to the first
+     *          stmt            |
+     *      ...             ----+
+     *
+     *      when `blocks` is empty, `last_val` saves the pointer of last value active_stmts defines, for instance in 
+     *          %1 = add %0, 1
+     *          %2 = mul %1, 2
+     *      , `last_val` = %2, callee may capture and use it in following compiling. the `last_val` of a `Blocks` with
+     *      not empty `blocks` is undefined. when merging two `Blocks`, the last_val of new `Blocks` will the latter one's.
+     *
+     *  examples:
+     *
+     *      stmts][block][block] + stmts][block]  =>  stmts][block][block+stmts][block]
+     *                      ^               ^                                      ^
+     *                    active          active                                 active
+     *
+     *      stmts1] + stmts2][block]  =>  stmts1+stmts2][block]
+     *        ^                 ^                          ^
+     *      active            active                     active
+     *
+     *      stmts][block][block].to_raw_blocks  =>  [stmts][block][block]
+     *
+     */
+    class Blocks : public koopa::Base {
     public:
-        std::vector<koopa::Stmt *> stmts = {};
+        std::vector<koopa::Stmt *> active_stmts = {};
         koopa::Value *last_val = nullptr;
+
+        std::vector<koopa::Block *> blocks = {};
+
+        Blocks(std::vector<koopa::Stmt *> stmts = {}, koopa::Value *last_val = nullptr) 
+            : active_stmts(stmts), last_val(last_val) {}
+
+        std::vector<koopa::Block *> to_raw_blocks();
+
+        friend void operator+=(Blocks &self, Blocks &other);
+        friend void operator+=(Blocks &self, std::vector<koopa::Stmt *> &stmts);
+        friend void operator+=(Blocks &self, koopa::Stmt &stmt);
 
         std::string to_string() const { return ""; }
         void to_riscv(std::string &str, riscv_trans::Info &info) const {}
     };
 
-    void merge(Stmts &res, Stmts &a, Stmts &b) {
-        auto &res_vec = res.stmts;
-        auto &a_vec = a.stmts;
-        auto &b_vec = b.stmts;
-        res_vec.clear();
-        res_vec.reserve(a_vec.size() + b_vec.size() + 5);
-        res_vec.insert(res_vec.end(), a_vec.begin(), a_vec.end());
-        res_vec.insert(res_vec.end(), b_vec.begin(), b_vec.end());
+    std::vector<koopa::Block *> Blocks::to_raw_blocks() {
+        auto res = std::vector<koopa::Block *>{};
+        res.reserve(1 + blocks.size());
 
-        res.last_val = b.last_val;
+        res.push_back( 
+            new koopa::Block(
+                new koopa::Id(new koopa::Label, new std::string('%' + std::to_string(block_count++))),
+                active_stmts
+            ) 
+        );
+
+        res.insert(res.end(), blocks.begin(), blocks.end());
+
+        return res;
+        //! memory leak
     }
 
-    void operator+=(Stmts &res, Stmts x) {
-        auto &res_vec = res.stmts;
-        auto &x_vec = x.stmts;
-        res_vec.insert(res_vec.end(), x_vec.begin(), x_vec.end());
+    void operator+=(Blocks &self, Blocks &other) {
+
+        self.last_val = other.last_val;
+
+        if (self.blocks.empty()) {
+            self.active_stmts.reserve(self.active_stmts.size() + other.active_stmts.size());
+            self.active_stmts.insert(self.active_stmts.end(), other.active_stmts.begin(), other.active_stmts.end());
+
+            self.blocks = other.blocks;
+        }
+        else {
+            *self.blocks.back() += other.active_stmts;
+
+            self.blocks.reserve(self.blocks.size() + other.blocks.size());
+            self.blocks.insert(self.blocks.end(), other.blocks.begin(), other.blocks.end());
+        }
+    }
+
+    void operator+=(Blocks &self, std::vector<koopa::Stmt *> &stmts) {
+        if (self.blocks.empty()) {
+            self.active_stmts.reserve(self.active_stmts.size() + stmts.size());
+            self.active_stmts.insert(self.active_stmts.end(), stmts.begin(), stmts.end());
+        }
+        else {
+            *self.blocks.back() += stmts;
+        }
+    }
+
+    void operator+=(Blocks &self, koopa::Stmt *stmt) {
+        if (self.blocks.empty()) {
+            self.active_stmts.push_back(stmt);
+        }
+        else {
+            *self.blocks.back() += stmt;
+        }
     }
 
 }
@@ -36,16 +128,17 @@ namespace koopa_trans {
 static int tmp_var_count = 0;
 
 koopa::Base *ast::BinaryExpr::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
-    auto res = new koopa_trans::Stmts;
+    auto res = new koopa_trans::Blocks;
 
-    auto lv_stmts = static_cast<koopa_trans::Stmts *>(lv->to_koopa(value_saver, nesting_info));
-    auto rv_stmts = static_cast<koopa_trans::Stmts *>(rv->to_koopa(value_saver, nesting_info));
+    auto lv_stmts = static_cast<koopa_trans::Blocks *>(lv->to_koopa(value_saver, nesting_info));
+    auto rv_stmts = static_cast<koopa_trans::Blocks *>(rv->to_koopa(value_saver, nesting_info));
 
-    koopa_trans::merge(*res, *lv_stmts, *rv_stmts);
+    *res += *lv_stmts;
+    *res += *rv_stmts;
 
     auto generator = [&] (koopa::op::Op op, koopa::Value *elv, koopa::Value *erv) {
         if (elv->is_const && erv->is_const) {
-            res->stmts.clear();
+            res->active_stmts.clear();
 
             res->last_val = value_saver.new_const(
                 koopa::op::op_func[op](elv->val, erv->val)
@@ -53,21 +146,17 @@ koopa::Base *ast::BinaryExpr::to_koopa(koopa::ValueSaver &value_saver, ast::Nest
 
             return;
         }
-            
+
         res->last_val = value_saver.new_id(
             new koopa::Int,
             new std::string('%' + std::to_string(tmp_var_count++)),
             new ast::NestingInfo(false)
         );
-        
-        res->stmts.push_back( 
-            new koopa::SymbolDef(
-                static_cast<koopa::Id *>(res->last_val),
-                new koopa::Expr(
-                    op,
-                    elv,
-                    erv
-                )
+
+        *res += new koopa::SymbolDef(
+            static_cast<koopa::Id *>(res->last_val),
+            new koopa::Expr(
+                op, elv, erv
             )
         );
     };
@@ -109,11 +198,11 @@ koopa::Base *ast::BinaryExpr::to_koopa(koopa::ValueSaver &value_saver, ast::Nest
 }
 
 koopa::Base *ast::UnaryExpr::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
-    auto lv_stmts = static_cast<koopa_trans::Stmts *>(lv->to_koopa(value_saver, nesting_info));
-    
+    auto lv_stmts = static_cast<koopa_trans::Blocks *>(lv->to_koopa(value_saver, nesting_info));
+
     auto generator = [&](koopa::op::Op op) {
         if (lv_stmts->last_val->is_const) {
-            lv_stmts->stmts.clear();
+            lv_stmts->active_stmts.clear();
 
             lv_stmts->last_val = value_saver.new_const(koopa::op::op_func[op](0, lv_stmts->last_val->val));
 
@@ -140,7 +229,7 @@ koopa::Base *ast::UnaryExpr::to_koopa(koopa::ValueSaver &value_saver, ast::Nesti
             )
         );
 
-        lv_stmts->stmts.push_back(new_stmt);   
+        *lv_stmts += new_stmt;
         lv_stmts->last_val = new_id;
     };
 
@@ -158,7 +247,7 @@ koopa::Base *ast::UnaryExpr::to_koopa(koopa::ValueSaver &value_saver, ast::Nesti
             break;
 
         case op::NEG:
-            
+
             generator(koopa::op::SUB);
     }
 
@@ -166,7 +255,7 @@ koopa::Base *ast::UnaryExpr::to_koopa(koopa::ValueSaver &value_saver, ast::Nesti
 }
 
 koopa::Base *ast::Number::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
-    auto res = new koopa_trans::Stmts;
+    auto res = new koopa_trans::Blocks;
     res->last_val = value_saver.new_const(val);
     return res;
 }
@@ -176,7 +265,7 @@ koopa::Base *ast::ExprStmt::to_koopa(koopa::ValueSaver &value_saver, ast::Nestin
 }
 
 koopa::Base *ast::Id::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
-    auto res = new koopa_trans::Stmts;
+    auto res = new koopa_trans::Blocks;
 
     auto id_koopa = value_saver.get_id('@' + *lit, nesting_info);
 
@@ -198,22 +287,20 @@ koopa::Base *ast::Id::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo 
             new ast::NestingInfo(false)
         );
 
-        res->stmts.push_back(
-            new koopa::SymbolDef(
-                new_id,
-                new koopa::Load(id_koopa)
-            )
+        *res += new koopa::SymbolDef(
+            new_id,
+            new koopa::Load(id_koopa)
         );
 
         res->last_val = new_id;
 
         return res;
-        
+
     }
 }
 
 koopa::Base *ast::VarDecl::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
-    auto stmts = new koopa_trans::Stmts();
+    auto stmts = new koopa_trans::Blocks();
 
     if (is_const) {
 
@@ -226,14 +313,14 @@ koopa::Base *ast::VarDecl::to_koopa(koopa::ValueSaver &value_saver, ast::Nesting
                 throw "no initiator for const variable `" + *var_def->id->lit + '`';
             }
 
-            auto rval_koopa = static_cast<koopa_trans::Stmts *>(var_def->init->to_koopa(value_saver, nesting_info));
+            auto rval_koopa = static_cast<koopa_trans::Blocks *>(var_def->init->to_koopa(value_saver, nesting_info));
 
             if (!rval_koopa->last_val->is_const) {
                 throw "initiating const variable `" + *var_def->id->lit + "` with a non-const value";
             }
 
             value_saver.new_id(
-                static_cast<koopa::Type *>(type->to_koopa(value_saver, nesting_info)), 
+                static_cast<koopa::Type *>(type->to_koopa(value_saver, nesting_info)),
                 new std::string('@' + *var_def->id->lit),
                 nesting_info,
                 true,
@@ -254,32 +341,28 @@ koopa::Base *ast::VarDecl::to_koopa(koopa::ValueSaver &value_saver, ast::Nesting
                 throw '`' + *var_def->id->lit + "` redefined";
             }
 
-            stmts->stmts.push_back(
-                new koopa::SymbolDef(
-                    value_saver.new_id(
-                        new koopa::Pointer(
-                            static_cast<koopa::Type *>(type->to_koopa(value_saver, nesting_info))
-                        ),
-                        new std::string('@' + *var_def->id->lit),
-                        nesting_info
+            *stmts += new koopa::SymbolDef(
+                value_saver.new_id(
+                    new koopa::Pointer(
+                        static_cast<koopa::Type *>(type->to_koopa(value_saver, nesting_info))
                     ),
-                    new koopa::MemoryDecl(static_cast<koopa::Type *>(type->to_koopa(value_saver, nesting_info)))
-                )
+                    new std::string('@' + *var_def->id->lit),
+                    nesting_info
+                ),
+                new koopa::MemoryDecl(static_cast<koopa::Type *>(type->to_koopa(value_saver, nesting_info)))
             );
 
             if (var_def->has_init) {
 
-                auto rval_koopa = static_cast<koopa_trans::Stmts *>(var_def->init->to_koopa(value_saver, nesting_info));
+                auto rval_koopa = static_cast<koopa_trans::Blocks *>(var_def->init->to_koopa(value_saver, nesting_info));
 
                 *stmts += *rval_koopa;
 
-                stmts->stmts.push_back(
-                    new koopa::StoreValue(
-                        rval_koopa->last_val,
-                        value_saver.get_id('@' + *var_def->id->lit, nesting_info)
-                    )
+                *stmts += new koopa::StoreValue(
+                    rval_koopa->last_val,
+                    value_saver.get_id('@' + *var_def->id->lit, nesting_info)
                 );
-            }
+        }
         }
 
     }
@@ -288,10 +371,10 @@ koopa::Base *ast::VarDecl::to_koopa(koopa::ValueSaver &value_saver, ast::Nesting
 }
 
 koopa::Base *ast::Assign::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
-    auto res = static_cast<koopa_trans::Stmts *>(rval->to_koopa(value_saver, nesting_info));
+    auto res = static_cast<koopa_trans::Blocks *>(rval->to_koopa(value_saver, nesting_info));
 
     auto id_koopa = value_saver.get_id('@' + *id->lit, nesting_info);
-    
+
     if (id_koopa == nullptr) {
         throw "undeclared identifier `" + *id->lit + '`';
     }
@@ -299,11 +382,9 @@ koopa::Base *ast::Assign::to_koopa(koopa::ValueSaver &value_saver, ast::NestingI
         throw "assigning to a const identifier `" + *id->lit + '`';
     }
 
-    res->stmts.push_back(
-        new koopa::StoreValue(
-            res->last_val,
-            value_saver.get_id('@' + *id->lit, nesting_info)
-        )
+    *res += new koopa::StoreValue(
+        res->last_val,
+        value_saver.get_id('@' + *id->lit, nesting_info)
     );
 
     return res;
@@ -311,45 +392,26 @@ koopa::Base *ast::Assign::to_koopa(koopa::ValueSaver &value_saver, ast::NestingI
 
 koopa::Base *ast::Return::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
     if (!has_return_val) {
-        auto res = new koopa_trans::Stmts();
-        res->stmts.push_back(
-            new koopa::Return()
-        );
+        auto res = new koopa_trans::Blocks();
+        *res += new koopa::Return();
         return res;
     }
 
-    auto res = static_cast<koopa_trans::Stmts *>(ret_val->to_koopa(value_saver, nesting_info));
-    
-    res->stmts.push_back(
-        new koopa::Return(
-            res->last_val
-        )
-    );
-    
+    auto res = static_cast<koopa_trans::Blocks *>(ret_val->to_koopa(value_saver, nesting_info));
+
+    *res += new koopa::Return( res->last_val );
+
     return res;
 }
 
 koopa::Base *ast::Block::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
-    auto res = koopa_trans::Stmts();
+    auto res = new koopa_trans::Blocks;
 
     for (auto stmt : stmts) {
-        auto stmt_koopa = stmt->to_koopa(value_saver, this->nesting_info);
-
-        if (typeid(*stmt_koopa) == typeid(koopa::Block)) {
-            for (auto stmt : static_cast<koopa::Block *>(stmt_koopa)->stmts) {
-                res.stmts.push_back(stmt);
-            }
-            //! BUG memory leak
-        }
-        else if (typeid(*stmt_koopa) == typeid(koopa_trans::Stmts)) {
-            res += *static_cast<koopa_trans::Stmts *>(stmt_koopa);
-        }
+        *res += *static_cast<koopa_trans::Blocks *>(stmt->to_koopa(value_saver, this->nesting_info));
     }
 
-    return new koopa::Block(
-        value_saver.new_id(new koopa::Label, new std::string("%entry"), nesting_info),
-        res.stmts
-    );
+    return res;
 }
 
 koopa::Base *ast::Int::to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const {
@@ -362,7 +424,7 @@ koopa::Base *ast::FuncDef::to_koopa(koopa::ValueSaver &value_saver, ast::Nesting
     return new koopa::FuncDef(
         value_saver.new_id(
             new koopa::FuncType(
-                std::vector<koopa::Type *>(), 
+                std::vector<koopa::Type *>(),
                 static_cast<koopa::Type *>(func_type->to_koopa(value_saver, nesting_info))
             ),
             func_id,
@@ -370,9 +432,7 @@ koopa::Base *ast::FuncDef::to_koopa(koopa::ValueSaver &value_saver, ast::Nesting
         ),
         std::vector<koopa::FuncParamDecl *>(),
         static_cast<koopa::Type *>(func_type->to_koopa(value_saver, nesting_info)),
-        std::vector<koopa::Block *> {
-            static_cast<koopa::Block *>(block->to_koopa(value_saver, nesting_info))
-        }
+        static_cast<koopa_trans::Blocks *>(block->to_koopa(value_saver, nesting_info))->to_raw_blocks()
     );
 }
 
