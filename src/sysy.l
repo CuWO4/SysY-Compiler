@@ -37,6 +37,8 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 "int"           { return TK_INT; }
 "return"        { return TK_RETURN; }
 "const"         { return TK_CONST; }
+"if"            { return TK_IF; }
+"else"          { return TK_ELSE; }
 
 {Identifier}    { yylval.str_val = new std::string(yytext); return TK_IDENT; }
 

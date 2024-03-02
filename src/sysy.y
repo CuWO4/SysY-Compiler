@@ -35,14 +35,14 @@
     std::vector<ast::VarDef *>  *ast_var_def_vec_val;
 	}
 
-%token TK_INT TK_RETURN TK_CONST
+%token TK_INT TK_RETURN TK_CONST TK_IF TK_ELSE
 %token <str_val> TK_IDENT
 %token <int_val> TK_INT_CONST
 
 %type	<ast_func_def_val> func_def
 %type	<ast_type_val> type
 %type	<ast_block_val> block
-%type	<ast_stmt_val> block_item decl stmt
+%type	<ast_stmt_val> block_item if_clause decl_stmt assign_stmt return_stmt expr_stmt stmt
 %type	<ast_expr_val> expr
 %type	<ast_var_def_val> var_def
 %type   <ast_stmt_vec_val> block_items 
@@ -56,6 +56,10 @@
 %left '+' '-'
 %left '*' '/' '%'
 %right PREC_UNARY_OP
+
+// resolve the dangling-else by give a precedence 
+%nonassoc PREC_IF
+%nonassoc TK_ELSE
 
 %%
 
@@ -110,17 +114,30 @@ block_items
 ;
 
 block_item
-    : decl
-    | stmt
-    | expr ';' {
-        $$ = new ast::ExprStmt($1);
-    }
-    | block         { $$ = $1; }
-    | ';'           { $$ = nullptr; }
+    : stmt
     | error ';'     { yyerrok; }
 ;
 
-decl
+stmt
+    : if_clause
+    | decl_stmt
+    | assign_stmt
+    | return_stmt
+    | expr_stmt
+    | block         { $$ = $1; }
+    | ';'           { $$ = nullptr; }
+;
+
+if_clause
+    : TK_IF '(' expr ')' stmt %prec PREC_IF {
+        $$ =new ast::If($3, $5);
+    }
+    | TK_IF '(' expr ')' stmt TK_ELSE stmt {
+        $$ = new ast::If($3, $5, $7);
+    }
+;
+
+decl_stmt
     : type var_defs ';' {
         $$ = new ast::VarDecl($1, *$2);
     }
@@ -148,15 +165,24 @@ var_def
     }
 ;
 
-stmt
+assign_stmt
     : TK_IDENT '=' expr ';' {
         $$ = new ast::Assign(new ast::Id($1), $3);
     }
-    | TK_RETURN expr ';' {
+;
+
+return_stmt
+    : TK_RETURN expr ';' {
         $$ = new ast::Return($2);
     }
     | TK_RETURN ';' {
         $$ = new ast::Return();
+    }
+;
+
+expr_stmt
+    : expr ';' {
+        $$ = new ast::ExprStmt($1);
     }
 ;
 

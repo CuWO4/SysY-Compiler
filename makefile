@@ -16,10 +16,10 @@ ifeq ($(DEBUG), 0)
 CFLAGS += -O2
 CXXFLAGS += -O2
 else
-# CFLAGS += -g -O0
-# CXXFLAGS += -g -O0
-CFLAGS += -O0
-CXXFLAGS += -O0
+CFLAGS += -g -O0
+CXXFLAGS += -g -O0
+# CFLAGS += -O0
+# CXXFLAGS += -O0
 endif
 
 # Compilers
@@ -100,7 +100,7 @@ lldb : $(BUILD_DIR)/$(TARGET_EXEC)
 	lldb $(BUILD_DIR)/$(TARGET_EXEC) -- -test ./test/hello/hello.c -o ./test/hello/hello.koopa
 
 test-hello : $(BUILD_DIR)/$(TARGET_EXEC)
-	$(BUILD_DIR)/$(TARGET_EXEC) -test ./test/hello/hello.c -o ./test/hello/hello.koopa
+	$(BUILD_DIR)/$(TARGET_EXEC) -test ./test/hello/hello.c
 
 test-hello-koopa : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -koopa ./test/hello/hello.c -o ./test/hello/hello.koopa

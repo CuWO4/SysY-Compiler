@@ -283,12 +283,19 @@ koopa_trans::Blocks *ast::Return::to_koopa(koopa::ValueSaver &value_saver, Nesti
     return res;
 }
 
+koopa_trans::Blocks *ast::If::to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const {
+    // TODO
+    return nullptr;
+}
+
 koopa_trans::Blocks *ast::Block::to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const {
     auto res = new koopa_trans::Blocks;
 
     for (auto stmt : stmts) {
         *res += *stmt->to_koopa(value_saver, this->nesting_info);
     }
+
+    //TODO trim redundant statements after `ret` `br` and `jump`, notice to remove the preds & succs
 
     return res;
 }

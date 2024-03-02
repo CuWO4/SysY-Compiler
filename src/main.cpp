@@ -13,7 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-
+ 
 #include <string.h>
 
 extern FILE *yyin;
@@ -25,7 +25,6 @@ void test() {
 	std::cout << ast->debug() << std::endl;
 }
 
-// [mode, input, output]
 void handle_args(int argc, const char *argv[], std::string &mode, std::string &input, std::string &output) {
 	#ifndef DEBUG__
 
@@ -33,7 +32,7 @@ void handle_args(int argc, const char *argv[], std::string &mode, std::string &i
 	debug_mode_riscv = false;
 
 	for (int i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "-koopa") || !strcmp(argv[i], "-riscv")) mode = argv[i];
+		if (!strcmp(argv[i], "-koopa") || !strcmp(argv[i], "-riscv") || !strcmp(argv[i], "-test")) mode = argv[i];
 		else if (!strcmp(argv[i], "-o")) {
 			assert(i + 1 < argc);
 			output = argv[++i];
@@ -45,7 +44,7 @@ void handle_args(int argc, const char *argv[], std::string &mode, std::string &i
 
 	#else 
 
-	mode = "-riscv";
+	mode = "-test";
 	input = "../test/hello/hello.c";
 	output = "../test/hello/hello.koopa";
 	debug_mode_koopa = false;

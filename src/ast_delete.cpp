@@ -38,6 +38,12 @@ ast::Return::~Return() {
     if (ret_val != nullptr) delete ret_val;
 }
 
+ast::If::~If() {
+    if (cond != nullptr) delete cond;
+    if (then_stmt != nullptr) delete then_stmt;
+    if (else_stmt != nullptr) delete else_stmt;
+}
+
 ast::Block::~Block() {
     for (auto stmt : stmts) {
         if (stmt != nullptr) delete stmt;
