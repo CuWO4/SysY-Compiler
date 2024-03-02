@@ -1,0 +1,95 @@
+#ifndef TRANS_H_
+#define TRANS_H_
+
+#include <vector>
+#include <string>
+
+namespace koopa {
+    class Stmt;
+    class Value;
+    class Block;
+    class Id;
+    class Label;
+}
+
+namespace riscv_trans {
+    class Info {
+    public:
+        int stack_frame_size = 0;
+
+        std::string res_lit = "";
+
+        bool is_reg_used[7] = { 0 };
+        std::string get_unused_reg();
+
+        void refresh_reg(std::string lit);
+    };
+}
+
+namespace koopa_trans {
+    /**
+     *
+     *  serve as koopa translation intermediate variable
+     *
+     *  structure:
+     *
+     *          stmt        ----+
+     *          stmt            |====> active_stmts
+     *          ...             |       * do not belong to any block
+     *          stmt        ----+
+     *                                  * will be merged into the active block when merging two `Blocks` or converted
+     *      block           ----+         into a block by calling `to_raw_blocks`
+     *          stmt            |
+     *          stmt            |====> blocks
+     *          ...             |       * may be empty
+     *          stmt            |
+     *                          |       * the last block is active if one exists; otherwise, `active_stmts` would be treated
+     *      block               |         as an active block
+     *          stmt            |
+     *          stmt            |       * when merging two `Blocks`, the `active_stmts` of the latter one will be merged into the
+     *          ...             |         active block of the first, and then `blocks` will be appended to the first
+     *          stmt            |
+     *      ...             ----+
+     *
+     *      when `blocks` is empty, `last_val` saves the pointer of last value active_stmts defines, for instance in 
+     *          %1 = add %0, 1
+     *          %2 = mul %1, 2
+     *      , `last_val` = %2, callee may capture and use it in following compiling. the `last_val` of a `Blocks` with
+     *      not empty `blocks` is undefined. when merging two `Blocks`, the last_val of new `Blocks` will the latter one's.
+     *
+     *  examples:
+     *
+     *      stmts][block][block] + stmts][block]  =>  stmts][block][block+stmts][block]
+     *                      ^               ^                                      ^
+     *                    active          active                                 active
+     *
+     *      stmts1] + stmts2][block]  =>  stmts1+stmts2][block]
+     *        ^                 ^                          ^
+     *      active            active                     active
+     *
+     *      stmts][block][block].to_raw_blocks  =>  [stmts][block][block]
+     *
+     */
+    class Blocks {
+    public:
+        std::vector<koopa::Stmt *> active_stmts = {};
+        koopa::Value *last_val = nullptr;
+
+        std::vector<koopa::Block *> blocks = {};
+
+        Blocks(std::vector<koopa::Stmt *> stmts = {}, koopa::Value *last_val = nullptr) 
+            : active_stmts(stmts), last_val(last_val) {}
+
+        std::vector<koopa::Block *> to_raw_blocks();
+
+        friend void operator+=(Blocks &self, Blocks &other);
+        friend void operator+=(Blocks &self, std::vector<koopa::Stmt *> &stmts);
+        friend void operator+=(Blocks &self, koopa::Stmt *stmt);
+
+        std::string to_string() const { return ""; }
+        void to_riscv(std::string &str, riscv_trans::Info &info) const {}
+    };
+
+}
+
+#endif

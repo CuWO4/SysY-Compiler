@@ -1,7 +1,8 @@
 #ifndef KOOPA_H_
 #define KOOPA_H_
 
-#include "ast.h"
+#include "nesting_info.h"
+#include "trans.h"
 
 #include <iostream>
 #include <assert.h>
@@ -10,20 +11,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
-
-namespace riscv_trans {
-    class Info {
-    public:
-        int stack_frame_size = 0;
-
-        std::string res_lit = "";
-
-        bool is_reg_used[7] = { 0 };
-        std::string get_unused_reg();
-
-        void refresh_reg(std::string lit);
-    };
-}
 
 namespace koopa {
 
@@ -624,7 +611,7 @@ public:
         ); 
     }
 
-    static std::string *build_name(std::string *lit, ast::NestingInfo *nesting_info) {
+    static std::string *build_name(std::string *lit, NestingInfo *nesting_info) {
         if (!nesting_info->need_suffix) return lit;
         
         auto res = new std::string(*lit 
@@ -633,7 +620,7 @@ public:
         return res;
     }
 
-    Id *new_id(Type *type, std::string *lit, ast::NestingInfo *nesting_info, bool is_const = false, int val = 0) {
+    Id *new_id(Type *type, std::string *lit, NestingInfo *nesting_info, bool is_const = false, int val = 0) {
 
         auto res = new Id(type, build_name(lit, nesting_info), is_const, val);
         insert_id(res);
@@ -641,12 +628,12 @@ public:
 
     }
 
-    bool is_id_declared(std::string lit, ast::NestingInfo *nesting_info) {
+    bool is_id_declared(std::string lit, NestingInfo *nesting_info) {
         return ids.find(*build_name(&lit, nesting_info)) != ids.end();
     }
 
     /* return nullptr if id is not defined */
-    Id *get_id(std::string lit, ast::NestingInfo *nesting_info) {
+    Id *get_id(std::string lit, NestingInfo *nesting_info) {
         if (nesting_info == nullptr) return nullptr;
 
         auto res = ids.find(*build_name(&lit, nesting_info));

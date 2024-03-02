@@ -1,6 +1,10 @@
 #ifndef AST_H_
 #define AST_H_
 
+#include "trans.h"
+#include "koopa.h"
+#include "nesting_info.h"
+
 #include <iostream>
 #include <vector>
 #include <functional>
@@ -12,49 +16,24 @@ namespace koopa {
 
 namespace ast {
 
-class NestingInfo {
-public:
-    bool need_suffix = true;
-    int nesting_level = 0, nesting_count = 0;
-    NestingInfo *pa = nullptr;
-
-    NestingInfo(int nl = 0, int nc = 0, NestingInfo *pa = nullptr) :
-        nesting_level(nl), nesting_count(nc), pa(pa) {}
-
-    NestingInfo(bool need_suffix) : need_suffix(need_suffix) {}
-};
-
 class Base {
 public:
-    virtual koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const = 0;
-
     virtual std::string debug() const = 0;
 
     virtual ~Base() = default;
 };
 
 class Type : public Base {
+public:
+    virtual koopa::Type* to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const = 0;
 };
 
     class Int : public Type {
     public:
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+        koopa::Type* to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
 
         std::string debug() const override;
     };
-
-class Id : public Base {
-public:
-    std::string *lit;
-
-    Id(std::string *lit) : lit(lit) {}
-
-    koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
-
-    std::string debug() const override;
-
-    ~Id() override;
-};
 
 namespace op {
     enum BinaryOp {
@@ -68,6 +47,8 @@ namespace op {
 }
 
 class Expr : public Base {
+public:
+    virtual koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const = 0;
 };
 
     class BinaryExpr : public Expr {
@@ -79,7 +60,7 @@ class Expr : public Base {
         BinaryExpr(op::BinaryOp op, Expr *lv, Expr* rv) :
             op(op), lv(lv), rv(rv) {}
 
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
 
         std::string debug() const override;
 
@@ -94,11 +75,24 @@ class Expr : public Base {
         UnaryExpr(op::UnaryOp op, Expr *lv) :
             op(op), lv(lv) {}
 
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
 
         std::string debug() const override;
 
         ~UnaryExpr() override;
+    };
+
+    class Id : public Expr {
+    public:
+        std::string *lit;
+
+        Id(std::string *lit) : lit(lit) {}
+
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
+
+        std::string debug() const override;
+
+        ~Id() override;
     };
 
     class Number : public Expr {
@@ -107,12 +101,14 @@ class Expr : public Base {
 
         Number(int val) : val(val) {}
 
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
 
         std::string debug() const override;
     };
 
 class Stmt : public Base {
+public:
+    virtual koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const = 0;
 };
 
     class ExprStmt : public Stmt {
@@ -121,14 +117,14 @@ class Stmt : public Base {
 
         ExprStmt(Expr *expr) : expr(expr) {}
 
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
 
         std::string debug() const override;
 
         ~ExprStmt() override;        
     };
 
-    class VarDef : public Base{
+    class VarDef : public Stmt {
     public:
         Id *id = nullptr;
         bool has_init = false;
@@ -137,7 +133,7 @@ class Stmt : public Base {
         VarDef(Id *id) : id(id) {}
         VarDef(Id *id, Expr *init) : id(id), init(init) { has_init = true; }
 
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override { return nullptr; }
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override { return nullptr; }
 
         std::string debug() const override;
 
@@ -153,7 +149,7 @@ class Stmt : public Base {
                 bool is_const = false) :
             type(type), var_defs(var_defs), is_const(is_const) {}
 
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
 
         std::string debug() const override;
 
@@ -167,7 +163,7 @@ class Stmt : public Base {
 
         Assign(Id *id, Expr *rval) : id(id), rval(rval) {}
 
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
 
         std::string debug() const override;
 
@@ -182,7 +178,7 @@ class Stmt : public Base {
         Return() : has_return_val(false) {}
         Return(Expr *ret_val) : ret_val(ret_val) {}
 
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
 
         std::string debug() const override;
 
@@ -198,7 +194,7 @@ class Stmt : public Base {
         Block(std::vector<Stmt *> stmts, NestingInfo *nesting_info) 
             : stmts(stmts), nesting_info(nesting_info) {}
 
-        koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+        koopa_trans::Blocks *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const override;
 
         std::string debug() const override;
 
@@ -214,7 +210,7 @@ public:
     FuncDef(Type *func_type, std::string *id, Block *block) :
         func_type(func_type), id(id), block(block) {}
 
-    koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+    koopa::FuncDef *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const;
 
     std::string debug() const override;
 
@@ -227,7 +223,7 @@ public:
 
     CompUnit(FuncDef *func_def) : func_def(func_def) {}
 
-    koopa::Base *to_koopa(koopa::ValueSaver &value_saver, ast::NestingInfo *nesting_info) const override;
+    koopa::Program *to_koopa(koopa::ValueSaver &value_saver, NestingInfo *nesting_info) const;
 
     std::string debug() const override;
 

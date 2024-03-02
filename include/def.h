@@ -2,14 +2,22 @@
 #define DEF_H_
 
 #ifndef extern_
-#define extern_ extern
-#endif
+    extern int block_count;
+    extern int tmp_var_count;
 
-/*  
- * if debug_mode == true, there would be additional comments in 
- * generated koopa/assembly containing relative information 
- */
-extern_ bool debug_mode_koopa;
-extern_ bool debug_mode_riscv;
+    /*  
+    * if debug_mode == true, there would be additional comments in 
+    * generated koopa/assembly containing relative information 
+    */
+    extern bool debug_mode_koopa;
+    extern bool debug_mode_riscv;
+
+#else
+    int block_count = 0;
+    int tmp_var_count = 0;
+
+    bool debug_mode_koopa;
+    bool debug_mode_riscv;
+#endif
 
 #endif

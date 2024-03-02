@@ -4,6 +4,8 @@
     #include <string>
 
     #include "../include/ast.h"
+    #include "../include/nesting_info.h"
+    #include "../include/trans.h"
 
     int yylex();
     void yyerror(ast::CompUnit *&ast, const char *s);
@@ -14,7 +16,7 @@
 
     int cur_nesting_level = 0;
     int cur_nesting_count[4096] = { 0 };
-    ast::NestingInfo *cur_nesting_info = nullptr;
+    NestingInfo *cur_nesting_info = nullptr;
 %}
 
 %parse-param    { ast::CompUnit *&ast }
@@ -79,7 +81,7 @@ block
 ;
 
 block_start : '{' {
-    auto new_nesting_info = new ast::NestingInfo(cur_nesting_level, cur_nesting_count[cur_nesting_level], cur_nesting_info);
+    auto new_nesting_info = new NestingInfo(cur_nesting_level, cur_nesting_count[cur_nesting_level], cur_nesting_info);
     cur_nesting_info = new_nesting_info;
 
     cur_nesting_count[cur_nesting_level]++;
