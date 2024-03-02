@@ -115,7 +115,7 @@ block_item
     | expr ';' {
         $$ = new ast::ExprStmt($1);
     }
-    | block
+    | block         { $$ = $1; }
     | ';'           { $$ = nullptr; }
     | error ';'     { yyerrok; }
 ;
