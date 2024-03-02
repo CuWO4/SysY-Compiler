@@ -71,11 +71,7 @@ comp_unit
 
 func_def
     : type TK_IDENT '(' ')' block {
-        $$ = new ast::FuncDef(
-            $1,
-            $2,
-            $5
-        );
+        $$ = new ast::FuncDef($1, $2, $5);
     }
 ;
 
@@ -86,22 +82,10 @@ type
 ;
 
 block
-    : block_start block_items '}' {
-        $$ = new ast::Block(*$2, cur_nesting_info);
-
-        cur_nesting_level--;
-
-        cur_nesting_info = cur_nesting_info->pa;
+    : block_start '{' block_items '}' block_end {
+        $$ = new ast::Block(*$3);
     }
 ;
-
-block_start : '{' {
-    auto new_nesting_info = new NestingInfo(cur_nesting_level, cur_nesting_count[cur_nesting_level], cur_nesting_info);
-    cur_nesting_info = new_nesting_info;
-
-    cur_nesting_count[cur_nesting_level]++;
-    cur_nesting_level++;
-}
 
 block_items
     : block_items block_item {
@@ -129,11 +113,11 @@ stmt
 ;
 
 if_clause
-    : TK_IF '(' expr ')' stmt %prec PREC_IF {
-        $$ =new ast::If($3, $5);
+    : TK_IF '(' expr ')' block_start stmt block_end %prec PREC_IF {
+        $$ =new ast::If($3, $6);
     }
-    | TK_IF '(' expr ')' stmt TK_ELSE stmt {
-        $$ = new ast::If($3, $5, $7);
+    | TK_IF '(' expr ')' block_start stmt block_end TK_ELSE block_start stmt block_end {
+        $$ = new ast::If($3, $6, $10);
     }
 ;
 
@@ -158,16 +142,16 @@ var_defs
 
 var_def
     : TK_IDENT '=' expr {
-        $$ = new ast::VarDef(new ast::Id($1), $3);
+        $$ = new ast::VarDef(new ast::Id($1, cur_nesting_info), $3);
     }
     | TK_IDENT {
-        $$ = new ast::VarDef(new ast::Id($1));
+        $$ = new ast::VarDef(new ast::Id($1, cur_nesting_info));
     }
 ;
 
 assign_stmt
     : TK_IDENT '=' expr ';' {
-        $$ = new ast::Assign(new ast::Id($1), $3);
+        $$ = new ast::Assign(new ast::Id($1, cur_nesting_info), $3);
     }
 ;
 
@@ -240,13 +224,31 @@ expr
 		$$ = new ast::Number($1);
 	}
     | TK_IDENT                      {
-        $$ = new ast::Id(new std::string(*$1));
+        $$ = new ast::Id(new std::string(*$1), cur_nesting_info);
     }
 ;
 
 number
     : TK_INT_CONST
 ;
+
+block_start : {
+    cur_nesting_level++;
+
+    auto new_nesting_info = new NestingInfo(
+        cur_nesting_level, 
+        cur_nesting_count[cur_nesting_level],
+        cur_nesting_info
+    );
+    cur_nesting_info = new_nesting_info;
+}
+
+block_end : {
+    cur_nesting_count[cur_nesting_level]++;
+    cur_nesting_level--;
+
+    cur_nesting_info = cur_nesting_info->pa;
+}
 
 %%
 

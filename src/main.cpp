@@ -1,5 +1,5 @@
 #include "../include/ast.h"
-#include "../include/koopa.h"
+#include "../include/value_saver.h"
 
 #define extern_
 #include "../include/def.h"
@@ -74,8 +74,8 @@ int main(int argc, const char *argv[]) {
 		ast::CompUnit *ast;
 		yyparse(ast);
 
-		koopa::ValueSaver value_saver;
-		auto koopa = ast->to_koopa(value_saver, nullptr);
+		ValueSaver value_saver;
+		auto koopa = ast->to_koopa(value_saver);
 
 		if (mode == "-koopa") {
 			os << koopa->to_string();

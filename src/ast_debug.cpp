@@ -27,7 +27,7 @@ std::string ast::UnaryExpr::debug(int indent) const {
 }
 
 std::string ast::Id::debug(int indent) const {
-    return *lit;
+    return *lit + '(' + std::to_string(nesting_info->nesting_level) + ':' + std::to_string(nesting_info->nesting_count) + ')';
 }
 
 std::string ast::Number::debug(int indent) const {
@@ -56,7 +56,7 @@ std::string ast::VarDecl::debug(int indent) const {
 }
 
 std::string ast::Assign::debug(int indent) const {
-    return build_indent(indent) + *id->lit + " = " + rval->debug() + '\n';
+    return build_indent(indent) + id->debug() + " = " + rval->debug() + '\n';
 }
 
 std::string ast::Return::debug(int indent) const {
@@ -77,9 +77,6 @@ std::string ast::If::debug(int indent) const {
 
 std::string ast::Block::debug(int indent) const {
     auto res = std::string("");
-
-    res += build_indent(indent) + '(' + std::to_string(nesting_info->nesting_level) 
-        + ':' + std::to_string(nesting_info->nesting_count) + ")\n";
 
     for (auto stmt : stmts) {
         res += stmt->debug(indent);

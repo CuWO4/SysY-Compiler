@@ -41,7 +41,7 @@ std::string koopa::Void::to_string() const {
 }
 
 std::string koopa::Id::to_string() const {
-    auto res = std::string(lit != nullptr ? *lit : "");
+    auto res = *lit;
     if (debug_mode_koopa) {
         if ((typeid(*type) == typeid(koopa::Int))
             || (typeid(*type) == typeid(koopa::Array))
