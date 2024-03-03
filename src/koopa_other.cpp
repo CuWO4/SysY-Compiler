@@ -22,6 +22,15 @@ void koopa::Block::set_id_offset(int &offset) {
 
 }
 
+void koopa::operator+=(koopa::Block &self, koopa::Stmt *stmt) {
+    self.stmts.push_back(stmt);
+}
+
+void koopa::operator+=(koopa::Block &self, std::vector<koopa::Stmt *> stmts) {
+    self.stmts.reserve(self.stmts.size() + stmts.size());
+    self.stmts.insert(self.stmts.end(), stmts.begin(), stmts.end());
+}
+
 namespace koopa {
     namespace op {
         std::function<int(int, int)> op_func[] = {

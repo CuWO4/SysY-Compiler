@@ -43,9 +43,7 @@ public:
 
         std::string to_string() const override;
 
-        Array(Type *elem_type, int length) : elem_type(elem_type), length(length) {
-            elem_type->pa = this;
-        }
+        Array(Type *elem_type, int length);
 
         ~Array() override;
     };
@@ -56,9 +54,7 @@ public:
 
         std::string to_string() const override;
 
-        Pointer(Type *pointed_type) : pointed_type(pointed_type) {
-            pointed_type->pa = this;
-        }
+        Pointer(Type *pointed_type);
 
         ~Pointer() override;
     };
@@ -70,13 +66,7 @@ public:
 
         std::string to_string() const override;
 
-        FuncType(std::vector<Type *> arg_types, Type *ret_type) :
-            arg_types(arg_types), ret_type(ret_type) {
-
-            for (auto arg_type : arg_types) arg_type->pa = this;
-            ret_type->pa = this;
-
-        }
+        FuncType(std::vector<Type *> arg_types, Type *ret_type);
 
         ~FuncType() override;
     };
@@ -110,14 +100,7 @@ public:
 
         void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-        Id(Type *type, std::string *lit, bool is_const = false, int val = 0) 
-            : type(type), lit(lit) {
-                
-            this->val = val;
-            this->is_const = is_const;
-
-            type->pa = this;
-        }
+        Id(Type *type, std::string *lit, bool is_const = false, int val = 0);
 
         ~Id() override;
     };
@@ -128,10 +111,7 @@ public:
 
         void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-        Const(int val)  {
-            this->val = val;
-            this->is_const = true;
-        }
+        Const(int val);
     };
 
     class Undef : public Value {
@@ -149,7 +129,7 @@ class Initializer : public Base {
 
         std::string to_string() const override;
 
-        ConstInitializer(int val) : val(val) {}
+        ConstInitializer(int val);
     };
 
     class Aggregate : public Initializer {
@@ -158,11 +138,7 @@ class Initializer : public Base {
 
         std::string to_string() const override;
 
-        Aggregate(std::vector<Initializer *> initializers) : initializers(initializers) {
-
-            for (auto initializer : initializers) initializer->pa = this;
-
-        }
+        Aggregate(std::vector<Initializer *> initializers);
 
         ~Aggregate() override;
     };
@@ -193,11 +169,7 @@ public:
             public:
                 Type *type = nullptr;
 
-                MemoryDecl(Type *type) : type(type) {
-
-                    type->pa = this;
-
-                }
+                MemoryDecl(Type *type);
 
                 std::string to_string() const override;
 
@@ -210,11 +182,7 @@ public:
             public:
                 Id *addr = nullptr;
 
-                Load(Id *addr) : addr(addr) {
-
-                    addr->pa = this;
-
-                }
+                Load(Id *addr);
 
                 std::string to_string() const override;
 
@@ -230,12 +198,7 @@ public:
 
                 std::string to_string() const override;
 
-                GetPtr(Id *base, Value *offset) : base(base), offset(offset) {
-
-                    base->pa = this;
-                    offset->pa = this;
-
-                }
+                GetPtr(Id *base, Value *offset);
 
                 ~GetPtr() override;
             };
@@ -247,12 +210,7 @@ public:
 
                 std::string to_string() const override;
 
-                GetElemPtr(Id *base, Value *offset) : base(base), offset(offset) {
-
-                    base->pa = this;
-                    offset->pa = this;
-
-                }
+                GetElemPtr(Id *base, Value *offset);
 
                 ~GetElemPtr() override;
             };
@@ -278,13 +236,7 @@ public:
 
                 void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-                Expr(op::Op op, Value *lv, Value *rv, bool is_const = false) 
-                    : op(op), lv(lv), rv(rv), is_const(is_const) {
-
-                    lv->pa = this;
-                    rv->pa = this;
-
-                }
+                Expr(op::Op op, Value *lv, Value *rv, bool is_const = false);
 
                 ~Expr() override;
             };
@@ -293,7 +245,7 @@ public:
                 public:
                     Expr *expr = nullptr;
 
-                    ExprStmt(Expr *expr) : expr(expr) {}
+                    ExprStmt(Expr *expr);
 
                     std::string to_string() const override;
 
@@ -309,14 +261,7 @@ public:
 
                 std::string to_string() const override;
 
-                FuncCall(Id *id, std::vector<Value *> args) : id(id), args(args) {
-
-                    auto base_this = this;
-
-                    id->pa = base_this;
-                    for (auto arg : args) arg->pa = base_this;
-
-                }
+                FuncCall(Id *id, std::vector<Value *> args);
 
                 ~FuncCall() override;
             };
@@ -337,14 +282,7 @@ public:
 
             void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-            SymbolDef(Id *id, Rvalue *val) : id(id), val(val) {
-
-                id->pa = this;
-                val->pa = this;
-
-                is_unit = false;
-
-            }
+            SymbolDef(Id *id, Rvalue *val);
 
             ~SymbolDef() override;
         };
@@ -357,12 +295,7 @@ public:
                 Value   *value  = nullptr;
                 Id      *addr   = nullptr;
 
-                StoreValue(Value *value, Id *addr) : value(value), addr(addr) {
-
-                    value->pa = this;
-                    addr->pa = this;
-
-                }
+                StoreValue(Value *value, Id *addr);
 
                 std::string to_string() const override;
 
@@ -378,13 +311,7 @@ public:
 
                 std::string to_string() const override;
 
-                StoreInitializer(Initializer *initializer, Id *addr) :
-                    initializer(initializer), addr(addr) {
-
-                    initializer->pa = this;
-                    addr->pa = this;
-
-                }
+                StoreInitializer(Initializer *initializer, Id *addr);
 
                 ~StoreInitializer() override;
             };
@@ -400,14 +327,7 @@ public:
 
             std::string to_string() const override;
 
-            Branch(Value *cond, Id *target1, Id *target2) : 
-                cond(cond), target1(target1), target2(target2) {
-
-                cond->pa = this;
-                target1->pa = this;
-                target2->pa = this;
-
-            }
+            Branch(Value *cond, Id *target1, Id *target2);
 
             ~Branch() override;
         };
@@ -418,11 +338,7 @@ public:
 
             std::string to_string() const override;
 
-            Jump(Id *target) : target(target) {
-
-                target->pa = this;
-
-            }
+            Jump(Id *target);
 
             ~Jump() override;
         };
@@ -436,12 +352,8 @@ public:
 
             void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-            Return() : has_return_val(false) {}
-            Return(Value *val) : val(val) {
-
-                val->pa = this;
-
-            }
+            Return();
+            Return(Value *val);
 
             ~Return() override;
         };
@@ -461,26 +373,15 @@ public:
 
             void set_id_offset(int &offset);
 
-            friend void operator+=(Block &self, Stmt *stmt) {
-                self.stmts.push_back(stmt);
-            }
+            friend void operator+=(Block &self, Stmt *stmt);
 
-            friend void operator+=(Block &self, std::vector<Stmt *> stmts) {
-                self.stmts.reserve(self.stmts.size() + stmts.size());
-                self.stmts.insert(self.stmts.end(), stmts.begin(), stmts.end());
-            }
+            friend void operator+=(Block &self, std::vector<Stmt *> stmts);
 
             std::string to_string() const override;
 
             void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-            Block(Id *id, std::vector<Stmt *> stmts) :
-                id(id), stmts(stmts) {
-
-                id->pa = this;
-                for (auto stmt : stmts) stmt->pa = this;
-
-            }
+            Block(Id *id, std::vector<Stmt *> stmts);
 
             ~Block() override;
         };
@@ -492,13 +393,7 @@ public:
 
             std::string to_string() const override;
 
-            FuncParamDecl(Id *id, Type *type) :
-                id(id), type(type) {
-
-                id->pa = this;
-                type->pa = this;
-
-            }
+            FuncParamDecl(Id *id, Type *type);
 
             ~FuncParamDecl() override;
         };
@@ -515,15 +410,7 @@ public:
             void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
             FuncDef(Id *id, std::vector<FuncParamDecl *> func_param_decls,
-                    Type *ret_type, std::vector<Block *> blocks) :
-                id(id), func_param_decls(func_param_decls), ret_type(ret_type), blocks(blocks) {
-
-                id->pa = this;
-                for (auto func_param_decl : func_param_decls) func_param_decl->pa = this;
-                ret_type->pa = this;
-                for (auto block : blocks) block->pa = this;
-
-            }
+                    Type *ret_type, std::vector<Block *> blocks);
 
             ~FuncDef() override;
         };
@@ -536,14 +423,7 @@ public:
 
             std::string to_string() const override;
 
-            FuncDecl(Id *id, std::vector<Type *> param_types, Type *ret_type) :
-                id(id), param_types(param_types), ret_type(ret_type) {
-
-                id->pa = this;
-                for (auto param_type : param_types) param_type->pa = this;
-                ret_type->pa = this;
-
-            }
+            FuncDecl(Id *id, std::vector<Type *> param_types, Type *ret_type);
 
             ~FuncDecl() override;
         };
@@ -555,13 +435,7 @@ public:
 
             std::string to_string() const override;
 
-            GlobalMemoryDecl(Type *type, Initializer *initializer) :
-                type(type), initializer(initializer) {
-
-                type->pa = this;
-                initializer->pa = this;
-
-            }
+            GlobalMemoryDecl(Type *type, Initializer *initializer);
 
             ~GlobalMemoryDecl() override;
         };
@@ -573,13 +447,7 @@ public:
 
             std::string to_string() const override;
 
-            GlobalSymbolDef(Id *id, GlobalMemoryDecl *decl) :
-                id(id), decl(decl) {
-
-                id->pa = this;
-                decl->pa = this;
-
-            }
+            GlobalSymbolDef(Id *id, GlobalMemoryDecl *decl);
 
             ~GlobalSymbolDef() override;
         };
@@ -592,12 +460,7 @@ public:
 
     void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-    Program(std::vector<GlobalStmt *> global_stmts) : 
-        global_stmts(global_stmts) {
-
-        for (auto global_stmt : global_stmts) global_stmt->pa = this;
-
-    }
+    Program(std::vector<GlobalStmt *> global_stmts);
 
     ~Program() override;
 };

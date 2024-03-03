@@ -58,8 +58,7 @@ public:
         Expr            *lv = nullptr;
         Expr            *rv = nullptr;
 
-        BinaryExpr(op::BinaryOp op, Expr *lv, Expr* rv) :
-            op(op), lv(lv), rv(rv) {}
+        BinaryExpr(op::BinaryOp op, Expr *lv, Expr* rv);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -73,8 +72,7 @@ public:
         op::UnaryOp     op  = op::NEG;
         Expr            *lv = nullptr;
 
-        UnaryExpr(op::UnaryOp op, Expr *lv) :
-            op(op), lv(lv) {}
+        UnaryExpr(op::UnaryOp op, Expr *lv);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -88,8 +86,7 @@ public:
         std::string *lit;
         NestingInfo *nesting_info = nullptr;
 
-        Id(std::string *lit, NestingInfo *nesting_info) 
-            : lit(lit), nesting_info(nesting_info) {}
+        Id(std::string *lit, NestingInfo *nesting_info);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -102,7 +99,7 @@ public:
     public:
         int val = 0;
 
-        Number(int val) : val(val) {}
+        Number(int val);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -118,7 +115,7 @@ public:
     public:
         Expr *expr = nullptr;;
 
-        ExprStmt(Expr *expr) : expr(expr) {}
+        ExprStmt(Expr *expr);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -133,8 +130,8 @@ public:
         bool has_init = false;
         Expr *init = nullptr;
 
-        VarDef(Id *id) : id(id) {}
-        VarDef(Id *id, Expr *init) : id(id), init(init) { has_init = true; }
+        VarDef(Id *id);
+        VarDef(Id *id, Expr *init);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override { return nullptr; }
 
@@ -149,8 +146,7 @@ public:
         bool is_const = false;
 
         VarDecl(Type *type, std::vector<VarDef *> var_defs, 
-                bool is_const = false) :
-            type(type), var_defs(var_defs), is_const(is_const) {}
+                bool is_const = false);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -164,7 +160,7 @@ public:
         Id *id = nullptr;
         Expr *rval = nullptr;
 
-        Assign(Id *id, Expr *rval) : id(id), rval(rval) {}
+        Assign(Id *id, Expr *rval);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -178,8 +174,8 @@ public:
         bool has_return_val = true;
         Expr *ret_val = nullptr;
 
-        Return() : has_return_val(false) {}
-        Return(Expr *ret_val) : ret_val(ret_val) {}
+        Return();
+        Return(Expr *ret_val);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -192,8 +188,7 @@ public:
     public:
         std::vector<Stmt *> stmts = {};
 
-        Block(std::vector<Stmt *> stmts) 
-            : stmts(stmts) {}
+        Block(std::vector<Stmt *> stmts);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -210,11 +205,9 @@ public:
         Stmt *then_stmt = nullptr;
         Stmt *else_stmt = nullptr;
 
-        If(Expr *cond, Stmt *then_stmt)
-            : cond(cond), has_else_stmt(false), then_stmt(then_stmt) {}
+        If(Expr *cond, Stmt *then_stmt);
 
-        If(Expr *cond, Stmt *then_stmt, Stmt *else_stmt)
-            : cond(cond), has_else_stmt(true), then_stmt(then_stmt), else_stmt(else_stmt) {}
+        If(Expr *cond, Stmt *then_stmt, Stmt *else_stmt);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
@@ -229,8 +222,7 @@ public:
     std::string     *id         = nullptr;  //TODO it's even not id
     Block           *block      = nullptr;
 
-    FuncDef(Type *func_type, std::string *id, Block *block) :
-        func_type(func_type), id(id), block(block) {}
+    FuncDef(Type *func_type, std::string *id, Block *block);
 
     koopa::FuncDef *to_koopa(ValueSaver &value_saver) const;
 
@@ -243,7 +235,7 @@ class CompUnit : public Base {
 public:
     FuncDef *func_def = nullptr;
 
-    CompUnit(FuncDef *func_def) : func_def(func_def) {}
+    CompUnit(FuncDef *func_def);
 
     koopa::Program *to_koopa(ValueSaver &value_saver) const;
 
