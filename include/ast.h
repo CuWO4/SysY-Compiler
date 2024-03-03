@@ -50,6 +50,8 @@ namespace op {
 class Expr : public Base {
 public:
     virtual koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const = 0;
+
+    virtual bool has_side_effect() const = 0;
 };
 
     class BinaryExpr : public Expr {
@@ -61,6 +63,8 @@ public:
         BinaryExpr(op::BinaryOp op, Expr *lv, Expr* rv);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+        bool has_side_effect() const override;
 
         std::string debug(int indent = 0) const override;
 
@@ -76,6 +80,8 @@ public:
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
+        bool has_side_effect() const override;
+
         std::string debug(int indent = 0) const override;
 
         ~UnaryExpr() override;
@@ -90,6 +96,8 @@ public:
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
 
+        bool has_side_effect() const override;
+
         std::string debug(int indent = 0) const override;
 
         ~Id() override;
@@ -102,6 +110,8 @@ public:
         Number(int val);
 
         koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+        bool has_side_effect() const override;
 
         std::string debug(int indent = 0) const override;
     };

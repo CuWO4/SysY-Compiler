@@ -16,15 +16,20 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
     auto lv_stmts = lv->to_koopa(value_saver);
     auto rv_stmts = rv->to_koopa(value_saver);
 
-    auto generator = [&] (koopa::op::Op op, koopa::Value *elv, koopa::Value *erv) -> koopa::Value * {
+    /**
+     * @param has_pushed  whether lv_stmts & rv_stmts have been pushed into res
+     */
+    auto generator = [&] (koopa::op::Op op, koopa::Value *elv, koopa::Value *erv, bool has_pushed = false) -> koopa::Value * {
         if (elv->is_const && erv->is_const) {
             return value_saver.new_const(
                 koopa::op::op_func[op](elv->val, erv->val)
             );
         }
 
-        *res += *lv_stmts;
-        *res += *rv_stmts;
+        if (!has_pushed) {
+            *res += *lv_stmts;
+            *res += *rv_stmts;
+        }
 
         auto new_id = value_saver.new_id(
             new koopa::Int,
@@ -63,13 +68,28 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
             throw std::string("trying to build short circuit evaluation statements for `") + binary_op_name[op] + '`';
         }
 
-        if (lv_stmts->last_val->is_const && rv_stmts->last_val->is_const) {
-            if (op == op::LOGIC_AND) return new koopa::Const(lv_stmts->last_val->val && rv_stmts->last_val->val);
-            else if (op == op::LOGIC_OR) return new koopa::Const(lv_stmts->last_val->val || rv_stmts->last_val->val);
+        auto &elv = lv_stmts->last_val;
+        auto &erv = rv_stmts->last_val;
+
+        if (!rv->has_side_effect()) {
+            auto tmpa = generator(koopa::op::NE, elv, value_saver.new_const(0));
+            auto tmpb = generator(koopa::op::NE, erv, value_saver.new_const(0), true);
+            return generator(
+                op == op::LOGIC_AND
+                    ? koopa::op::AND
+                    : koopa::op::OR, 
+                tmpa, tmpb,
+                true
+            );
         }
-        if (lv_stmts->last_val->is_const) {
-            if (op == op::LOGIC_AND && lv_stmts->last_val->val == 0) return value_saver.new_const(0);
-            if (op == op::LOGIC_OR && lv_stmts->last_val->val == 1) return value_saver.new_const(1);
+
+        if (elv->is_const && erv->is_const) {
+            if (op == op::LOGIC_AND) return new koopa::Const(elv->val && erv->val);
+            else if (op == op::LOGIC_OR) return new koopa::Const(elv->val || erv->val);
+        }
+        if (elv->is_const) {
+            if (op == op::LOGIC_AND && elv->val == 0) return value_saver.new_const(0);
+            if (op == op::LOGIC_OR && elv->val == 1) return value_saver.new_const(1);
         }
 
         auto res_addr = value_saver.new_id(new koopa::Pointer(new koopa::Int), new_id_name());
@@ -81,8 +101,8 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
         *blocks += new koopa::SymbolDef(res_addr, new koopa::MemoryDecl(new koopa::Int));
 
         koopa::Value *bool_lv;
-        if (lv_stmts->last_val->is_const) {
-            bool_lv = value_saver.new_const(lv_stmts->last_val->val != 0);
+        if (elv->is_const) {
+            bool_lv = value_saver.new_const(elv->val != 0);
         }
         else {
             bool_lv = value_saver.new_id(new koopa::Int, new_id_name());
@@ -91,7 +111,7 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
                 static_cast<koopa::Id *>(bool_lv),
                 new koopa::Expr(
                     koopa::op::NE,
-                    lv_stmts->last_val,
+                    elv,
                     value_saver.new_const(0)
                 )
             );
@@ -114,8 +134,8 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
         }
 
         koopa::Value *bool_rv;
-        if (rv_stmts->last_val->is_const) {
-            bool_rv = value_saver.new_const(rv_stmts->last_val->val != 0);
+        if (erv->is_const) {
+            bool_rv = value_saver.new_const(erv->val != 0);
         }
         else {
             bool_rv = value_saver.new_id(new koopa::Int, new_id_name());
@@ -124,7 +144,7 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
                 static_cast<koopa::Id *>(bool_rv),
                 new koopa::Expr(
                     koopa::op::NE,
-                    lv_stmts->last_val,
+                    elv,
                     value_saver.new_const(0)
                 )
             );
