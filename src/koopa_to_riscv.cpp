@@ -270,6 +270,14 @@ void Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
     str += build_inst("ret");
 }
 
+void Branch::to_riscv(std::string &str, riscv_trans::Info &info) const {
+    //TODO
+}
+
+void Jump::to_riscv(std::string &str, riscv_trans::Info &info) const {
+    //TODO
+}
+
 void Block::to_riscv(std::string &str, riscv_trans::Info &info) const {
     for(auto stmt : stmts) {
         stmt->to_riscv(str, info);

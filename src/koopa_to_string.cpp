@@ -10,7 +10,7 @@ std::string Int::to_string() const {
 }
 
 std::string Array::to_string() const {
-    return '[' + elem_type->to_string() + ',' 
+    return '[' + elem_type->to_string() + ", " 
             + std::to_string(length) + ']';
 }
 
@@ -23,7 +23,7 @@ std::string FuncType::to_string() const {
 
     res += '(';
     for (auto arg_type : arg_types) {
-        res += arg_type->to_string() + ',';
+        res += arg_type->to_string() + ", ";
     }
     if (arg_types.size() > 0) res.pop_back();
     res += ")";
@@ -71,7 +71,7 @@ std::string Aggregate::to_string() const {
 
     res += '{';
     for (auto initializer : initializers) {
-        res += initializer->to_string() + ',';
+        res += initializer->to_string() + ", ";
     }
     if (initializers.size() > 0) res.pop_back();
     res += '}';
@@ -96,11 +96,11 @@ std::string Load::to_string() const {
 }
 
 std::string GetPtr::to_string() const {
-    return "getptr " + base->to_string() + ',' + offset->to_string();
+    return "getptr " + base->to_string() + ", " + offset->to_string();
 }
 
 std::string GetElemPtr::to_string() const {
-    return "getelemptr " + base->to_string() + ',' + offset->to_string();
+    return "getelemptr " + base->to_string() + ", " + offset->to_string();
 }
 
 static std::string BINARY_OP_NAME[] = {
@@ -121,7 +121,7 @@ std::string FuncCall::to_string() const {
 
     res += "call " + id->to_string() + '(';
     for (auto arg : args) {
-        res += arg->to_string() + ',';
+        res += arg->to_string() + ", ";
     }
     if (args.size() > 0) res.pop_back();
     res += ')';
@@ -142,8 +142,8 @@ std::string StoreInitializer::to_string() const {
 }
 
 std::string Branch::to_string() const {
-    return "br " + cond->to_string() + ',' 
-        + target1->to_string() + ',' + target2->to_string();
+    return "br " + cond->to_string() + ", " 
+        + target1->to_string() + ", " + target2->to_string();
 }
 
 std::string Jump::to_string() const {
@@ -160,13 +160,13 @@ std::string Block::to_string() const {
     if (debug_mode_koopa_pred_succ) {
         if (preds.size() > 0) {
             res += "//! pred: ";
-            for (auto pred : preds) res += pred + ',';
+            for (auto pred : preds) res += pred + ", ";
             res.pop_back();
             res += '\n';
         }
         if (succs.size() > 0) {
             res += "//! succ: ";
-            for (auto succ : succs) res += succ + ',';
+            for (auto succ : succs) res += succ + ", ";
             res.pop_back();
             res += '\n';
         }
@@ -192,7 +192,7 @@ std::string FuncDef::to_string() const {
 
     res += '(';
     for (auto func_param_decl : func_param_decls) {
-        res += func_param_decl->to_string() + ',';
+        res += func_param_decl->to_string() + ", ";
     }
     if (func_param_decls.size() > 0) res.pop_back();
     res += ')';
@@ -201,11 +201,11 @@ std::string FuncDef::to_string() const {
         res += ": " + ret_type->to_string();
     }
     
+    res += " {\n";
     for (auto block : blocks) {
-        res += " {\n";
-        res += block->to_string();
-        res += "}\n";
+        res += block->to_string() + '\n';
     }
+    res += "}\n";
 
     return res;
 }
@@ -221,7 +221,7 @@ std::string FuncDecl::to_string() const {
 
     res += '(';
     for (auto param_type : param_types) {
-        res += param_type->to_string() + ',';
+        res += param_type->to_string() + ", ";
     }
     if (param_types.size() > 0) res.pop_back();
     res += ')';
@@ -234,7 +234,7 @@ std::string FuncDecl::to_string() const {
 }
 
 std::string GlobalMemoryDecl::to_string() const {
-    return "alloc " + type->to_string() + ',' + initializer->to_string();
+    return "alloc " + type->to_string() + ", " + initializer->to_string();
 }
 
 std::string GlobalSymbolDef::to_string() const {

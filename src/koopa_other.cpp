@@ -55,4 +55,8 @@ namespace op {
     };
 }
 
+bool NotEndStmt::is_end_stmt() { return false; }
+bool EndStmt::is_end_stmt() { return true; }
+bool GlobalStmt::is_end_stmt() { return false; }
+
 }

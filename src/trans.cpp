@@ -1,6 +1,6 @@
 #include "../include/trans.h"
 #include "../include/koopa.h"
-#include "../include/def.h"
+#include "../include/block_name.h"
 
 namespace koopa_trans {
 
@@ -10,7 +10,7 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
 
     res.push_back( 
         new koopa::Block(
-            new koopa::Id(new koopa::Label, new std::string('%' + std::to_string(block_count++))),
+            new koopa::Id(new koopa::Label, new_block_name()),
             active_stmts
         ) 
     );
@@ -19,15 +19,6 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
 
     return res;
     //! memory leak
-}
-
-void Blocks::push_to_active_stmts(koopa::Stmt *stmt) {
-    active_stmts.push_back(stmt);
-}
-
-void Blocks::push_to_active_stmts(std::vector<koopa::Stmt *> stmts) {
-    active_stmts.reserve(active_stmts.size() + stmts.size());
-    active_stmts.insert(active_stmts.end(), stmts.begin(), stmts.end());
 }
 
 void operator+=(koopa_trans::Blocks &self, koopa_trans::Blocks &other) {
@@ -46,6 +37,15 @@ void operator+=(koopa_trans::Blocks &self, koopa_trans::Blocks &other) {
         self.blocks.reserve(self.blocks.size() + other.blocks.size());
         self.blocks.insert(self.blocks.end(), other.blocks.begin(), other.blocks.end());
     }
+}
+
+void operator+=(Blocks &self, std::vector<koopa::Block *> blocks) {
+    self.blocks.reserve(self.blocks.size() + blocks.size());
+    self.blocks.insert(self.blocks.end(), blocks.begin(), blocks.end());
+}
+
+void operator+=(Blocks &self, koopa::Block * block) {
+    self.blocks.push_back(block);
 }
 
 void operator+=(koopa_trans::Blocks &self, std::vector<koopa::Stmt *> &stmts) {

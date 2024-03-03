@@ -89,7 +89,7 @@ block
 
 block_items
     : block_items block_item {
-        if ($2 != nullptr) $1->push_back($2);
+        $1->push_back($2);
         $$ = $1;
     }
     | {
@@ -109,7 +109,7 @@ stmt
     | assign_stmt
     | return_stmt
     | expr_stmt
-    | ';'           { $$ = nullptr; }
+    | ';'           { $$ = new ast::Block({}); }
 ;
 
 if_clause

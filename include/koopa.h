@@ -158,8 +158,11 @@ class Initializer : public Base {
 class Stmt : public Base {
 public:
     bool is_unit = true;
+
+    virtual bool is_end_stmt() = 0;
 };
     class NotEndStmt : public Stmt {
+        bool is_end_stmt() override;
     };
 
         class Rvalue : public Base {
@@ -317,6 +320,7 @@ public:
             };
 
     class EndStmt : public Stmt {
+        bool is_end_stmt() override;
     };
 
         class Branch : public EndStmt {
@@ -326,6 +330,8 @@ public:
             Id      *target2    = nullptr;
 
             std::string to_string() const override;
+
+            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
             Branch(Value *cond, Id *target1, Id *target2);
 
@@ -338,6 +344,8 @@ public:
 
             std::string to_string() const override;
 
+            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            
             Jump(Id *target);
 
             ~Jump() override;
@@ -359,6 +367,7 @@ public:
         };
 
     class GlobalStmt : public Stmt {
+        bool is_end_stmt() override;
     };
 
         class Block : public Base {
