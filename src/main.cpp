@@ -27,17 +27,18 @@ void test() {
 
 void handle_args(int argc, const char *argv[], std::string &mode, std::string &input, std::string &output) {
 	#ifndef DEBUG__
-
-	debug_mode_koopa = false;
-	debug_mode_riscv = false;
-
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-koopa") || !strcmp(argv[i], "-riscv") || !strcmp(argv[i], "-test")) mode = argv[i];
 		else if (!strcmp(argv[i], "-o")) {
 			assert(i + 1 < argc);
 			output = argv[++i];
 		}
-		else if (!strcmp(argv[i], "-dbg-k")) debug_mode_koopa = true;
+		else if (!strcmp(argv[i], "-dbg-k")) { 
+			debug_mode_koopa_type = true;
+			debug_mode_koopa_pred_succ = true;
+		}
+		else if (!strcmp(argv[i], "-dbg-k-type")) debug_mode_koopa_type = true;
+		else if (!strcmp(argv[i], "-dbg-k-pred-succ")) debug_mode_koopa_pred_succ = true;
 		else if (!strcmp(argv[i], "-dbg-r")) debug_mode_riscv = true;
 		else input = argv[i];
 	}
