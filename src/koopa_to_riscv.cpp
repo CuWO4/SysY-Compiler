@@ -32,10 +32,10 @@ void koopa::Id::to_riscv(std::string &str, riscv_trans::Info &info) const {
         str += to_riscv_style(*lit);
     }
     else if (typeid(*type) == typeid(koopa::Label)){
-        //TODO
+        /* empty */
     }
     else if (typeid(*type) == typeid(koopa::Void)) {
-        //TODO
+        /* empty */
     }
     else {
         auto target_reg = info.get_unused_reg();

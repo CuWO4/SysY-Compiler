@@ -226,7 +226,7 @@ public:
 class FuncDef : public Base {
 public:
     Type            *func_type  = nullptr;
-    std::string     *id         = nullptr;  //TODO it's even id(std::string)
+    std::string     *id         = nullptr;  //TODO it's even not id
     Block           *block      = nullptr;
 
     FuncDef(Type *func_type, std::string *id, Block *block) :

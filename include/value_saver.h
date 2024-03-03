@@ -26,6 +26,7 @@ private:
 
     std::unordered_set<koopa::Const *> consts = {};
 
+    // singleton
     koopa::Undef *undef = nullptr;
     
     void insert_id(std::string key, koopa::Id *new_id);
