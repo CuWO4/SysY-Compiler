@@ -42,7 +42,7 @@
 %type	<ast_func_def_val> func_def
 %type	<ast_type_val> type
 %type	<ast_block_val> block
-%type	<ast_stmt_val> block_item if_clause decl_stmt assign_stmt return_stmt expr_stmt stmt
+%type	<ast_stmt_val> block_item if_clause decl_stmt assign_stmt return_stmt expr_stmt stmt block_stmt
 %type	<ast_expr_val> expr
 %type	<ast_var_def_val> var_def
 %type   <ast_stmt_vec_val> block_items 
@@ -113,18 +113,17 @@ stmt
 ;
 
 if_clause
-    : TK_IF '(' expr ')' block_start stmt block_end %prec PREC_IF {
-        $$ =new ast::If($3, $6);
+    : TK_IF '(' expr ')' block_stmt %prec PREC_IF {
+        $$ =new ast::If($3, $5);
     }
-    | TK_IF '(' expr ')' block_start stmt block_end TK_ELSE block_start stmt block_end {
-        $$ = new ast::If($3, $6, $10);
+    | TK_IF '(' expr ')' block_stmt TK_ELSE block_stmt {
+        $$ = new ast::If($3, $5, $7);
     }
-    | TK_IF '(' expr ')' empty block empty %prec PREC_IF {
-        $$ =new ast::If($3, $6);
-    }
-    | TK_IF '(' expr ')' empty block empty TK_ELSE empty block empty {
-        $$ = new ast::If($3, $6, $10);
-    }
+;
+
+block_stmt
+    : block_start stmt block_end    { $$ = $2; }
+    | block                         { $$ = $1; }  
 ;
 
 decl_stmt
@@ -255,8 +254,6 @@ block_end : {
 
     cur_nesting_info = cur_nesting_info->pa;
 }
-
-empty : {}
 
 %%
 

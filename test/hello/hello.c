@@ -3,6 +3,9 @@ int main() {
   if (a == 0) {
     a = 1;
   }
+  else if (a == 1) {
+    int a;
+  }
   else {
      a = 2;
   }
