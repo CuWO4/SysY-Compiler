@@ -99,6 +99,7 @@ block_items
 
 block_item
     : stmt
+    | block         { $$ = $1; }
     | error ';'     { yyerrok; }
 ;
 
@@ -108,7 +109,6 @@ stmt
     | assign_stmt
     | return_stmt
     | expr_stmt
-    | block         { $$ = $1; }
     | ';'           { $$ = nullptr; }
 ;
 
@@ -117,6 +117,12 @@ if_clause
         $$ =new ast::If($3, $6);
     }
     | TK_IF '(' expr ')' block_start stmt block_end TK_ELSE block_start stmt block_end {
+        $$ = new ast::If($3, $6, $10);
+    }
+    | TK_IF '(' expr ')' empty block empty %prec PREC_IF {
+        $$ =new ast::If($3, $6);
+    }
+    | TK_IF '(' expr ')' empty block empty TK_ELSE empty block empty {
         $$ = new ast::If($3, $6, $10);
     }
 ;
@@ -249,6 +255,8 @@ block_end : {
 
     cur_nesting_info = cur_nesting_info->pa;
 }
+
+empty : {}
 
 %%
 
