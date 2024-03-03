@@ -2,7 +2,7 @@
 #include "../include/def.h"
 
 std::string *new_block_name() {
-    return new std::string("%block_" + std::to_string(block_count++));
+    return new std::string("%LLB_" + std::to_string(block_count++));
 }
 
 std::string *new_id_name() {
