@@ -54,8 +54,7 @@ void Const::to_riscv(std::string &str, riscv_trans::Info &info) const {
 
 static bool is_commutative(op::Op op) {
     switch (op) {
-        case op::EQ: case op::NE: case op::GT: case op::LT: 
-        case op::GE: case op::LE: case op::ADD: case op::MUL:
+        case op::EQ: case op::NE: case op::ADD: case op::MUL:
         case op::AND: case op::OR: case op::XOR:
             return true;
         default:
@@ -65,10 +64,11 @@ static bool is_commutative(op::Op op) {
 
 static bool has_i_type_inst(op::Op op) {
     switch (op) {
-        case op::MUL: case op::MOD:
-            return false;
-        default:
+        case op::ADD: case op::AND: case op::OR: case op::XOR:
+        case op::EQ: case op::NE:
             return true; 
+        default:
+            return false;
     }
 }
 
@@ -271,14 +271,17 @@ void Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
 }
 
 void Branch::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    //TODO
+    cond->to_riscv(str, info);
+    str += build_inst("bnez", info.res_lit, to_riscv_style(*target1->lit));
+    str += build_inst("j", to_riscv_style(*target2->lit));
 }
 
 void Jump::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    //TODO
+    str += build_inst("j", to_riscv_style(*target->lit));
 }
 
 void Block::to_riscv(std::string &str, riscv_trans::Info &info) const {
+    str += to_riscv_style(*id->lit) + ":\n";
     for(auto stmt : stmts) {
         stmt->to_riscv(str, info);
     }

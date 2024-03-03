@@ -330,12 +330,17 @@ koopa_trans::Blocks *If::to_koopa(ValueSaver &value_saver) const {
 }
 
 static void trim_redundant_stmts_after_end_stmt(std::vector<koopa::Stmt *> &stmts) {
+    bool exist_end_stmt = false;
+
     for (auto it = stmts.begin(); it != stmts.end(); it = std::next(it)) {
         if ((*it)->is_end_stmt()) {
+            exist_end_stmt = true;
             stmts.erase(std::next(it), stmts.end());
             break;
         }
     }
+
+    if (!exist_end_stmt) throw "there is a control flow with no endpoint";
 }
 
 static void trim_redundant_stmts_after_end_stmt(koopa_trans::Blocks *blocks) {
@@ -356,10 +361,6 @@ koopa_trans::Blocks *Block::to_koopa(ValueSaver &value_saver) const {
         *res += *stmt->to_koopa(value_saver);
     }
 
-    trim_redundant_stmts_after_end_stmt(res);
-
-    add_pred_succ(res);
-
     return res;
 }
 
@@ -368,20 +369,26 @@ koopa::Type *Int::to_koopa(ValueSaver &value_saver) const {
 }
 
 koopa::FuncDef *FuncDef::to_koopa(ValueSaver &value_saver) const {
-    auto func_id = new std::string("");
-    *func_id += "@" + *id;
-    return new koopa::FuncDef(
-        value_saver.new_id(
-            new koopa::FuncType(
-                std::vector<koopa::Type *>(),
-                func_type->to_koopa(value_saver)
-            ),
-            func_id,
-            new NestingInfo(false) /* This does not affect scope, since we only name zero-nested variables as unsuffixed */
+    auto id_koopa = value_saver.new_id(
+        new koopa::FuncType(
+            std::vector<koopa::Type *>(),
+            func_type->to_koopa(value_saver)
         ),
-        std::vector<koopa::FuncParamDecl *>(),
-        func_type->to_koopa(value_saver),
-        block->to_koopa(value_saver)->to_raw_blocks()
+        new std::string('@' + *id),
+        new NestingInfo(false) /* This does not affect scope, since we only name zero-nested variables as unsuffixed */
+    );
+
+    auto type_koopa = func_type->to_koopa(value_saver); // TODO not needed
+
+    auto block_koopa = block->to_koopa(value_saver);
+    trim_redundant_stmts_after_end_stmt(block_koopa);
+    add_pred_succ(block_koopa);
+
+    return new koopa::FuncDef(
+        id_koopa,
+        {},
+        type_koopa,
+        block_koopa->to_raw_blocks()
     );
 }
 
