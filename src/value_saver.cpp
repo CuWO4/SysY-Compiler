@@ -29,7 +29,6 @@ koopa::Id *ValueSaver::new_id(koopa::Type *type, std::string *lit, NestingInfo *
     );
     insert_id(*build_name(lit, nesting_info), res);
     return res;
-
 }
 
 bool ValueSaver::is_id_declared(std::string lit, NestingInfo *nesting_info) {

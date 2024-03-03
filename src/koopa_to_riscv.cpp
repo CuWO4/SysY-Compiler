@@ -274,6 +274,8 @@ void Branch::to_riscv(std::string &str, riscv_trans::Info &info) const {
     cond->to_riscv(str, info);
     str += build_inst("bnez", info.res_lit, to_riscv_style(*target1->lit));
     str += build_inst("j", to_riscv_style(*target2->lit));
+
+    info.refresh_reg(info.res_lit);
 }
 
 void Jump::to_riscv(std::string &str, riscv_trans::Info &info) const {

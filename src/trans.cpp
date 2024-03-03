@@ -1,8 +1,11 @@
 #include "../include/trans.h"
 #include "../include/koopa.h"
-#include "../include/block_name.h"
+#include "../include/name.h"
 
 namespace koopa_trans {
+
+Blocks::Blocks(std::vector<koopa::Stmt *> stmts, koopa::Value *last_val)
+    : active_stmts(stmts), last_val(last_val) {}
 
 std::vector<koopa::Block *> Blocks::to_raw_blocks() {
     auto res = std::vector<koopa::Block *>{};
@@ -10,7 +13,9 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
 
     res.push_back( 
         new koopa::Block(
-            new koopa::Id(new koopa::Label, new_block_name()),
+            begin_block_id != nullptr 
+                ? begin_block_id
+                : new koopa::Id(new koopa::Label, new_block_name()),
             active_stmts
         ) 
     );
@@ -19,6 +24,17 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
 
     return res;
     //! memory leak
+}
+
+void Blocks::init_begin_block_id() {
+    begin_block_id = new koopa::Id(new koopa::Label, new_block_name());
+}
+
+koopa::Id *Blocks::get_begin_block_id() {
+    if (begin_block_id != nullptr) return begin_block_id;
+
+    init_begin_block_id();
+    return begin_block_id;
 }
 
 void operator+=(koopa_trans::Blocks &self, koopa_trans::Blocks &other) {
@@ -72,7 +88,7 @@ void operator+=(koopa_trans::Blocks &self, koopa::Stmt *stmt) {
 namespace riscv_trans {
 
 std::string Info::get_unused_reg() {
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < REG_COUNT; i++) {
         if (is_reg_used[i] == false) {
             is_reg_used[i] = true;
             return 't' + std::to_string(i);
@@ -83,7 +99,7 @@ std::string Info::get_unused_reg() {
 
 void Info::refresh_reg(std::string lit) {
     int i = lit.at(1) - '0';
-    assert(i >= 0 && i <= 6);
+    if (i >= REG_COUNT) throw "use unknown register";
     is_reg_used[i] = false;
 }
 

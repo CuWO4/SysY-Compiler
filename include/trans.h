@@ -19,7 +19,8 @@ namespace riscv_trans {
 
         std::string res_lit = "";
 
-        bool is_reg_used[7] = { 0 };
+        static constexpr int REG_COUNT = 7;
+        bool is_reg_used[REG_COUNT] = { 0 };
         std::string get_unused_reg();
 
         void refresh_reg(std::string lit);
@@ -54,8 +55,8 @@ namespace koopa_trans {
      *      when `blocks` is empty, `last_val` saves the pointer of last value active_stmts defines, for instance in 
      *          %1 = add %0, 1
      *          %2 = mul %1, 2
-     *      , `last_val` = %2, callee may capture and use it in following compiling. the `last_val` of a `Blocks` with
-     *      not empty `blocks` is undefined. when merging two `Blocks`, the last_val of new `Blocks` will the latter one's.
+     *      , `last_val` = %2, callee may capture and use it in following compiling. when merging two `Blocks`, the last_val 
+     *      of new `Blocks` will the latter one's.
      *
      *  examples:
      *
@@ -72,13 +73,14 @@ namespace koopa_trans {
      */
     class Blocks {
     public:
+        koopa::Id *get_begin_block_id();
+
         std::vector<koopa::Stmt *> active_stmts = {};
         koopa::Value *last_val = nullptr;
 
         std::vector<koopa::Block *> blocks = {};
 
-        Blocks(std::vector<koopa::Stmt *> stmts = {}, koopa::Value *last_val = nullptr) 
-            : active_stmts(stmts), last_val(last_val) {}
+        Blocks(std::vector<koopa::Stmt *> stmts = {}, koopa::Value *last_val = nullptr);
 
         std::vector<koopa::Block *> to_raw_blocks();
 
@@ -90,6 +92,10 @@ namespace koopa_trans {
 
         std::string to_string() const { return ""; }
         void to_riscv(std::string &str, riscv_trans::Info &info) const {}
+
+    private:
+        koopa::Id *begin_block_id = nullptr;
+        void init_begin_block_id();
     };
 
 }

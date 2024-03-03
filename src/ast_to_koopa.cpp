@@ -4,7 +4,7 @@
 #include "../include/nesting_info.h"
 #include "../include/def.h"
 #include "../include/value_saver.h"
-#include "../include/block_name.h"
+#include "../include/name.h"
 
 #include <string>
 
@@ -16,9 +16,6 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
     auto lv_stmts = lv->to_koopa(value_saver);
     auto rv_stmts = rv->to_koopa(value_saver);
 
-    *res += *lv_stmts;
-    *res += *rv_stmts;
-
     auto generator = [&] (koopa::op::Op op, koopa::Value *elv, koopa::Value *erv) -> koopa::Value * {
         if (elv->is_const && erv->is_const) {
             return value_saver.new_const(
@@ -26,9 +23,12 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
             );
         }
 
+        *res += *lv_stmts;
+        *res += *rv_stmts;
+
         auto new_id = value_saver.new_id(
             new koopa::Int,
-            new std::string('%' + std::to_string(tmp_var_count++)),
+            new_id_name(),
             new NestingInfo(false)
         );
 
@@ -42,19 +42,109 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
         return new_id;
     };
 
+    auto build_short_circuit_eval_stmts = [&] (op::BinaryOp op) -> koopa::Value * {
+    /*
+     *  LOGIC_AND:
+     *      int result = lv != 0;
+     *      if (result) 
+     *          result = rv != 0;
+     *
+     *  LOGIC_OR:
+     *      int result = lv != 0;
+     *      if (!result)
+     *          result = rv != 0;
+     *
+     */
+        if (op != op::LOGIC_AND && op != op::LOGIC_OR) {
+            const char *binary_op_name[] = {
+                "||", "&&", "==", "!=", "<", ">", "<=", ">=", 
+                "+", "-", "*", "/", "%",
+            };
+            throw std::string("trying to build short circuit evaluation statements for `") + binary_op_name[op] + '`';
+        }
+
+        if (lv_stmts->last_val->is_const && rv_stmts->last_val->is_const) {
+            if (op == op::LOGIC_AND) return new koopa::Const(lv_stmts->last_val->val && rv_stmts->last_val->val);
+            else if (op == op::LOGIC_OR) return new koopa::Const(lv_stmts->last_val->val || rv_stmts->last_val->val);
+        }
+        if (lv_stmts->last_val->is_const) {
+            if (op == op::LOGIC_AND && lv_stmts->last_val->val == 0) return value_saver.new_const(0);
+            if (op == op::LOGIC_OR && lv_stmts->last_val->val == 1) return value_saver.new_const(1);
+        }
+
+        auto res_addr = value_saver.new_id(new koopa::Pointer(new koopa::Int), new_id_name());
+        auto blocks = new koopa_trans::Blocks;
+
+        auto then_block = new koopa_trans::Blocks;
+        auto end_block = new koopa_trans::Blocks;
+
+        *blocks += new koopa::SymbolDef(res_addr, new koopa::MemoryDecl(new koopa::Int));
+
+        koopa::Value *bool_lv;
+        if (lv_stmts->last_val->is_const) {
+            bool_lv = value_saver.new_const(lv_stmts->last_val->val != 0);
+        }
+        else {
+            bool_lv = value_saver.new_id(new koopa::Int, new_id_name());
+            *blocks += *lv_stmts;
+            *blocks += new koopa::SymbolDef(
+                static_cast<koopa::Id *>(bool_lv),
+                new koopa::Expr(
+                    koopa::op::NE,
+                    lv_stmts->last_val,
+                    value_saver.new_const(0)
+                )
+            );
+        }
+        *blocks += new koopa::StoreValue(bool_lv, res_addr);
+
+        if (op == op::LOGIC_AND) {
+            *blocks += new koopa::Branch(
+                bool_lv, 
+                then_block->get_begin_block_id(), 
+                end_block->get_begin_block_id()
+            );
+        }
+        else if (op == op::LOGIC_OR) {
+            *blocks += new koopa::Branch(
+                bool_lv, 
+                end_block->get_begin_block_id(), 
+                then_block->get_begin_block_id()
+            );
+        }
+
+        koopa::Value *bool_rv;
+        if (rv_stmts->last_val->is_const) {
+            bool_rv = value_saver.new_const(rv_stmts->last_val->val != 0);
+        }
+        else {
+            bool_rv = value_saver.new_id(new koopa::Int, new_id_name());
+            *then_block += *rv_stmts;
+            *then_block += new koopa::SymbolDef(
+                static_cast<koopa::Id *>(bool_rv),
+                new koopa::Expr(
+                    koopa::op::NE,
+                    lv_stmts->last_val,
+                    value_saver.new_const(0)
+                )
+            );
+        }
+        *then_block += new koopa::StoreValue(bool_rv, res_addr);
+        *then_block += new koopa::Jump(end_block->get_begin_block_id());
+
+        *blocks += then_block->to_raw_blocks();
+        *blocks += end_block->to_raw_blocks();
+
+        *res += *blocks;
+
+        auto res_id = new koopa::Id(new koopa::Int, new_id_name());
+        *res += new koopa::SymbolDef(res_id, new koopa::Load(res_addr));
+        
+        return res_id;
+    };
+
     switch (op) {
-        case op::LOGIC_AND: {
-            auto tmpa = generator(koopa::op::NE, lv_stmts->last_val, value_saver.new_const(0));
-            auto tmpb = generator(koopa::op::NE, rv_stmts->last_val, value_saver.new_const(0));
-            res->last_val = generator(koopa::op::AND, tmpa, tmpb);
-            break;
-        }
-        case op::LOGIC_OR: {
-            auto tmpa = generator(koopa::op::NE, lv_stmts->last_val, value_saver.new_const(0));
-            auto tmpb = generator(koopa::op::NE, rv_stmts->last_val, value_saver.new_const(0));
-            res->last_val = generator(koopa::op::OR, tmpa, tmpb);
-            break;
-        }
+        case op::LOGIC_AND: case op::LOGIC_OR: res->last_val = build_short_circuit_eval_stmts(op); break;
         case op::EQ: res->last_val = generator(koopa::op::EQ, lv_stmts->last_val, rv_stmts->last_val); break;
         case op::NEQ: res->last_val =  generator(koopa::op::NE, lv_stmts->last_val, rv_stmts->last_val); break;
         case op::LT: res->last_val = generator(koopa::op::LT, lv_stmts->last_val, rv_stmts->last_val); break;
@@ -92,7 +182,7 @@ koopa_trans::Blocks *UnaryExpr::to_koopa(ValueSaver &value_saver) const {
 
         new_id = value_saver.new_id(
             new koopa::Int,
-            new std::string('%' + std::to_string(tmp_var_count++)),
+            new_id_name(),
             new NestingInfo(false)
         );
 
@@ -146,7 +236,7 @@ koopa_trans::Blocks *Id::to_koopa(ValueSaver &value_saver) const {
 
         auto new_id = value_saver.new_id(
             static_cast<koopa::Pointer *>(id_koopa->type)->pointed_type, //!? re-free bug
-            new std::string('%' + std::to_string(tmp_var_count++)),
+            new_id_name(),
             new NestingInfo(false)
         );
 
