@@ -7,7 +7,9 @@
 
 #include <string>
 
-koopa_trans::Blocks *ast::BinaryExpr::to_koopa(ValueSaver &value_saver) const {
+namespace ast {
+
+koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
     auto res = new koopa_trans::Blocks;
 
     auto lv_stmts = lv->to_koopa(value_saver);
@@ -77,7 +79,7 @@ koopa_trans::Blocks *ast::BinaryExpr::to_koopa(ValueSaver &value_saver) const {
     return res;
 }
 
-koopa_trans::Blocks *ast::UnaryExpr::to_koopa(ValueSaver &value_saver) const {
+koopa_trans::Blocks *UnaryExpr::to_koopa(ValueSaver &value_saver) const {
     auto lv_stmts = lv->to_koopa(value_saver);
 
     auto generator = [&](koopa::op::Op op) {
@@ -134,17 +136,17 @@ koopa_trans::Blocks *ast::UnaryExpr::to_koopa(ValueSaver &value_saver) const {
     return lv_stmts;
 }
 
-koopa_trans::Blocks *ast::Number::to_koopa(ValueSaver &value_saver) const {
+koopa_trans::Blocks *Number::to_koopa(ValueSaver &value_saver) const {
     auto res = new koopa_trans::Blocks;
     res->last_val = value_saver.new_const(val);
     return res;
 }
 
-koopa_trans::Blocks *ast::ExprStmt::to_koopa(ValueSaver &value_saver) const {
+koopa_trans::Blocks *ExprStmt::to_koopa(ValueSaver &value_saver) const {
     return expr->to_koopa(value_saver);
 }
 
-koopa_trans::Blocks *ast::Id::to_koopa(ValueSaver &value_saver) const {
+koopa_trans::Blocks *Id::to_koopa(ValueSaver &value_saver) const {
     auto res = new koopa_trans::Blocks;
 
     auto id_koopa = value_saver.get_id('@' + *lit, nesting_info);
@@ -179,7 +181,7 @@ koopa_trans::Blocks *ast::Id::to_koopa(ValueSaver &value_saver) const {
     }
 }
 
-koopa_trans::Blocks *ast::VarDecl::to_koopa(ValueSaver &value_saver) const {
+koopa_trans::Blocks *VarDecl::to_koopa(ValueSaver &value_saver) const {
     auto stmts = new koopa_trans::Blocks();
 
     if (is_const) {
@@ -250,7 +252,7 @@ koopa_trans::Blocks *ast::VarDecl::to_koopa(ValueSaver &value_saver) const {
     return stmts;
 }
 
-koopa_trans::Blocks *ast::Assign::to_koopa(ValueSaver &value_saver) const {
+koopa_trans::Blocks *Assign::to_koopa(ValueSaver &value_saver) const {
     auto res = rval->to_koopa(value_saver);
 
     auto id_koopa = value_saver.get_id('@' + *id->lit, id->nesting_info);
@@ -270,7 +272,7 @@ koopa_trans::Blocks *ast::Assign::to_koopa(ValueSaver &value_saver) const {
     return res;
 }
 
-koopa_trans::Blocks *ast::Return::to_koopa(ValueSaver &value_saver) const {
+koopa_trans::Blocks *Return::to_koopa(ValueSaver &value_saver) const {
     if (!has_return_val) {
         auto res = new koopa_trans::Blocks();
         *res += new koopa::Return();
@@ -284,12 +286,15 @@ koopa_trans::Blocks *ast::Return::to_koopa(ValueSaver &value_saver) const {
     return res;
 }
 
-koopa_trans::Blocks *ast::If::to_koopa(ValueSaver &value_saver) const {
-    // TODO
-    return nullptr;
+koopa_trans::Blocks *If::to_koopa(ValueSaver &value_saver) const {
+    auto res = new koopa_trans::Blocks;
+
+
+
+    return res;
 }
 
-koopa_trans::Blocks *ast::Block::to_koopa(ValueSaver &value_saver) const {
+koopa_trans::Blocks *Block::to_koopa(ValueSaver &value_saver) const {
     auto res = new koopa_trans::Blocks;
 
     for (auto stmt : stmts) {
@@ -301,11 +306,11 @@ koopa_trans::Blocks *ast::Block::to_koopa(ValueSaver &value_saver) const {
     return res;
 }
 
-koopa::Type *ast::Int::to_koopa(ValueSaver &value_saver) const {
+koopa::Type *Int::to_koopa(ValueSaver &value_saver) const {
     return new koopa::Int;
 }
 
-koopa::FuncDef *ast::FuncDef::to_koopa(ValueSaver &value_saver) const {
+koopa::FuncDef *FuncDef::to_koopa(ValueSaver &value_saver) const {
     auto func_id = new std::string("");
     *func_id += "@" + *id;
     return new koopa::FuncDef(
@@ -323,10 +328,12 @@ koopa::FuncDef *ast::FuncDef::to_koopa(ValueSaver &value_saver) const {
     );
 }
 
-koopa::Program *ast::CompUnit::to_koopa(ValueSaver &value_saver) const {
+koopa::Program *CompUnit::to_koopa(ValueSaver &value_saver) const {
     return new koopa::Program(
         std::vector<koopa::GlobalStmt *> {
             func_def->to_koopa(value_saver)
         }
     );
+}
+
 }

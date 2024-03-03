@@ -19,7 +19,9 @@ static std::string build_inst(std::string op_code,
     return res;
 }
 
-static std::string build_comment(const koopa::Base *obj) {
+namespace koopa {
+
+static std::string build_comment(const Base *obj) {
     return debug_mode_riscv ? "\t# " + obj->to_string() + '\n' : "";
 }
 
@@ -27,14 +29,14 @@ static std::string build_mem(int offset, std::string base = "sp") {
     return std::to_string(offset) + '(' + base + ')';
 }
 
-void koopa::Id::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    if ((typeid(*type) == typeid(koopa::FuncType))) {
+void Id::to_riscv(std::string &str, riscv_trans::Info &info) const {
+    if ((typeid(*type) == typeid(FuncType))) {
         str += to_riscv_style(*lit);
     }
-    else if (typeid(*type) == typeid(koopa::Label)){
+    else if (typeid(*type) == typeid(Label)){
         /* empty */
     }
-    else if (typeid(*type) == typeid(koopa::Void)) {
+    else if (typeid(*type) == typeid(Void)) {
         /* empty */
     }
     else {
@@ -44,51 +46,51 @@ void koopa::Id::to_riscv(std::string &str, riscv_trans::Info &info) const {
     }
 }
 
-void koopa::Const::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Const::to_riscv(std::string &str, riscv_trans::Info &info) const {
     auto target = info.get_unused_reg();
     str += build_inst("li", target, std::to_string(val));
     info.res_lit = target;
 }
 
-static bool is_commutative(koopa::op::Op op) {
+static bool is_commutative(op::Op op) {
     switch (op) {
-        case koopa::op::EQ: case koopa::op::NE: case koopa::op::GT: case koopa::op::LT: 
-        case koopa::op::GE: case koopa::op::LE: case koopa::op::ADD: case koopa::op::MUL:
-        case koopa::op::AND: case koopa::op::OR: case koopa::op::XOR:
+        case op::EQ: case op::NE: case op::GT: case op::LT: 
+        case op::GE: case op::LE: case op::ADD: case op::MUL:
+        case op::AND: case op::OR: case op::XOR:
             return true;
         default:
             return false;
     }
 }
 
-static bool has_i_type_inst(koopa::op::Op op) {
+static bool has_i_type_inst(op::Op op) {
     switch (op) {
-        case koopa::op::MUL: case koopa::op::MOD:
+        case op::MUL: case op::MOD:
             return false;
         default:
             return true; 
     }
 }
 
-koopa::Expr *exchanged_expr(const koopa::Expr *expr) {
+Expr *exchanged_expr(const Expr *expr) {
     switch (expr->op) {
-        case koopa::op::EQ: case koopa::op::NE: case koopa::op::ADD: case koopa::op::MUL: 
-        case koopa::op::AND: case koopa::op::OR: case koopa::op::XOR:
-            return new koopa::Expr(expr->op, expr->rv, expr->lv);
-        case koopa::op::GT:
-            return new koopa::Expr(koopa::op::LT, expr->rv, expr->lv);
-        case koopa::op::LT:
-            return new koopa::Expr(koopa::op::GT, expr->rv, expr->lv);
-        case koopa::op::GE:
-            return new koopa::Expr(koopa::op::LE, expr->rv, expr->lv);
-        case koopa::op::LE:
-            return new koopa::Expr(koopa::op::GE, expr->rv, expr->lv);
+        case op::EQ: case op::NE: case op::ADD: case op::MUL: 
+        case op::AND: case op::OR: case op::XOR:
+            return new Expr(expr->op, expr->rv, expr->lv);
+        case op::GT:
+            return new Expr(op::LT, expr->rv, expr->lv);
+        case op::LT:
+            return new Expr(op::GT, expr->rv, expr->lv);
+        case op::GE:
+            return new Expr(op::LE, expr->rv, expr->lv);
+        case op::LE:
+            return new Expr(op::GE, expr->rv, expr->lv);
         default:
             throw "try to exchange a not commutative expression";
     }
 }
 
-void koopa::Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
     std::string first_reg, second_lit, target_reg;
     bool is_i_type_inst = false;
     
@@ -123,75 +125,75 @@ void koopa::Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
     target_reg = info.get_unused_reg();
 
     switch (op) {
-        case koopa::op::NE: {
+        case op::NE: {
             str += build_inst("xor", target_reg, first_reg, second_lit, is_i_type_inst);
             str += build_inst("snez", target_reg, target_reg);
             break;
         }
-        case koopa::op::EQ: {
+        case op::EQ: {
             str += build_inst("xor", target_reg, first_reg, second_lit, is_i_type_inst);
             str += build_inst("seqz", target_reg, target_reg);
             break;
         }
-        case koopa::op::GT: {
+        case op::GT: {
             str += build_inst("sgt", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::LT: {
+        case op::LT: {
             str += build_inst("slt", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::GE: {
+        case op::GE: {
             str += build_inst("slt", target_reg, first_reg, second_lit, is_i_type_inst);
             str += build_inst("xori", target_reg, target_reg, "1");
             break;
         }
-        case koopa::op::LE: {
+        case op::LE: {
             str += build_inst("sgt", target_reg, first_reg, second_lit, is_i_type_inst);
             str += build_inst("xori", target_reg, target_reg, "1");
             break;
         }
-        case koopa::op::ADD: {
+        case op::ADD: {
             str += build_inst("add", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::SUB: {
+        case op::SUB: {
             str += build_inst("sub", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::MUL: {
+        case op::MUL: {
             str += build_inst("mul", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::DIV: {
+        case op::DIV: {
             str += build_inst("div", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::MOD: {
+        case op::MOD: {
             str += build_inst("rem", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::AND: {
+        case op::AND: {
             str += build_inst("and", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::OR: {
+        case op::OR: {
             str += build_inst("or", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::XOR: {
+        case op::XOR: {
             str += build_inst("xor", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::SHL: {
+        case op::SHL: {
             str += build_inst("sll", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::SHR: {
+        case op::SHR: {
             str += build_inst("srl", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
-        case koopa::op::SAR: {
+        case op::SAR: {
             str += build_inst("sra", target_reg, first_reg, second_lit, is_i_type_inst);
             break;
         }
@@ -203,7 +205,7 @@ void koopa::Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
     info.res_lit = target_reg;
 }
 
-void koopa::ExprStmt::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void ExprStmt::to_riscv(std::string &str, riscv_trans::Info &info) const {
 
     str += build_comment(this);
 
@@ -212,10 +214,10 @@ void koopa::ExprStmt::to_riscv(std::string &str, riscv_trans::Info &info) const 
     info.refresh_reg(info.res_lit);
 }
 
-void koopa::MemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void MemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
 }
 
-void koopa::Load::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Load::to_riscv(std::string &str, riscv_trans::Info &info) const {
     auto target_reg = info.get_unused_reg();
 
     str += build_inst("lw", target_reg, build_mem(addr->sf_offset));
@@ -223,7 +225,7 @@ void koopa::Load::to_riscv(std::string &str, riscv_trans::Info &info) const {
     info.res_lit = target_reg;
 }
 
-void koopa::StoreValue::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void StoreValue::to_riscv(std::string &str, riscv_trans::Info &info) const {
 
     str += build_comment(this);
 
@@ -235,11 +237,11 @@ void koopa::StoreValue::to_riscv(std::string &str, riscv_trans::Info &info) cons
     info.refresh_reg(val_reg);
 }
 
-void koopa::SymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void SymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
 
     str += build_comment(this);
 
-    if (typeid(*val) == typeid(koopa::MemoryDecl)) return;
+    if (typeid(*val) == typeid(MemoryDecl)) return;
 
     val->to_riscv(str, info);
     auto source_reg = info.res_lit;
@@ -249,7 +251,7 @@ void koopa::SymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const
     info.refresh_reg(source_reg);
 }
 
-void koopa::Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
 
     str += build_comment(this);
 
@@ -268,13 +270,13 @@ void koopa::Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
     str += build_inst("ret");
 }
 
-void koopa::Block::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Block::to_riscv(std::string &str, riscv_trans::Info &info) const {
     for(auto stmt : stmts) {
         stmt->to_riscv(str, info);
     }
 }
 
-void koopa::FuncDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void FuncDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
 
     id->to_riscv(str, info);
     str += ":\n";
@@ -302,7 +304,7 @@ void koopa::FuncDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
     
 }
 
-void koopa::Program::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Program::to_riscv(std::string &str, riscv_trans::Info &info) const {
     str += "\t.text\n";
     str += "\t.global main\n";
 
@@ -311,4 +313,6 @@ void koopa::Program::to_riscv(std::string &str, riscv_trans::Info &info) const {
     }
 
     
+}
+
 }

@@ -21,6 +21,15 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
     //! memory leak
 }
 
+void Blocks::push_to_active_stmts(koopa::Stmt *stmt) {
+    active_stmts.push_back(stmt);
+}
+
+void Blocks::push_to_active_stmts(std::vector<koopa::Stmt *> stmts) {
+    active_stmts.reserve(active_stmts.size() + stmts.size());
+    active_stmts.insert(active_stmts.end(), stmts.begin(), stmts.end());
+}
+
 void operator+=(koopa_trans::Blocks &self, koopa_trans::Blocks &other) {
 
     self.last_val = other.last_val;
@@ -56,6 +65,26 @@ void operator+=(koopa_trans::Blocks &self, koopa::Stmt *stmt) {
     else {
         *self.blocks.back() += stmt;
     }
+}
+
+}
+
+namespace riscv_trans {
+
+std::string Info::get_unused_reg() {
+    for (int i = 0; i < 7; i++) {
+        if (is_reg_used[i] == false) {
+            is_reg_used[i] = true;
+            return 't' + std::to_string(i);
+        }
+    }
+    throw "not enough reg";
+}
+
+void Info::refresh_reg(std::string lit) {
+    int i = lit.at(1) - '0';
+    assert(i >= 0 && i <= 6);
+    is_reg_used[i] = false;
 }
 
 }

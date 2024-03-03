@@ -1,6 +1,8 @@
 #include "../include/koopa.h"
 
-int koopa::Block::get_stack_frame_size() {
+namespace koopa {
+
+int Block::get_stack_frame_size() {
 
     int stack_frame_size = 0;
 
@@ -11,62 +13,46 @@ int koopa::Block::get_stack_frame_size() {
     return stack_frame_size;
 }
 
-void koopa::Block::set_id_offset(int &offset) {
+void Block::set_id_offset(int &offset) {
 
     for (auto stmt : stmts) {
-        if (typeid(*stmt) == typeid(koopa::SymbolDef)) {
+        if (typeid(*stmt) == typeid(SymbolDef)) {
             offset -= 4;
-            static_cast<koopa::SymbolDef *>(stmt)->id->sf_offset = offset;
+            static_cast<SymbolDef *>(stmt)->id->sf_offset = offset;
         }
     }
 
 }
 
-void koopa::operator+=(koopa::Block &self, koopa::Stmt *stmt) {
+void operator+=(Block &self, Stmt *stmt) {
     self.stmts.push_back(stmt);
 }
 
-void koopa::operator+=(koopa::Block &self, std::vector<koopa::Stmt *> stmts) {
+void operator+=(Block &self, std::vector<Stmt *> stmts) {
     self.stmts.reserve(self.stmts.size() + stmts.size());
     self.stmts.insert(self.stmts.end(), stmts.begin(), stmts.end());
 }
 
-namespace koopa {
-    namespace op {
-        std::function<int(int, int)> op_func[] = {
-            [] (int a, int b) { return a != b; },
-            [] (int a, int b) { return a == b; },
-            [] (int a, int b) { return a > b; },
-            [] (int a, int b) { return a < b; },
-            [] (int a, int b) { return a >= b; },
-            [] (int a, int b) { return a <= b; },
-            [] (int a, int b) { return a + b; },
-            [] (int a, int b) { return a - b; },
-            [] (int a, int b) { return a * b; },
-            [] (int a, int b) { return a / b; },
-            [] (int a, int b) { return a % b; },
-            [] (int a, int b) { return a & b; },
-            [] (int a, int b) { return a | b; },
-            [] (int a, int b) { return a ^ b; },
-            [] (int a, int b) { return a << b; },
-            [] (int a, int b) { return (unsigned)a >> (unsigned)b; },
-            [] (int a, int b) { return a >> b; },
-        };
-    }
+namespace op {
+    std::function<int(int, int)> op_func[] = {
+        [] (int a, int b) { return a != b; },
+        [] (int a, int b) { return a == b; },
+        [] (int a, int b) { return a > b; },
+        [] (int a, int b) { return a < b; },
+        [] (int a, int b) { return a >= b; },
+        [] (int a, int b) { return a <= b; },
+        [] (int a, int b) { return a + b; },
+        [] (int a, int b) { return a - b; },
+        [] (int a, int b) { return a * b; },
+        [] (int a, int b) { return a / b; },
+        [] (int a, int b) { return a % b; },
+        [] (int a, int b) { return a & b; },
+        [] (int a, int b) { return a | b; },
+        [] (int a, int b) { return a ^ b; },
+        [] (int a, int b) { return a << b; },
+        [] (int a, int b) { return (unsigned)a >> (unsigned)b; },
+        [] (int a, int b) { return a >> b; },
+    };
 }
 
-std::string riscv_trans::Info::get_unused_reg() {
-    for (int i = 0; i < 7; i++) {
-        if (is_reg_used[i] == false) {
-            is_reg_used[i] = true;
-            return 't' + std::to_string(i);
-        }
-    }
-    throw "not enough reg";
-}
-
-void riscv_trans::Info::refresh_reg(std::string lit) {
-    int i = lit.at(1) - '0';
-    assert(i >= 0 && i <= 6);
-    is_reg_used[i] = false;
 }

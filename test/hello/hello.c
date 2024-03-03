@@ -6,9 +6,7 @@ int main() {
   else if (a == 1) {
     int a;
   }
-  else {
-     a = 2;
-  }
+  else a = 2;
 
   if (a == 0)
     if (a == 1) int a = 3;

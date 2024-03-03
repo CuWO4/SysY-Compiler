@@ -1,14 +1,16 @@
 #include "../include/koopa.h"
 
-koopa::Array::~Array() {
+namespace koopa {
+
+Array::~Array() {
     if (elem_type != nullptr) delete elem_type;
 }
 
-koopa::Pointer::~Pointer() {
+Pointer::~Pointer() {
     if (pointed_type != nullptr) delete pointed_type;
 }
 
-koopa::FuncType::~FuncType() {
+FuncType::~FuncType() {
     for (auto arg_type : arg_types) {
         if (arg_type != nullptr) delete arg_type;
     }
@@ -17,70 +19,70 @@ koopa::FuncType::~FuncType() {
 
 }
 
-koopa::Id::~Id() {
+Id::~Id() {
     if (type != nullptr) delete type;
     if (lit != nullptr) delete lit;
 }
 
-koopa::Aggregate::~Aggregate() {
+Aggregate::~Aggregate() {
     for (auto initializer : initializers) {
         if (initializer != nullptr) delete initializer;
     }
 }
 
-koopa::MemoryDecl::~MemoryDecl() {
+MemoryDecl::~MemoryDecl() {
     if (type != nullptr) delete type;
 }
 
-koopa::Load::~Load() {
+Load::~Load() {
 }
 
-koopa::GetPtr::~GetPtr() {
+GetPtr::~GetPtr() {
 }
 
-koopa::GetElemPtr::~GetElemPtr() {
+GetElemPtr::~GetElemPtr() {
 }
 
-koopa::Expr::~Expr() {
+Expr::~Expr() {
 }
 
-koopa::ExprStmt::~ExprStmt() {
+ExprStmt::~ExprStmt() {
     if (expr != nullptr) delete expr;
 }
 
-koopa::FuncCall::~FuncCall() {
+FuncCall::~FuncCall() {
 }
 
-koopa::SymbolDef::~SymbolDef() {
+SymbolDef::~SymbolDef() {
 }
 
-koopa::StoreValue::~StoreValue() {
+StoreValue::~StoreValue() {
 }
 
-koopa::StoreInitializer::~StoreInitializer() {
+StoreInitializer::~StoreInitializer() {
     if (initializer != nullptr) delete initializer;
 }
 
-koopa::Branch::~Branch() {
+Branch::~Branch() {
 }
 
-koopa::Jump::~Jump() {
+Jump::~Jump() {
 }
 
-koopa::Return::~Return() {
+Return::~Return() {
 }
 
-koopa::Block::~Block() {
+Block::~Block() {
     for (auto stmt : stmts) {
         if (stmt != nullptr) delete stmt;
     }
 }
 
-koopa::FuncParamDecl::~FuncParamDecl() {
+FuncParamDecl::~FuncParamDecl() {
     if (type != nullptr) delete type;
 }
 
-koopa::FuncDef::~FuncDef() {
+FuncDef::~FuncDef() {
     for (auto func_param_decl : func_param_decls) {
         if (func_param_decl != nullptr) delete func_param_decl;
     }
@@ -90,25 +92,26 @@ koopa::FuncDef::~FuncDef() {
     }
 }
 
-koopa::FuncDecl::~FuncDecl() {
+FuncDecl::~FuncDecl() {
     for (auto param_type : param_types) {
         if (param_type != nullptr) delete param_type;
     }
     if (ret_type != nullptr) delete ret_type;
 }
 
-koopa::GlobalMemoryDecl::~GlobalMemoryDecl() {
+GlobalMemoryDecl::~GlobalMemoryDecl() {
     if (type != nullptr) delete type;
     if (initializer != nullptr) delete initializer;
 }
 
-koopa::GlobalSymbolDef::~GlobalSymbolDef() {
+GlobalSymbolDef::~GlobalSymbolDef() {
     if (decl != nullptr) delete decl;
 }
 
-koopa::Program::~Program() {
+Program::~Program() {
     for (auto global_stmt : global_stmts) {
         if (global_stmt != nullptr) delete global_stmt;
     }
 }
 
+}

@@ -82,6 +82,9 @@ namespace koopa_trans {
 
         std::vector<koopa::Block *> to_raw_blocks();
 
+        void push_to_active_stmts(koopa::Stmt *stmt);
+        void push_to_active_stmts(std::vector<koopa::Stmt *> stmts);
+
         friend void operator+=(Blocks &self, Blocks &other);
         friend void operator+=(Blocks &self, std::vector<koopa::Stmt *> &stmts);
         friend void operator+=(Blocks &self, koopa::Stmt *stmt);
