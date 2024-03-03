@@ -4,7 +4,6 @@
 FB_EXT := .cpp
 
 # Flags
-CFLAGS := -Wall -std=c11
 CXXFLAGS := -Wall -Wno-register -std=c++17
 FFLAGS :=
 BFLAGS := -d
@@ -13,17 +12,13 @@ LDFLAGS :=
 # Debug flags
 DEBUG ?= 1
 ifeq ($(DEBUG), 0)
-CFLAGS += -O2
 CXXFLAGS += -O2
 else
 CFLAGS += -g -O0
 CXXFLAGS += -g -O0
-# CFLAGS += -O0
-# CXXFLAGS += -O0
 endif
 
 # Compilers
-CC := clang
 CXX := clang++
 FLEX := flex
 BISON := bison
@@ -42,13 +37,9 @@ LDFLAGS += -L$(LIB_DIR) -lkoopa
 # Source files & target files
 FB_SRCS := $(patsubst $(SRC_DIR)/%.l, $(BUILD_DIR)/%.lex$(FB_EXT), $(shell find $(SRC_DIR) -name "*.l"))
 FB_SRCS += $(patsubst $(SRC_DIR)/%.y, $(BUILD_DIR)/%.tab$(FB_EXT), $(shell find $(SRC_DIR) -name "*.y"))
-SRCS := $(FB_SRCS) $(shell find $(SRC_DIR) -name "*.c" -or -name "*.cpp" -or -name "*.cc")
-OBJS := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.c.o, $(SRCS))
-OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.cpp.o, $(OBJS))
-OBJS := $(patsubst $(SRC_DIR)/%.cc, $(BUILD_DIR)/%.cc.o, $(OBJS))
-OBJS := $(patsubst $(BUILD_DIR)/%.c, $(BUILD_DIR)/%.c.o, $(OBJS))
+SRCS := $(FB_SRCS) $(shell find $(SRC_DIR) -name "*.cpp")
+OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.cpp.o, $(SRCS))
 OBJS := $(patsubst $(BUILD_DIR)/%.cpp, $(BUILD_DIR)/%.cpp.o, $(OBJS))
-OBJS := $(patsubst $(BUILD_DIR)/%.cc, $(BUILD_DIR)/%.cc.o, $(OBJS))
 
 # Header directories & dependencies
 INC_DIRS := $(shell find $(SRC_DIR) -type d)
@@ -61,32 +52,23 @@ CPPFLAGS = $(INC_FLAGS) -MMD -MP
 $(BUILD_DIR)/$(TARGET_EXEC): $(FB_SRCS) $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -lpthread -ldl -o $@
 
-# C source
-define c_recipe
-	mkdir -p $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-endef
-$(BUILD_DIR)/%.c.o: $(SRC_DIR)/%.c; $(c_recipe)
-$(BUILD_DIR)/%.c.o: $(BUILD_DIR)/%.c; $(c_recipe)
-
 # C++ source
 define cxx_recipe
-	mkdir -p $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 endef
-$(BUILD_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp; $(cxx_recipe)
-$(BUILD_DIR)/%.cpp.o: $(BUILD_DIR)/%.cpp; $(cxx_recipe)
-$(BUILD_DIR)/%.cc.o: $(SRC_DIR)/%.cc; $(cxx_recipe)
+$(BUILD_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR); $(cxx_recipe)
+$(BUILD_DIR)/%.cpp.o: $(BUILD_DIR)/%.cpp | $(BUILD_DIR); $(cxx_recipe)
 
 # Flex
-$(BUILD_DIR)/%.lex$(FB_EXT): $(SRC_DIR)/%.l
-	mkdir -p $(dir $@)
+$(BUILD_DIR)/%.lex$(FB_EXT): $(SRC_DIR)/%.l | $(BUILD_DIR)
 	$(FLEX) $(FFLAGS) -o $@ $<
 
 # Bison
-$(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y
-	mkdir -p $(dir $@)
+$(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y | $(BUILD_DIR)
 	$(BISON) $(BFLAGS) -o $@ $<
+
+$(BUILD_DIR) :
+	mkdir $(BUILD_DIR)
 
 -include $(DEPS)
 
@@ -99,7 +81,7 @@ clean:
 lldb : $(BUILD_DIR)/$(TARGET_EXEC)
 	lldb $(BUILD_DIR)/$(TARGET_EXEC) -- -test ./test/hello/hello.c -o ./test/hello/hello.koopa
 
-test-hello : $(BUILD_DIR)/$(TARGET_EXEC)
+test-hello-test : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -test ./test/hello/hello.c
 
 test-hello-koopa : $(BUILD_DIR)/$(TARGET_EXEC)
@@ -108,11 +90,15 @@ test-hello-koopa : $(BUILD_DIR)/$(TARGET_EXEC)
 test-hello-riscv : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S
 
+test-hello : test-hello-koopa test-hello-koopa
+
 test-hello-koopa-debug : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -koopa ./test/hello/hello.c -o ./test/hello/hello.koopa -dbg-k
 
 test-hello-riscv-debug : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S -dbg-r
+
+test-hello-debug : test-hello-koopa-debug test-hello-riscv-debug
 
 test-all-koopa :
 	autotest -koopa /root/compiler
@@ -120,11 +106,15 @@ test-all-koopa :
 test-all-riscv :
 	autotest -riscv /root/compiler
 
+test-all : test-all-koopa test-all-riscv
+
 test-lv1-koopa :
 	autotest -koopa -s lv1 /root/compiler
 
 test-lv1-riscv :
 	autotest -riscv -s lv1 /root/compiler
+
+test-lv1 : test-lv1-koopa test-lv1-riscv
 
 test-lv3-koopa :
 	autotest -koopa -s lv3 /root/compiler
@@ -132,11 +122,15 @@ test-lv3-koopa :
 test-lv3-riscv :
 	autotest -riscv -s lv3 /root/compiler
 
+test-lv3 : test-lv3-koopa test-lv3-riscv
+
 test-lv4-koopa :
 	autotest -koopa -s lv4 /root/compiler
 
 test-lv4-riscv :
 	autotest -riscv -s lv4 /root/compiler
+
+test-lv4 : test-lv4-koopa test-lv4-riscv
 
 test-lv5-koopa :
 	autotest -koopa -s lv5 /root/compiler
@@ -144,5 +138,47 @@ test-lv5-koopa :
 test-lv5-riscv :
 	autotest -riscv -s lv5 /root/compiler
 
+test-lv5 : test-lv5-koopa test-lv5-riscv
+
+test-lv6-koopa :
+	autotest -koopa -s lv6 /root/compiler
+
+test-lv6-riscv :
+	autotest -riscv -s lv6 /root/compiler
+
+test-lv6 : test-lv6-koopa test-lv6-riscv
+
+test-lv7-koopa :
+	autotest -koopa -s lv7 /root/compiler
+
+test-lv7-riscv :
+	autotest -riscv -s lv7 /root/compiler
+
+test-lv7 : test-lv7-koopa test-lv7-riscv
+
+test-lv8-koopa :
+	autotest -koopa -s lv8 /root/compiler
+
+test-lv8-riscv :
+	autotest -riscv -s lv8 /root/compiler
+
+test-lv8 : test-lv8-koopa test-lv8-riscv
+
+test-lv9-koopa :
+	autotest -koopa -s lv9 /root/compiler
+
+test-lv9-riscv :
+	autotest -riscv -s lv9 /root/compiler
+
+test-lv9 : test-lv9-koopa test-lv9-riscv
+
+test-perf-koopa :
+	autotest -koopa -s perf /root/compiler
+
+test-perf-riscv :
+	autotest -riscv -s perf /root/compiler
+
+test-perf : test-perf-koopa test-perf-riscv
+
 docker :
-	docker run -it --rm -v G:/OneDrive/code/projects/sysy-to-riscv--cpp:/root/compiler  maxxing/compiler-dev bash 
+	docker run -it --rm -v ${CURDIR}:/root/compiler  maxxing/compiler-dev bash 
