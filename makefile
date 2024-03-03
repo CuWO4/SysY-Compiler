@@ -1,8 +1,6 @@
 # Based on https://matansilver.com/2017/08/29/universal-makefile/
 # Modified by MaxXing CuWO4
 
-SHELL := /bin/bash
-
 FB_EXT := .cpp
 
 # Flags
@@ -49,10 +47,6 @@ INC_DIRS += $(INC_DIRS:$(SRC_DIR)%=$(BUILD_DIR)%)
 INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 DEPS := $(OBJS:.o=.d)
 CPPFLAGS = $(INC_FLAGS) -MMD -MP
-
-# Timing
-TIMING :
-	time make $(BUILD_DIR)/$(TARGET_EXEC)
 
 # Main target
 $(BUILD_DIR)/$(TARGET_EXEC): $(FB_SRCS) $(OBJS)
