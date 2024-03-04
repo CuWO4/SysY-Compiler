@@ -79,7 +79,7 @@ clean:
 	-rm -rf $(BUILD_DIR)
 
 lldb : $(BUILD_DIR)/$(TARGET_EXEC)
-	lldb $(BUILD_DIR)/$(TARGET_EXEC) -- -test ./test/hello/hello.c -o ./test/hello/hello.koopa
+	lldb $(BUILD_DIR)/$(TARGET_EXEC) -- -koopa ./test/hello/hello.c -o ./test/hello/hello.koopa
 
 test-hello-test : $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -test ./test/hello/hello.c

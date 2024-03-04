@@ -76,11 +76,13 @@ namespace koopa_trans {
         koopa::Id *get_begin_block_id();
 
         std::vector<koopa::Stmt *> active_stmts = {};
+        bool has_last_val = false;
         koopa::Value *last_val = nullptr;
 
         std::vector<koopa::Block *> blocks = {};
 
-        Blocks(std::vector<koopa::Stmt *> stmts = {}, koopa::Value *last_val = nullptr);
+        Blocks(std::vector<koopa::Stmt *> stmts = {});
+        Blocks(std::vector<koopa::Stmt *> stmts, koopa::Value *last_val);
 
         std::vector<koopa::Block *> to_raw_blocks();
 

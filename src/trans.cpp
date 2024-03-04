@@ -4,8 +4,11 @@
 
 namespace koopa_trans {
 
+Blocks::Blocks(std::vector<koopa::Stmt *> stmts)
+    : active_stmts(stmts), has_last_val(true), last_val(nullptr) {}
+
 Blocks::Blocks(std::vector<koopa::Stmt *> stmts, koopa::Value *last_val)
-    : active_stmts(stmts), last_val(last_val) {}
+    : active_stmts(stmts), has_last_val(true), last_val(last_val) {}
 
 std::vector<koopa::Block *> Blocks::to_raw_blocks() {
     auto res = std::vector<koopa::Block *>{};
@@ -39,7 +42,7 @@ koopa::Id *Blocks::get_begin_block_id() {
 
 void operator+=(koopa_trans::Blocks &self, koopa_trans::Blocks &other) {
 
-    self.last_val = other.last_val;
+    if (other.has_last_val) self.last_val = other.last_val;
 
     if (self.blocks.empty()) {
         self.active_stmts.reserve(self.active_stmts.size() + other.active_stmts.size());

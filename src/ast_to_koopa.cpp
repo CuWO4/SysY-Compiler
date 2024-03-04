@@ -4,6 +4,7 @@
 #include "../include/nesting_info.h"
 #include "../include/value_saver.h"
 #include "../include/name.h"
+#include "../include/loop_tag.h"
 
 #include <string>
 
@@ -74,7 +75,7 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
         if (op != op::LOGIC_AND && op != op::LOGIC_OR) {
             const char *binary_op_name[] = {
                 "||", "&&", "==", "!=", "<", ">", "<=", ">=", 
-                "+", "-", "*", "/", "%",
+                "+", "-", "*", "/", "%", ",", "="
             };
             throw std::string("trying to build short circuit evaluation statements for `") + binary_op_name[op] + '`';
         }
@@ -83,7 +84,9 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
         auto &erv = rv_stmts->last_val;
 
         if (!rv->has_side_effect()) {
-            auto tmpa = generator(koopa::op::NE, elv, value_saver.new_const(0));
+            if (!elv->is_const) *res += *lv_stmts;
+            if (!erv->is_const) *res += *rv_stmts;
+            auto tmpa = generator(koopa::op::NE, elv, value_saver.new_const(0), true);
             auto tmpb = generator(koopa::op::NE, erv, value_saver.new_const(0), true);
             return generator(
                 op == op::LOGIC_AND
@@ -95,12 +98,15 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
         }
 
         if (elv->is_const && erv->is_const) {
-            if (op == op::LOGIC_AND) return new koopa::Const(elv->val && erv->val);
-            else if (op == op::LOGIC_OR) return new koopa::Const(elv->val || erv->val);
+            return value_saver.new_const(
+                op == op::LOGIC_AND
+                    ? elv->val && erv->val
+                    : elv->val || erv->val
+            );
         }
         if (elv->is_const) {
             if (op == op::LOGIC_AND && elv->val == 0) return value_saver.new_const(0);
-            if (op == op::LOGIC_OR && elv->val == 1) return value_saver.new_const(1);
+            if (op == op::LOGIC_OR && elv->val != 0) return value_saver.new_const(1);
         }
 
         auto res_addr = value_saver.new_id(new koopa::Pointer(new koopa::Int), new_id_name());
@@ -498,8 +504,31 @@ koopa_trans::Blocks *While::to_koopa(ValueSaver &value_saver) const {
      *    | F       V
      *    *----> while_end
      */
-    // TODO
-    return nullptr;
+    auto res = new koopa_trans::Blocks;
+
+    auto while_entry = new koopa_trans::Blocks;
+    auto while_body = new koopa_trans::Blocks;
+    auto while_end = new koopa_trans::Blocks;
+
+    loop_tag_saver.push(LoopTag(while_entry->get_begin_block_id(), while_end->get_begin_block_id()));
+
+    *res += new koopa::Jump(while_entry->get_begin_block_id());
+
+    auto cond_koopa = cond->to_koopa(value_saver);
+    *while_entry += *cond_koopa;
+    *while_entry += new koopa::Branch(cond_koopa->last_val, while_body->get_begin_block_id(), while_end->get_begin_block_id());
+
+    auto body_koopa = body->to_koopa(value_saver);
+    *while_body += *body_koopa;
+    *while_body += new koopa::Jump(while_entry->get_begin_block_id());
+
+    *res += while_entry->to_raw_blocks();
+    *res += while_body->to_raw_blocks();
+    *res += while_end->to_raw_blocks();
+
+    loop_tag_saver.pop();
+
+    return res;
 }
 
 koopa_trans::Blocks *For::to_koopa(ValueSaver &value_saver) const {
@@ -510,7 +539,7 @@ koopa_trans::Blocks *For::to_koopa(ValueSaver &value_saver) const {
      *              V
      *    *----- for_entry <--------*
      *    |                         |
-     *    |  T                      |
+     *    |  T             break    |
      *    +----> for_body -------*  |
      *    |       |  | continue  |  |
      *    |       V  V           |  |
@@ -523,13 +552,21 @@ koopa_trans::Blocks *For::to_koopa(ValueSaver &value_saver) const {
 }
 
 koopa_trans::Blocks *Continue::to_koopa(ValueSaver &value_saver) const {
-    // TODO
-    return nullptr;
+    if (loop_tag_saver.empty()) {
+        throw "not using continue in loop";
+    }
+    return new koopa_trans::Blocks(
+        { new koopa::Jump(loop_tag_saver.top().continue_target) }
+    );
 }
 
 koopa_trans::Blocks *Break::to_koopa(ValueSaver &value_saver) const {
-    // TODO
-    return nullptr;
+    if (loop_tag_saver.empty()) {
+        throw "not using break in loop";
+    }
+    return new koopa_trans::Blocks(
+        { new koopa::Jump(loop_tag_saver.top().break_target) }
+    );
 }
 
 static void trim_redundant_stmts_after_end_stmt(std::vector<koopa::Stmt *> &stmts) {

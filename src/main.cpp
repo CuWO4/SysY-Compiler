@@ -3,6 +3,7 @@
 
 #define extern_
 #include "../include/def.h"
+#include "../include/loop_tag.h"
 #undef extern_
 
 #include "../build/sysy.tab.hpp"
@@ -94,7 +95,9 @@ int main(int argc, const char *argv[]) {
 
 	} catch (std::string &s) {
 		std::cerr << "error: " << s << std::endl;
-	} 
+	} catch (char *&s) {
+		std::cerr << "error: " << s << std::endl;
+	}
 
 	return 0;
 }
