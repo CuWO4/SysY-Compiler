@@ -2,7 +2,6 @@
 #include "../include/koopa.h"
 #include "../include/trans.h"
 #include "../include/nesting_info.h"
-#include "../include/def.h"
 #include "../include/value_saver.h"
 #include "../include/name.h"
 
@@ -13,7 +12,8 @@ namespace ast {
 koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
     auto res = new koopa_trans::Blocks;
 
-    auto lv_stmts = lv->to_koopa(value_saver);
+    koopa_trans::Blocks *lv_stmts;
+    if (op != op::ASSIGN) lv_stmts = lv->to_koopa(value_saver);
     auto rv_stmts = rv->to_koopa(value_saver);
 
     /**
@@ -186,7 +186,44 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
         case op::SUB: res->last_val = generator(koopa::op::SUB, lv_stmts->last_val, rv_stmts->last_val); break;
         case op::MUL: res->last_val = generator(koopa::op::MUL, lv_stmts->last_val, rv_stmts->last_val); break;
         case op::DIV: res->last_val = generator(koopa::op::DIV, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::MOD: res->last_val = generator(koopa::op::MOD, lv_stmts->last_val, rv_stmts->last_val);
+        case op::MOD: res->last_val = generator(koopa::op::MOD, lv_stmts->last_val, rv_stmts->last_val); break;
+        case op::COMMA: { 
+            if (lv->has_side_effect()) *res += *lv_stmts;
+            if (rv_stmts->last_val->is_const) {
+                res->last_val = rv_stmts->last_val;
+            }
+            else {
+                *res += *rv_stmts;
+                res->last_val = rv_stmts->last_val;
+            }
+            break;
+        }
+        case op::ASSIGN: {
+            if (typeid(*lv) != typeid(ast::Id)) {
+                throw "try to declare a non-id";
+            }
+
+            auto id = static_cast<ast::Id *>(lv);
+            *res += *rv_stmts;
+
+            auto id_koopa = value_saver.get_id('@' + *id->lit, id->nesting_info);
+
+            if (id_koopa == nullptr) {
+                throw "undeclared identifier `" + *id->lit + '`';
+            }
+            if (id_koopa->is_const) {
+                throw "assigning to a const identifier `" + *id->lit + '`';
+            }
+
+            *res += new koopa::StoreValue(
+                res->last_val,
+                value_saver.get_id('@' + *id->lit, id->nesting_info)
+            );
+
+            res->last_val = id_koopa;
+
+            break;
+        }
     }
 
     // delete lv_stmts;
@@ -242,10 +279,6 @@ koopa_trans::Blocks *Number::to_koopa(ValueSaver &value_saver) const {
     auto res = new koopa_trans::Blocks;
     res->last_val = value_saver.new_const(val);
     return res;
-}
-
-koopa_trans::Blocks *ExprStmt::to_koopa(ValueSaver &value_saver) const {
-    return expr->to_koopa(value_saver);
 }
 
 koopa_trans::Blocks *Id::to_koopa(ValueSaver &value_saver) const {
@@ -352,26 +385,6 @@ koopa_trans::Blocks *VarDecl::to_koopa(ValueSaver &value_saver) const {
     }
 
     return stmts;
-}
-
-koopa_trans::Blocks *Assign::to_koopa(ValueSaver &value_saver) const {
-    auto res = rval->to_koopa(value_saver);
-
-    auto id_koopa = value_saver.get_id('@' + *id->lit, id->nesting_info);
-
-    if (id_koopa == nullptr) {
-        throw "undeclared identifier `" + *id->lit + '`';
-    }
-    if (id_koopa->is_const) {
-        throw "assigning to a const identifier `" + *id->lit + '`';
-    }
-
-    *res += new koopa::StoreValue(
-        res->last_val,
-        value_saver.get_id('@' + *id->lit, id->nesting_info)
-    );
-
-    return res;
 }
 
 koopa_trans::Blocks *Return::to_koopa(ValueSaver &value_saver) const {

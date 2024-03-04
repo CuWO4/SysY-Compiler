@@ -13,15 +13,11 @@ Id::Id(std::string *lit, NestingInfo *nesting_info)
 
 Number::Number(int val) : val(val) {}
 
-ExprStmt::ExprStmt(Expr *expr) : expr(expr) {}
-
 VarDef::VarDef(Id *id) : id(id) {}
 VarDef::VarDef(Id *id, Expr *init) : id(id), init(init) { has_init = true; }
 
 VarDecl::VarDecl(Type *type, std::vector<VarDef *> var_defs, bool is_const)
     : type(type), var_defs(var_defs), is_const(is_const) {}
-
-Assign::Assign(Id *id, Expr *rval) : id(id), rval(rval) {}
 
 Return::Return() : has_return_val(false) {}
 Return::Return(Expr *ret_val) : ret_val(ret_val) {}

@@ -6,7 +6,7 @@ namespace ast {
 
 static const char *binary_op_name[] = {
     "||", "&&", "==", "!=", "<", ">", "<=", ">=", 
-    "+", "-", "*", "/", "%",
+    "+", "-", "*", "/", "%", ",", "="
 };
 
 static const char *unary_op_name[] = { "-", "+", "!" };
@@ -36,10 +36,6 @@ std::string Number::debug(int indent) const {
     return std::to_string(val);
 }
 
-std::string ExprStmt::debug(int indent) const {
-    return build_indent(indent) + expr->debug();
-}
-
 std::string VarDef::debug(int indent) const {
     return id->debug() +
         (has_init ? " = " + init->debug() : "") + ',';
@@ -53,10 +49,6 @@ std::string VarDecl::debug(int indent) const {
     }
 
     return res;
-}
-
-std::string Assign::debug(int indent) const {
-    return build_indent(indent) + id->debug() + " = " + rval->debug();
 }
 
 std::string Return::debug(int indent) const {

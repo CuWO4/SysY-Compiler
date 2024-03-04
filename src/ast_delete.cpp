@@ -15,10 +15,6 @@ Id::~Id() {
     if (lit != nullptr) delete lit;
 }
 
-ExprStmt::~ExprStmt() {
-    if (expr != nullptr) delete expr;
-}
-
 VarDef::~VarDef() {
     if (id != nullptr) delete id;
     if (init != nullptr) delete init;
@@ -29,11 +25,6 @@ VarDecl::~VarDecl() {
     for (auto var_def : var_defs) {
         if (var_def != nullptr) delete var_def;
     }
-}
-
-Assign::~Assign() {
-    if (id != nullptr) delete id;
-    if (rval != nullptr) delete rval;
 }
 
 Return::~Return() {

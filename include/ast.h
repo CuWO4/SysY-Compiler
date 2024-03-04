@@ -39,7 +39,7 @@ public:
 namespace op {
     enum BinaryOp {
         LOGIC_OR, LOGIC_AND, EQ, NEQ, LT, GT, LEQ, GEQ,
-        ADD, SUB, MUL, DIV, MOD,
+        ADD, SUB, MUL, DIV, MOD, COMMA, ASSIGN
     };
 
     enum UnaryOp {
@@ -47,92 +47,77 @@ namespace op {
     };
 }
 
-class Expr : public Base {
-public:
-    virtual koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const = 0;
-
-    virtual bool has_side_effect() const = 0;
-};
-
-    class BinaryExpr : public Expr {
-    public:
-        op::BinaryOp    op  = op::LOGIC_OR;
-        Expr            *lv = nullptr;
-        Expr            *rv = nullptr;
-
-        BinaryExpr(op::BinaryOp op, Expr *lv, Expr* rv);
-
-        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
-
-        bool has_side_effect() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~BinaryExpr() override;
-    };
-
-    class UnaryExpr : public Expr {
-    public:
-        op::UnaryOp     op  = op::NEG;
-        Expr            *lv = nullptr;
-
-        UnaryExpr(op::UnaryOp op, Expr *lv);
-
-        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
-
-        bool has_side_effect() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~UnaryExpr() override;
-    };
-
-    class Id : public Expr {
-    public:
-        std::string *lit;
-        NestingInfo *nesting_info = nullptr;
-
-        Id(std::string *lit, NestingInfo *nesting_info);
-
-        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
-
-        bool has_side_effect() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~Id() override;
-    };
-
-    class Number : public Expr {
-    public:
-        int val = 0;
-
-        Number(int val);
-
-        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
-
-        bool has_side_effect() const override;
-
-        std::string debug(int indent = 0) const override;
-    };
-
 class Stmt : public Base {
 public:
     virtual koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const = 0;
 };
 
-    class ExprStmt : public Stmt {
+    class Expr : public Stmt {
     public:
-        Expr *expr = nullptr;;
-
-        ExprStmt(Expr *expr);
-
-        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~ExprStmt() override;        
+        virtual bool has_side_effect() const = 0;
     };
+
+        class BinaryExpr : public Expr {
+        public:
+            op::BinaryOp    op  = op::LOGIC_OR;
+            Expr            *lv = nullptr;
+            Expr            *rv = nullptr;
+
+            BinaryExpr(op::BinaryOp op, Expr *lv, Expr* rv);
+
+            koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+            bool has_side_effect() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~BinaryExpr() override;
+        };
+
+        class UnaryExpr : public Expr {
+        public:
+            op::UnaryOp     op  = op::NEG;
+            Expr            *lv = nullptr;
+
+            UnaryExpr(op::UnaryOp op, Expr *lv);
+
+            koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+            bool has_side_effect() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~UnaryExpr() override;
+        };
+
+        class Id : public Expr {
+        public:
+            std::string *lit;
+            NestingInfo *nesting_info = nullptr;
+
+            Id(std::string *lit, NestingInfo *nesting_info);
+
+            koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+            bool has_side_effect() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~Id() override;
+        };
+
+        class Number : public Expr {
+        public:
+            int val = 0;
+
+            Number(int val);
+
+            koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+            bool has_side_effect() const override;
+
+            std::string debug(int indent = 0) const override;
+        };
 
     class VarDef : public Stmt {
     public:
@@ -163,20 +148,6 @@ public:
         std::string debug(int indent = 0) const override;
 
         ~VarDecl() override;
-    };
-
-    class Assign : public Stmt {
-    public:
-        Id *id = nullptr;
-        Expr *rval = nullptr;
-
-        Assign(Id *id, Expr *rval);
-
-        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~Assign() override;
     };
 
     class Return : public Stmt {

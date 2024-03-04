@@ -44,13 +44,15 @@
 %type	<ast_block_val> block
 %type	<ast_stmt_val> block_item 
 %type   <ast_stmt_val> clause if_clause while_clause for_clause
-%type   <ast_stmt_val> stmt decl_stmt assign_stmt return_stmt continue_stmt break_stmt expr_stmt block_stmt empty_stmt for_init_stmt for_iter_stmt
+%type   <ast_stmt_val> stmt decl_stmt return_stmt continue_stmt break_stmt block_stmt empty_stmt for_init_stmt for_iter_stmt
 %type	<ast_expr_val> expr for_cond_expr
 %type	<ast_var_def_val> var_def
 %type   <ast_stmt_vec_val> block_items 
 %type   <ast_var_def_vec_val> var_defs
 %type   <int_val> number
 
+%left ','
+%left '='
 %left TK_LOGIC_OR
 %left TK_LOGIC_AND
 %left TK_EQ TK_NEQ
@@ -135,18 +137,17 @@ for_clause
 
 for_init_stmt
     : decl_stmt
-    | assign_stmt
-    | expr_stmt
+    | expr      { $$ = $1; }
     | empty_stmt
 ;
 
 for_cond_expr
     : expr
     |           { $$ = new ast::Number(1); }
+;
 
 for_iter_stmt
-    : assign_stmt
-    | expr_stmt
+    : expr      { $$ = $1; }
     | empty_stmt
 ;
 
@@ -158,11 +159,10 @@ block_stmt
 
 stmt
     : decl_stmt
-    | assign_stmt
     | return_stmt
     | continue_stmt
     | break_stmt
-    | expr_stmt
+    | expr          { $$ = $1; }
     | empty_stmt
 ;
 
@@ -194,12 +194,6 @@ var_def
     }
 ;
 
-assign_stmt
-    : TK_IDENT '=' expr  {
-        $$ = new ast::Assign(new ast::Id($1, cur_nesting_info), $3);
-    }
-;
-
 return_stmt
     : TK_RETURN expr  {
         $$ = new ast::Return($2);
@@ -218,12 +212,6 @@ continue_stmt
 break_stmt
     : TK_BREAK  {
         $$ = new ast::Break();
-    }
-;
-
-expr_stmt
-    : expr  {
-        $$ = new ast::ExprStmt($1);
     }
 ;
 
@@ -271,6 +259,12 @@ expr
 	}
     | expr '%' expr                 {
 		$$ = new ast::BinaryExpr(ast::op::MOD, $1, $3);
+	}
+    | expr '=' expr                 {
+		$$ = new ast::BinaryExpr(ast::op::ASSIGN, $1, $3);
+	}
+    | expr ',' expr                 {
+		$$ = new ast::BinaryExpr(ast::op::COMMA, $1, $3);
 	}
     | '-' expr %prec PREC_UNARY_OP  {
 		$$ = new ast::UnaryExpr(ast::op::NEG, $2);

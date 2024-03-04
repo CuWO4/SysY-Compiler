@@ -3,7 +3,7 @@
 namespace ast {
 
 bool BinaryExpr::has_side_effect() const {
-    return lv->has_side_effect() || rv->has_side_effect();
+    return op == op::ASSIGN || lv->has_side_effect() || rv->has_side_effect();
 }
 
 bool UnaryExpr::has_side_effect() const {
