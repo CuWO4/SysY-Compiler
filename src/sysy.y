@@ -151,8 +151,9 @@ for_iter_stmt
 ;
 
 block_stmt
-    : block_start stmt block_end    { $$ = $2; }
-    | block                         { $$ = $1; }  
+    : block_start stmt ';' block_end    { $$ = $2; }
+    | clause
+    | block                             { $$ = $1; }  
 ;
 
 stmt
@@ -169,7 +170,7 @@ decl_stmt
     : type var_defs {
         $$ = new ast::VarDecl($1, *$2);
     }
-    | TK_CONST type var_defs ';' {
+    | TK_CONST type var_defs {
         $$ = new ast::VarDecl($2, *$3, true);
     }
 ;
