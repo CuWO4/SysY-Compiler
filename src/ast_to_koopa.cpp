@@ -547,8 +547,38 @@ koopa_trans::Blocks *For::to_koopa(ValueSaver &value_saver) const {
      *    |  F                   |
      *    *----> for_end <-------*
      */
-    // TODO
-    return nullptr;
+     auto res = new koopa_trans::Blocks;
+
+    auto for_entry = new koopa_trans::Blocks;
+    auto for_body = new koopa_trans::Blocks;
+    auto for_iter = new koopa_trans::Blocks;
+    auto for_end = new koopa_trans::Blocks;
+
+    loop_tag_saver.push(LoopTag(for_iter->get_begin_block_id(), for_end->get_begin_block_id()));
+
+    *res += *init_stmt->to_koopa(value_saver);
+    *res += new koopa::Jump(for_entry->get_begin_block_id());
+
+    auto cond_koopa = cond->to_koopa(value_saver);
+    *for_entry += *cond_koopa;
+    *for_entry += new koopa::Branch(cond_koopa->last_val, for_body->get_begin_block_id(), for_end->get_begin_block_id());
+
+    auto body_koopa = body->to_koopa(value_saver);
+    *for_body += *body_koopa;
+    *for_body += new koopa::Jump(for_iter->get_begin_block_id());
+
+    auto iter_koopa = iter_stmt->to_koopa(value_saver);
+    *for_iter += *iter_koopa;
+    *for_iter += new koopa::Jump(for_entry->get_begin_block_id());
+
+    *res += for_entry->to_raw_blocks();
+    *res += for_body->to_raw_blocks();
+    *res += for_iter->to_raw_blocks();
+    *res += for_end->to_raw_blocks();
+
+    loop_tag_saver.pop();
+
+     return res;
 }
 
 koopa_trans::Blocks *Continue::to_koopa(ValueSaver &value_saver) const {
