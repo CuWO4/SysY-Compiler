@@ -1,26 +1,31 @@
 int main() {
-  int a = 10;
-  if (a > 1) {
-    a = a - 1;
-    int a = 5;
-    if (a < -1) {
-      return 10;
-    } else {
-      int a;
-      a = 98;
+  int a = 1, b = 2;
+  while (a < 10) {
+    a = a + 1;
+    while (a < 5 && b < 10) {
+      b = b + 1;
     }
-  }
-  if (a == 9) {
-    int b = a - 1;
-    int a = b - 1;
-    if (a != b) {
-      if (!a) {
-        return 0;
+    while (b < 20) {
+      while (b < 6 || b == 6) {
+        b = b + 1;
       }
-      return a;
-    } else {
-      return b;
+      b = b + 2;
     }
   }
-  return -1;
+
+  for (int a = 0; a < 10; a = a + 1) {
+    for (;;);
+    for (a = 1; a < 20; a) {
+      a = 2;
+    }
+  }
+
+  {
+    int a;
+    {
+      int b;
+      a = a + b;
+    }
+  }
+  return a + b;
 }

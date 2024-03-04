@@ -473,6 +473,52 @@ koopa_trans::Blocks *If::to_koopa(ValueSaver &value_saver) const {
     return res;
 }
 
+koopa_trans::Blocks *While::to_koopa(ValueSaver &value_saver) const {
+    /*
+     *              |
+     *              V
+     *    *---- while_entry <----*
+     *    |         ^            |
+     *    | T       | continue   |
+     *    +---> while_body ------*
+     *    |         | break
+     *    | F       V
+     *    *----> while_end
+     */
+    // TODO
+    return nullptr;
+}
+
+koopa_trans::Blocks *For::to_koopa(ValueSaver &value_saver) const {
+    /*
+     *              +
+     *           for_init
+     *              |
+     *              V
+     *    *----- for_entry <--------*
+     *    |                         |
+     *    |  T                      |
+     *    +----> for_body -------*  |
+     *    |       |  | continue  |  |
+     *    |       V  V           |  |
+     *    |      for_iter -------+--*
+     *    |  F                   |
+     *    *----> for_end <-------*
+     */
+    // TODO
+    return nullptr;
+}
+
+koopa_trans::Blocks *Continue::to_koopa(ValueSaver &value_saver) const {
+    // TODO
+    return nullptr;
+}
+
+koopa_trans::Blocks *Break::to_koopa(ValueSaver &value_saver) const {
+    // TODO
+    return nullptr;
+}
+
 static void trim_redundant_stmts_after_end_stmt(std::vector<koopa::Stmt *> &stmts) {
     bool exist_end_stmt = false;
 

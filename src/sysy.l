@@ -39,6 +39,10 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 "const"         { return TK_CONST; }
 "if"            { return TK_IF; }
 "else"          { return TK_ELSE; }
+"while"         { return TK_WHILE; }
+"for"           { return TK_FOR; }
+"continue"      { return TK_CONTINUE; }
+"break"         { return TK_BREAK; }
 
 {Identifier}    { yylval.str_val = new std::string(yytext); return TK_IDENT; }
 

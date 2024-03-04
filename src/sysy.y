@@ -35,15 +35,17 @@
     std::vector<ast::VarDef *>  *ast_var_def_vec_val;
 	}
 
-%token TK_INT TK_RETURN TK_CONST TK_IF TK_ELSE
+%token TK_INT TK_RETURN TK_CONST TK_IF TK_ELSE TK_WHILE TK_FOR TK_CONTINUE TK_BREAK
 %token <str_val> TK_IDENT
 %token <int_val> TK_INT_CONST
 
 %type	<ast_func_def_val> func_def
 %type	<ast_type_val> type
 %type	<ast_block_val> block
-%type	<ast_stmt_val> block_item if_clause decl_stmt assign_stmt return_stmt expr_stmt stmt block_stmt
-%type	<ast_expr_val> expr
+%type	<ast_stmt_val> block_item 
+%type   <ast_stmt_val> clause if_clause while_clause for_clause
+%type   <ast_stmt_val> stmt decl_stmt assign_stmt return_stmt continue_stmt break_stmt expr_stmt block_stmt empty_stmt for_init_stmt for_iter_stmt
+%type	<ast_expr_val> expr for_cond_expr
 %type	<ast_var_def_val> var_def
 %type   <ast_stmt_vec_val> block_items 
 %type   <ast_var_def_vec_val> var_defs
@@ -98,18 +100,16 @@ block_items
 ;
 
 block_item
-    : stmt
+    : stmt ';'
+    | clause
     | block         { $$ = $1; }
     | error ';'     { yyerrok; }
 ;
 
-stmt
+clause
     : if_clause
-    | decl_stmt
-    | assign_stmt
-    | return_stmt
-    | expr_stmt
-    | ';'           { $$ = new ast::Block({}); }
+    | while_clause
+    | for_clause
 ;
 
 if_clause
@@ -121,13 +121,52 @@ if_clause
     }
 ;
 
+while_clause
+    : TK_WHILE '(' expr ')' block_stmt {
+        $$ = new ast::While($3, $5);
+    }
+;
+
+for_clause
+    : TK_FOR block_start '(' for_init_stmt ';' for_cond_expr ';' for_iter_stmt ')' block_stmt block_end {
+        $$ = new ast::For($4, $6, $8, $10);
+    }
+;
+
+for_init_stmt
+    : decl_stmt
+    | assign_stmt
+    | expr_stmt
+    | empty_stmt
+;
+
+for_cond_expr
+    : expr
+    |           { $$ = new ast::Number(1); }
+
+for_iter_stmt
+    : assign_stmt
+    | expr_stmt
+    | empty_stmt
+;
+
 block_stmt
     : block_start stmt block_end    { $$ = $2; }
     | block                         { $$ = $1; }  
 ;
 
+stmt
+    : decl_stmt
+    | assign_stmt
+    | return_stmt
+    | continue_stmt
+    | break_stmt
+    | expr_stmt
+    | empty_stmt
+;
+
 decl_stmt
-    : type var_defs ';' {
+    : type var_defs {
         $$ = new ast::VarDecl($1, *$2);
     }
     | TK_CONST type var_defs ';' {
@@ -155,24 +194,40 @@ var_def
 ;
 
 assign_stmt
-    : TK_IDENT '=' expr ';' {
+    : TK_IDENT '=' expr  {
         $$ = new ast::Assign(new ast::Id($1, cur_nesting_info), $3);
     }
 ;
 
 return_stmt
-    : TK_RETURN expr ';' {
+    : TK_RETURN expr  {
         $$ = new ast::Return($2);
     }
-    | TK_RETURN ';' {
+    | TK_RETURN  {
         $$ = new ast::Return();
     }
 ;
 
+continue_stmt
+    : TK_CONTINUE  {
+        $$ = new ast::Continue();
+    }
+;
+
+break_stmt
+    : TK_BREAK  {
+        $$ = new ast::Break();
+    }
+;
+
 expr_stmt
-    : expr ';' {
+    : expr  {
         $$ = new ast::ExprStmt($1);
     }
+;
+
+empty_stmt
+    :        { $$ = new ast::Block({}); }
 ;
 
 expr

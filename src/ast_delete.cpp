@@ -46,6 +46,18 @@ If::~If() {
     if (else_stmt != nullptr) delete else_stmt;
 }
 
+While::~While() {
+    if (cond != nullptr) delete cond;
+    if (body != nullptr) delete body;
+}
+
+For::~For() {
+    if (init_stmt != nullptr) delete init_stmt;
+    if (cond != nullptr) delete cond;
+    if (iter_stmt != nullptr) delete iter_stmt;
+    if (body != nullptr) delete body;
+}
+
 Block::~Block() {
     for (auto stmt : stmts) {
         if (stmt != nullptr) delete stmt;

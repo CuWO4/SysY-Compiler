@@ -37,7 +37,7 @@ std::string Number::debug(int indent) const {
 }
 
 std::string ExprStmt::debug(int indent) const {
-    return build_indent(indent) + expr->debug() + '\n';
+    return build_indent(indent) + expr->debug();
 }
 
 std::string VarDef::debug(int indent) const {
@@ -52,36 +52,54 @@ std::string VarDecl::debug(int indent) const {
         res += var_def->debug();
     }
 
-    res += '\n';
-
     return res;
 }
 
 std::string Assign::debug(int indent) const {
-    return build_indent(indent) + id->debug() + " = " + rval->debug() + '\n';
+    return build_indent(indent) + id->debug() + " = " + rval->debug();
 }
 
 std::string Return::debug(int indent) const {
-    return build_indent(indent) + "Return " + (has_return_val ? ret_val->debug() : "") + '\n';
+    return build_indent(indent) + "Return " + (has_return_val ? ret_val->debug() : "");
 }
 
 std::string If::debug(int indent) const {
     return build_indent(indent) + "If ( " + cond->debug() + " ) {\n"
-        + then_stmt->debug(indent + 1)
+        + then_stmt->debug(indent + 1) + '\n'
         + build_indent(indent) + "}"
         + (has_else_stmt 
             ? " Else {\n"
-                + else_stmt->debug(indent + 1)
-                + build_indent(indent) + "}\n"
-            : "\n"
+                + else_stmt->debug(indent + 1) + '\n'
+                + build_indent(indent) + "}"
+            : ""
         );
+}
+
+std::string While::debug(int indent) const {
+    return build_indent(indent) + "While ( " + cond->debug() + " ) {\n"
+        + body->debug(indent + 1) + '\n'
+        + build_indent(indent) + "}";
+}
+
+std::string For::debug(int indent) const {
+    return  build_indent(indent) + "For ( " + init_stmt->debug() + "; " + cond->debug() + "; " + iter_stmt->debug() + ") {\n"
+        + body->debug(indent + 1) + '\n'
+        + build_indent(indent) + "}";
+}
+
+std::string Continue::debug(int indent) const {
+    return build_indent(indent) + "Continue";
+}
+
+std::string Break::debug(int indent) const {
+    return build_indent(indent) + "Break";
 }
 
 std::string Block::debug(int indent) const {
     auto res = std::string("");
 
     for (auto stmt : stmts) {
-        res += stmt->debug(indent);
+        res += stmt->debug(indent) + '\n';
     }
 
     return res;

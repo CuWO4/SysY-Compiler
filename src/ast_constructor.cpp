@@ -34,6 +34,13 @@ If::If(Expr *cond, Stmt *then_stmt)
 If::If(Expr *cond, Stmt *then_stmt, Stmt *else_stmt)
     : cond(cond), has_else_stmt(true), then_stmt(then_stmt), else_stmt(else_stmt) {}
 
+While::While(Expr *cond, Stmt *body) : cond(cond), body(body) {}
+
+For::For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body) 
+    : init_stmt(init_stmt), cond(cond), iter_stmt(iter_stmt), body(body) {}
+
+
+
 FuncDef::FuncDef(Type *func_type, std::string *id, Block *block) :
     func_type(func_type), id(id), block(block) {}
 

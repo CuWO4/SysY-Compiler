@@ -226,6 +226,50 @@ public:
         ~If() override;
     };
 
+    class While : public Stmt {
+    public:
+        Expr *cond =nullptr;
+        Stmt *body = nullptr;
+
+        While(Expr *cond, Stmt *body);
+
+        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+        std::string debug(int indent = 0) const override;
+
+        ~While() override;
+    };
+
+    class For : public Stmt {
+    public:
+        Stmt *init_stmt = {};
+        Expr *cond =nullptr;
+        Stmt * iter_stmt = {};
+        Stmt *body = nullptr;
+
+        For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body);
+
+        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+        std::string debug(int indent = 0) const override;
+
+        ~For() override;
+    };
+
+    class Continue : public Stmt {
+    public:
+        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+        std::string debug(int indent = 0) const override;
+    };
+
+    class Break : public Stmt {
+    public:
+        koopa_trans::Blocks *to_koopa(ValueSaver &value_saver) const override;
+
+        std::string debug(int indent = 0) const override;
+    };
+
 class FuncDef : public Base {
 public:
     Type            *func_type  = nullptr;
