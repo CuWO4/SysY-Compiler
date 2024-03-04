@@ -59,6 +59,17 @@ koopa_trans::Blocks *BinaryExpr::to_koopa(ValueSaver &value_saver) const {
      *      if (!result)
      *          result = rv != 0;
      *
+     *
+     *             +
+     *      // alloc result
+     *      // result = lv != 0
+     *      // if run on? -----------*
+     *                               |
+     *                            T  |
+     *      // result = rv != 0 <----+
+     *                |              |
+     *                V            F |
+     *      // last_val = result <---*
      */
         if (op != op::LOGIC_AND && op != op::LOGIC_OR) {
             const char *binary_op_name[] = {
@@ -378,6 +389,29 @@ koopa_trans::Blocks *Return::to_koopa(ValueSaver &value_saver) const {
 }
 
 koopa_trans::Blocks *If::to_koopa(ValueSaver &value_saver) const {
+    /*
+     *             +
+     *         cond_stmts ----*
+     *                        |
+     *                      T |
+     *   *---- then_block <---+
+     *   |                    |
+     *   |                  F |
+     *   +---- else_block <---*
+     *   |     
+     *   |
+     *   *----> end_block
+     *
+     *
+     *             +
+     *         cond_stmts ----*
+     *                        |
+     *                      T |
+     *   *---- then_block <---+
+     *   |                    |
+     *   |                  F |
+     *   *----> end_block <---*
+     */
     auto res = new koopa_trans::Blocks;
 
     if (has_else_stmt) {
