@@ -1,31 +1,9 @@
 int main() {
-  int a = 1, b = 2;
-  while (a < 10) {
-    a = a + 1;
-    while (a < 5 && b < 10) {
-      b = b + 1;
-    }
-    while (b < 20) {
-      while (b < 6 || b == 6) {
-        b = b + 1;
-      }
-      b = b + 2;
-    }
+  int i, j, sum;
+  for (int i = 0, j = 1; i < 10; i = i + 1, j = j + 2) {
+    if (i % 2 == 0) continue;
+    if (j >= 20) break;
+    sum = sum + i + j;
   }
-
-  for (int a = 0; a < 10; a = a + 1) {
-    for (;;);
-    for (a = 1; a < 20; a) {
-      a = 2;
-    }
-  }
-
-  {
-    int a;
-    {
-      int b;
-      a = a + b;
-    }
-  }
-  return a + b;
+  return sum;
 }
