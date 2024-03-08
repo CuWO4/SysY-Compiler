@@ -52,7 +52,7 @@
 %type   <int_val> number
 
 %left ','
-%left '='
+%right '='
 %left TK_LOGIC_OR
 %left TK_LOGIC_AND
 %left TK_EQ TK_NEQ
