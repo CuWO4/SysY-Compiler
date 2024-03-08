@@ -1,12 +1,33 @@
 #include "../include/value_saver.h"
 
-static std::string *build_name(std::string *lit, NestingInfo *nesting_info) {
-    if (!nesting_info->need_suffix) return lit;
-    if (*lit == "main" && nesting_info->nesting_count == 0 && nesting_info->nesting_level == 0) return lit;
-    
+#include <unordered_map>
+
+static std::string *build_key(std::string *lit, NestingInfo *nesting_info) {
     return new std::string(*lit 
         + '_' + std::to_string(nesting_info->nesting_level) 
         + '_' + std::to_string(nesting_info->nesting_count));
+}
+
+
+std::unordered_map<std::string, int> existed_id_counts = {};
+static std::string *build_name(std::string *lit, NestingInfo *nesting_info) {
+    if (!nesting_info->need_suffix) return lit;
+    if (*lit == "main" && nesting_info->nesting_count == 0 && nesting_info->nesting_level == 0) return lit;
+
+    auto existed_id_count_pair = existed_id_counts.find(*lit);
+    int existed_id_count = 0;
+    if (existed_id_count_pair == existed_id_counts.end()) {
+        existed_id_counts.insert(
+            std::pair<std::string, int>(*lit, 1)
+        );
+        existed_id_count = 0;
+    }
+    else {
+        existed_id_count = existed_id_count_pair->second;
+        existed_id_count_pair->second++;
+    }
+
+    return new std::string(*lit + '_' + std::to_string(existed_id_count));
 }
 
 void ValueSaver::insert_id(std::string key, koopa::Id *new_id) { 
@@ -28,19 +49,19 @@ koopa::Id *ValueSaver::new_id(koopa::Type *type, std::string *lit, NestingInfo *
         is_const, 
         val
     );
-    insert_id(*build_name(lit, nesting_info), res);
+    insert_id(*build_key(lit, nesting_info), res);
     return res;
 }
 
 bool ValueSaver::is_id_declared(std::string lit, NestingInfo *nesting_info) {
-    return ids.find(*build_name(&lit, nesting_info)) != ids.end();
+    return ids.find(*build_key(&lit, nesting_info)) != ids.end();
 }
 
 /* return nullptr if id is not defined */
 koopa::Id *ValueSaver::get_id(std::string lit, NestingInfo *nesting_info) {
     if (nesting_info == nullptr) return nullptr;
 
-    auto res = ids.find(*build_name(&lit, nesting_info));
+    auto res = ids.find(*build_key(&lit, nesting_info));
 
     if (res == ids.end()) {
         return get_id(lit, nesting_info->pa);
