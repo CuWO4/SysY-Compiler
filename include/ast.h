@@ -241,26 +241,32 @@ public:
         std::string debug(int indent = 0) const override;
     };
 
-class FuncDef : public Base {
+class GlobalStmt : public Base {
 public:
-    Type            *func_type  = nullptr;
-    std::string     *id         = nullptr;  //TODO it's even not id
-    Block           *block      = nullptr;
-
-    FuncDef(Type *func_type, std::string *id, Block *block);
-
-    koopa::FuncDef *to_koopa(ValueSaver &value_saver) const;
-
-    std::string debug(int indent = 0) const override;
-
-    ~FuncDef() override;
+    virtual koopa::GlobalStmt *to_koopa(ValueSaver &value_saver) const = 0;
 };
+
+    class FuncDef : public GlobalStmt {
+    public:
+        Type            *func_type  = nullptr;
+        std::string     *lit        = nullptr;  // TODO change to Id
+        std::vector<std::tuple<Type *, Id *> *> params = {};
+        Block           *block      = nullptr;
+
+        FuncDef(Type *func_type, std::string *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block);
+
+        koopa::GlobalStmt *to_koopa(ValueSaver &value_saver) const override;
+
+        std::string debug(int indent = 0) const override;
+
+        ~FuncDef() override;
+    };
 
 class CompUnit : public Base {
 public:
-    FuncDef *func_def = nullptr;
+    std::vector<GlobalStmt *> global_stmts = {};
 
-    CompUnit(FuncDef *func_def);
+    CompUnit(std::vector<GlobalStmt *> global_stmts);
 
     koopa::Program *to_koopa(ValueSaver &value_saver) const;
 

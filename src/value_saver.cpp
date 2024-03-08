@@ -2,6 +2,7 @@
 
 static std::string *build_name(std::string *lit, NestingInfo *nesting_info) {
     if (!nesting_info->need_suffix) return lit;
+    if (*lit == "main" && nesting_info->nesting_count == 0 && nesting_info->nesting_level == 0) return lit;
     
     return new std::string(*lit 
         + '_' + std::to_string(nesting_info->nesting_level) 

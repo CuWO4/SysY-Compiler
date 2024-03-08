@@ -2,6 +2,7 @@
     #include <iostream>
     #include <memory>
     #include <string>
+    #include <tuple>
 
     #include "../include/ast.h"
     #include "../include/nesting_info.h"
@@ -29,10 +30,14 @@
     ast::Type      *ast_type_val;
     ast::Block     *ast_block_val;
     ast::Stmt      *ast_stmt_val;
+    ast::GlobalStmt    *ast_global_stmt_val;
     ast::Expr      *ast_expr_val;
     ast::VarDef    *ast_var_def_val;
     std::vector<ast::Stmt *>    *ast_stmt_vec_val;
+    std::vector<ast::GlobalStmt *>    *ast_global_stmt_vec_val;
     std::vector<ast::VarDef *>  *ast_var_def_vec_val;
+    std::tuple<ast::Type *, ast::Id *>    *ast_func_param_val;
+    std::vector<std::tuple<ast::Type *, ast::Id *> *>  *ast_func_params_val;
 	}
 
 %token TK_INT TK_RETURN TK_CONST TK_IF TK_ELSE TK_WHILE TK_FOR TK_CONTINUE TK_BREAK
@@ -42,13 +47,17 @@
 %type	<ast_func_def_val> func_def
 %type	<ast_type_val> type
 %type	<ast_block_val> block
+%type	<ast_global_stmt_val> comp_unit_item
 %type	<ast_stmt_val> block_item 
 %type   <ast_stmt_val> clause if_clause while_clause for_clause
 %type   <ast_stmt_val> stmt decl_stmt return_stmt continue_stmt break_stmt block_stmt empty_stmt for_init_stmt for_iter_stmt
 %type	<ast_expr_val> expr for_cond_expr
 %type	<ast_var_def_val> var_def
+%type   <ast_global_stmt_vec_val> comp_unit_items
 %type   <ast_stmt_vec_val> block_items 
 %type   <ast_var_def_vec_val> var_defs
+%type   <ast_func_param_val> func_def_param 
+%type   <ast_func_params_val> func_def_params 
 %type   <int_val> number
 
 %left ','
@@ -68,14 +77,47 @@
 %%
 
 comp_unit
-    : func_def {
-        ast = new ast::CompUnit($1);
+    : comp_unit_items {
+        ast = new ast::CompUnit(*$1);
     }
 ;
 
+comp_unit_items
+    : comp_unit_items comp_unit_item {
+        $1->push_back($2);
+        $$ = $1;
+    }
+    | {
+        $$ = new std::vector<ast::GlobalStmt *>();
+    }
+;
+
+comp_unit_item
+    : func_def { $$ = $1; }
+;
+
 func_def
-    : type TK_IDENT '(' ')' block {
-        $$ = new ast::FuncDef($1, $2, $5);
+    : type TK_IDENT block_start '(' func_def_params ')' block block_end {
+        $$ = new ast::FuncDef($1, $2, *$5, $7);
+    }
+    | type TK_IDENT block_start '(' ')' block block_end {
+        $$ = new ast::FuncDef($1, $2, {}, $6);
+    }
+;
+
+func_def_params
+    : func_def_params ',' func_def_param {
+        $1->push_back($3);
+        $$ = $1;
+    }
+    | func_def_param {
+        $$ = new std::vector<std::tuple<ast::Type *, ast::Id *> *> { $1 };
+    }
+;
+
+func_def_param
+    : type TK_IDENT {
+        $$ = new std::tuple<ast::Type *, ast::Id *>($1, new ast::Id($2, cur_nesting_info));
     }
 ;
 

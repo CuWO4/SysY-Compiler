@@ -638,13 +638,13 @@ koopa::Type *Int::to_koopa(ValueSaver &value_saver) const {
     return new koopa::Int;
 }
 
-koopa::FuncDef *FuncDef::to_koopa(ValueSaver &value_saver) const {
+koopa::GlobalStmt *FuncDef::to_koopa(ValueSaver &value_saver) const {
     auto id_koopa = value_saver.new_id(
         new koopa::FuncType(
             std::vector<koopa::Type *>(),
             func_type->to_koopa(value_saver)
         ),
-        new std::string('@' + *id),
+        new std::string('@' + *lit),
         new NestingInfo(false) /* This does not affect scope, since we only name zero-nested variables as unsuffixed */
     );
 
@@ -656,17 +656,21 @@ koopa::FuncDef *FuncDef::to_koopa(ValueSaver &value_saver) const {
 
     return new koopa::FuncDef(
         id_koopa,
-        {},
+        {}, // TODO
         type_koopa,
         block_koopa->to_raw_blocks()
     );
 }
 
 koopa::Program *CompUnit::to_koopa(ValueSaver &value_saver) const {
+    std::vector<koopa::GlobalStmt *> global_stmts_koopa = {};
+
+    for (auto global_stmt : global_stmts) {
+        global_stmts_koopa.push_back(global_stmt->to_koopa(value_saver));
+    }
+    
     return new koopa::Program(
-        std::vector<koopa::GlobalStmt *> {
-            func_def->to_koopa(value_saver)
-        }
+        global_stmts_koopa
     );
 }
 

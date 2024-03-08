@@ -102,13 +102,25 @@ std::string Int::debug(int indent) const {
 }
 
 std::string FuncDef::debug(int indent) const {
-    return build_indent(indent) + func_type->debug() + ' ' + *id + "() {\n" 
+    auto res = build_indent(indent) + func_type->debug() + ' ' + *lit + '(';
+    for (auto param : params) {
+        res += std::get<0>(*param)->debug() + ' '
+            + std::get<1>(*param)->debug() + ',';
+    }
+    res += ") {\n" 
         + block->debug(indent + 1) 
         + build_indent(indent) + "}";
+    return res;
 }
 
 std::string CompUnit::debug(int indent) const {
-    return func_def->debug(indent);
+    std::string res = "";
+
+    for (auto global_stmt : global_stmts) {
+        res += global_stmt->debug() + '\n';
+    }
+    
+    return res;
 }
 
 }

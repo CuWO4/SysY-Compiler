@@ -57,12 +57,13 @@ Block::~Block() {
 
 FuncDef::~FuncDef() {
     if (func_type != nullptr) delete func_type;
-    if (id != nullptr) delete id;
+    if (lit != nullptr) delete lit;
     if (block != nullptr) delete block;
 }
 
 CompUnit::~CompUnit() {
-    if (func_def != nullptr) delete func_def;
+    for (auto global_stmt : global_stmts)
+        if (global_stmt != nullptr) delete global_stmt;
 }
 
 }
