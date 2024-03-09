@@ -1,6 +1,8 @@
 # Based on https://matansilver.com/2017/08/29/universal-makefile/
 # Modified by MaxXing CuWO4
 
+MAKEFLAGS += -j20
+
 FB_EXT := .cpp
 
 # Flags
@@ -30,8 +32,6 @@ SRC_DIR := $(TOP_DIR)/src
 BUILD_DIR ?= $(TOP_DIR)/build
 LIB_DIR ?= $(CDE_LIBRARY_PATH)/native
 INC_DIR ?= $(CDE_INCLUDE_PATH)
-CFLAGS += -I$(INC_DIR)
-CXXFLAGS += -I$(INC_DIR)
 LDFLAGS += -L$(LIB_DIR) -lkoopa
 
 # Source files & target files
@@ -45,7 +45,6 @@ OBJS := $(patsubst $(BUILD_DIR)/%.cpp, $(BUILD_DIR)/%.cpp.o, $(OBJS))
 INC_DIRS := $(shell find $(SRC_DIR) -type d)
 INC_DIRS += $(INC_DIRS:$(SRC_DIR)%=$(BUILD_DIR)%)
 INC_FLAGS := $(addprefix -I, $(INC_DIRS))
-DEPS := $(OBJS:.o=.d)
 CPPFLAGS = $(INC_FLAGS) -MMD -MP
 
 # Main target
@@ -54,7 +53,7 @@ $(BUILD_DIR)/$(TARGET_EXEC): $(FB_SRCS) $(OBJS)
 
 # C++ source
 define cxx_recipe
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) -c $< -o $@
 endef
 $(BUILD_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR); $(cxx_recipe)
 $(BUILD_DIR)/%.cpp.o: $(BUILD_DIR)/%.cpp | $(BUILD_DIR); $(cxx_recipe)
@@ -70,6 +69,7 @@ $(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y | $(BUILD_DIR)
 $(BUILD_DIR) :
 	mkdir $(BUILD_DIR)
 
+DEPS := $(OBJS:.o=.d)
 -include $(DEPS)
 
 once:
