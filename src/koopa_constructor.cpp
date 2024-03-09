@@ -9,11 +9,10 @@ Pointer::Pointer(Type *pointed_type) : pointed_type(pointed_type) {}
 FuncType::FuncType(std::vector<Type *> arg_types, Type *ret_type)
     : arg_types(arg_types), ret_type(ret_type) {}
 
-Id::Id(Type *type, std::string *lit, bool is_const, int val) 
-    : type(type), lit(lit) {
+Id::Id(Type *type, std::string *lit, bool is_const, int val, bool is_formal_param) 
+    : type(type), lit(lit), is_formal_param(is_formal_param) {
     this->val = val;
     this->is_const = is_const;
-
 }
 
 Const::Const(int val)  {
