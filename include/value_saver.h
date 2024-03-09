@@ -2,6 +2,7 @@
 #define VALUE_SAVER_H_
 
 #include "koopa.h"
+
 #include <unordered_map>
 #include <string>
 
@@ -33,5 +34,7 @@ private:
 
     void insert_const(koopa::Const *new_const);
 };
+
+extern ValueSaver value_saver;
 
 #endif

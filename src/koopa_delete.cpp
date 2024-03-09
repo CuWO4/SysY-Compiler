@@ -78,13 +78,9 @@ Block::~Block() {
     }
 }
 
-FuncParamDecl::~FuncParamDecl() {
-    if (type != nullptr) delete type;
-}
-
 FuncDef::~FuncDef() {
-    for (auto func_param_decl : func_param_decls) {
-        if (func_param_decl != nullptr) delete func_param_decl;
+    for (auto formal_param_id: formal_param_ids) {
+        if (formal_param_id != nullptr) delete formal_param_id;
     }
     if (ret_type != nullptr) delete ret_type;
     for (auto block : blocks) {
@@ -93,9 +89,6 @@ FuncDef::~FuncDef() {
 }
 
 FuncDecl::~FuncDecl() {
-    for (auto param_type : param_types) {
-        if (param_type != nullptr) delete param_type;
-    }
     if (ret_type != nullptr) delete ret_type;
 }
 

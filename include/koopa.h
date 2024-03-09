@@ -16,8 +16,6 @@ namespace koopa {
 
 class Base {
 public:
-    Base *pa = nullptr;
-
     virtual std::string to_string() const = 0;
 
     virtual void to_riscv(std::string &str, riscv_trans::Info &info) const = 0;
@@ -25,14 +23,25 @@ public:
     virtual ~Base() = default;
 };
 
+namespace type {
+    enum TypeId { Int, Array, Pointer, FuncType, Void, Label };
+}
+
 class Type : public Base {
 public:
     void to_riscv(std::string &str, riscv_trans::Info &info) const override {}
+
+    virtual type::TypeId get_type_id() = 0;
+    virtual bool operator==(Type &other) = 0;
+    bool operator!=(Type &other);
 };
 
     class Int : public Type {
 
         std::string to_string() const override;
+
+        type::TypeId get_type_id() override;
+        bool operator==(Type &other) override;
 
     };
 
@@ -45,6 +54,9 @@ public:
 
         Array(Type *elem_type, int length);
 
+        type::TypeId get_type_id() override;
+        bool operator==(Type &other) override;
+
         ~Array() override;
     };
 
@@ -55,6 +67,9 @@ public:
         std::string to_string() const override;
 
         Pointer(Type *pointed_type);
+
+        type::TypeId get_type_id() override;
+        bool operator==(Type &other) override;
 
         ~Pointer() override;
     };
@@ -68,18 +83,27 @@ public:
 
         FuncType(std::vector<Type *> arg_types, Type *ret_type);
 
+        type::TypeId get_type_id() override;
+        bool operator==(Type &other) override;
+
         ~FuncType() override;
+    };
+
+    class Void : public Type {
+
+        std::string to_string() const override;
+
+        type::TypeId get_type_id() override;
+        bool operator==(Type &other) override;
+
     };
 
     class Label : public Type {
 
         std::string to_string() const override;
 
-    };
-
-    class Void : public Type {
-
-        std::string to_string() const override;
+        type::TypeId get_type_id() override;
+        bool operator==(Type &other) override;
 
     };
 
@@ -395,30 +419,18 @@ public:
             ~Block() override;
         };
 
-        class FuncParamDecl : public Base {
-        public:
-            Id      *id     = nullptr;
-            Type    *type   = nullptr;
-
-            std::string to_string() const override;
-
-            FuncParamDecl(Id *id, Type *type);
-
-            ~FuncParamDecl() override;
-        };
-
         class FuncDef : public GlobalStmt {
         public:
-            Id                              *id                 = nullptr;
-            std::vector<FuncParamDecl *>    func_param_decls    = {};
-            Type                            *ret_type           = nullptr;
-            std::vector<Block *>            blocks              = {};
+            Id                     *id                  = nullptr;
+            std::vector<Id *>       formal_param_ids    = {};
+            Type                   *ret_type            = nullptr;
+            std::vector<Block *>    blocks              = {};
 
             std::string to_string() const override;
 
             void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-            FuncDef(Id *id, std::vector<FuncParamDecl *> func_param_decls,
+            FuncDef(Id *id, std::vector<Id *> formal_param_ids,
                     Type *ret_type, std::vector<Block *> blocks);
 
             ~FuncDef() override;
@@ -427,12 +439,11 @@ public:
         class FuncDecl : public GlobalStmt {
         public:
             Id                  *id             = nullptr;
-            std::vector<Type *> param_types     = {};
             Type                *ret_type       = nullptr;
 
             std::string to_string() const override;
 
-            FuncDecl(Id *id, std::vector<Type *> param_types, Type *ret_type);
+            FuncDecl(Id *id, Type *ret_type);
 
             ~FuncDecl() override;
         };

@@ -101,8 +101,12 @@ std::string Int::debug(int indent) const {
     return "Int";
 }
 
+std::string Void::debug(int indent) const {
+    return "Void";
+}
+
 std::string FuncDef::debug(int indent) const {
-    auto res = build_indent(indent) + func_type->debug() + ' ' + *lit + '(';
+    auto res = build_indent(indent) + func_type->debug() + ' ' + *id->lit + '(';
     for (auto param : params) {
         res += std::get<0>(*param)->debug() + ' '
             + std::get<1>(*param)->debug() + ',';

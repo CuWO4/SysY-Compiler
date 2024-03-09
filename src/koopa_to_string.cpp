@@ -28,7 +28,7 @@ std::string FuncType::to_string() const {
     if (arg_types.size() > 0) res.pop_back();
     res += ")";
 
-    if (!(typeid(ret_type) == typeid(Void))) {
+    if (ret_type->get_type_id() != type::Void) {
         res += ": " + ret_type->to_string();
     }
     return res;
@@ -45,9 +45,9 @@ std::string Void::to_string() const {
 std::string Id::to_string() const {
     auto res = *lit;
     if (debug_mode_koopa_type) {
-        if ((typeid(*type) == typeid(Int))
-            || (typeid(*type) == typeid(Array))
-            || (typeid(*type) == typeid(Pointer))) {
+        if ((type->get_type_id() == type::Int)
+            || (type->get_type_id() == type::Array)
+            || (type->get_type_id() == type::Pointer)) {
             res += " /*! type: " + type->to_string() + " */"; 
         }
     }
@@ -179,10 +179,6 @@ std::string Block::to_string() const {
     return res;
 }
 
-std::string FuncParamDecl::to_string() const {
-    return id->to_string() + ": " + type->to_string();
-}
-
 std::string FuncDef::to_string() const {
     auto res = std::string("");
 
@@ -191,13 +187,16 @@ std::string FuncDef::to_string() const {
     res += "fun " + id->to_string();
 
     res += '(';
-    for (auto func_param_decl : func_param_decls) {
-        res += func_param_decl->to_string() + ", ";
+    for (auto formal_param_id : formal_param_ids) {
+        res += *formal_param_id->lit + ": " + formal_param_id->type->to_string() + ", ";
     }
-    if (func_param_decls.size() > 0) res.pop_back();
+    if (formal_param_ids.size() > 0) { 
+        res.pop_back(); // ` `
+        res.pop_back(); // `,`
+    }
     res += ')';
 
-    if (!(typeid(ret_type) == typeid(Void))) {
+    if (ret_type->get_type_id() != type::Void) {
         res += ": " + ret_type->to_string();
     }
     
@@ -205,6 +204,7 @@ std::string FuncDef::to_string() const {
     for (auto block : blocks) {
         res += block->to_string() + '\n';
     }
+    res.pop_back(); // `\n`
     res += "}\n";
 
     return res;
@@ -219,6 +219,8 @@ std::string FuncDecl::to_string() const {
 
     res += id->to_string();
 
+    auto param_types = dynamic_cast<FuncType *>(id->type)->arg_types;
+
     res += '(';
     for (auto param_type : param_types) {
         res += param_type->to_string() + ", ";
@@ -226,7 +228,7 @@ std::string FuncDecl::to_string() const {
     if (param_types.size() > 0) res.pop_back();
     res += ')';
 
-    if (!(typeid(ret_type) == typeid(Void))) {
+    if (ret_type->get_type_id() != type::Void) {
         res += ": " + ret_type->to_string();
     }
 

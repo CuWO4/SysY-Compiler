@@ -53,7 +53,7 @@ $(BUILD_DIR)/$(TARGET_EXEC): $(FB_SRCS) $(OBJS)
 
 # C++ source
 define cxx_recipe
-	$(CXX) $(CPPFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 endef
 $(BUILD_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR); $(cxx_recipe)
 $(BUILD_DIR)/%.cpp.o: $(BUILD_DIR)/%.cpp | $(BUILD_DIR); $(cxx_recipe)
@@ -71,6 +71,16 @@ $(BUILD_DIR) :
 
 DEPS := $(OBJS:.o=.d)
 -include $(DEPS)
+
+run-koopa :
+	koopac test/hello/hello.koopa | llc --filetype=obj -o build/hello.o
+	clang build/hello.o -L$$CDE_LIBRARY_PATH/native -lsysy -o build/hello
+	build/hello
+
+run-riscv :
+	clang test/hello/hello.S -c -o build/hello.o -target riscv32-unknown-linux-elf -march=rv32im -mabi=ilp32
+	ld.lld build/hello.o -L$$CDE_LIBRARY_PATH/riscv32 -lsysy -o build/hello
+	qemu-riscv32-static build/hello
 
 once:
 	$(CXX) $(SRCS) $(LDFLAGS) -lpthread -ldl -o $(BUILD_DIR)/$(TARGET_EXEC)

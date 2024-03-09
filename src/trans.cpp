@@ -1,6 +1,7 @@
 #include "../include/trans.h"
 #include "../include/koopa.h"
 #include "../include/name.h"
+#include "../include/value_saver.h"
 
 namespace koopa_trans {
 
@@ -18,7 +19,7 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
         new koopa::Block(
             begin_block_id != nullptr 
                 ? begin_block_id
-                : new koopa::Id(new koopa::Label, new_block_name()),
+                : value_saver.new_id(new koopa::Label, new_block_name()),
             active_stmts
         ) 
     );
@@ -30,7 +31,7 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
 }
 
 void Blocks::init_begin_block_id() {
-    begin_block_id = new koopa::Id(new koopa::Label, new_block_name());
+    begin_block_id = value_saver.new_id(new koopa::Label, new_block_name());
 }
 
 koopa::Id *Blocks::get_begin_block_id() {

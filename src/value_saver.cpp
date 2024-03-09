@@ -2,17 +2,31 @@
 
 #include <unordered_map>
 
-static std::string *build_key(std::string *lit, NestingInfo *nesting_info) {
-    return new std::string(*lit 
-        + '_' + std::to_string(nesting_info->nesting_level) 
-        + '_' + std::to_string(nesting_info->nesting_count));
-}
+ValueSaver value_saver;
 
+static std::string *build_key(std::string *lit, NestingInfo *nesting_info, bool temp_style = false) {
+    if (temp_style) {
+        std::string new_lit = *lit;
+        new_lit[0] = '%';
+        return new std::string(
+            new_lit 
+            + '_' + std::to_string(nesting_info->nesting_level) 
+            + '_' + std::to_string(nesting_info->nesting_count)
+        );
+    }
+    else {
+        return new std::string(
+            *lit 
+            + '_' + std::to_string(nesting_info->nesting_level) 
+            + '_' + std::to_string(nesting_info->nesting_count)
+        );
+    }
+}
 
 std::unordered_map<std::string, int> existed_id_counts = {};
 static std::string *build_name(std::string *lit, NestingInfo *nesting_info) {
     if (!nesting_info->need_suffix) return lit;
-    if (*lit == "main" && nesting_info->nesting_count == 0 && nesting_info->nesting_level == 0) return lit;
+    if (*lit == "@main" && nesting_info->nesting_count == 0 && nesting_info->nesting_level == 0) return lit;
 
     auto existed_id_count_pair = existed_id_counts.find(*lit);
     int existed_id_count = 0;
@@ -54,7 +68,8 @@ koopa::Id *ValueSaver::new_id(koopa::Type *type, std::string *lit, NestingInfo *
 }
 
 bool ValueSaver::is_id_declared(std::string lit, NestingInfo *nesting_info) {
-    return ids.find(*build_key(&lit, nesting_info)) != ids.end();
+    return ids.find(*build_key(&lit, nesting_info)) != ids.end()
+        || ids.find(*build_key(&lit, nesting_info, true)) != ids.end();
 }
 
 /* return nullptr if id is not defined */
@@ -62,12 +77,14 @@ koopa::Id *ValueSaver::get_id(std::string lit, NestingInfo *nesting_info) {
     if (nesting_info == nullptr) return nullptr;
 
     auto res = ids.find(*build_key(&lit, nesting_info));
+    auto res_temp_style = ids.find(*build_key(&lit, nesting_info, true));
 
-    if (res == ids.end()) {
+    if (res == ids.end() && res_temp_style == ids.end()) {
         return get_id(lit, nesting_info->pa);
     }
     else {
-        return res->second;
+        if (res_temp_style != ids.end()) return res_temp_style->second;
+        else return res->second;
     }
 }
 

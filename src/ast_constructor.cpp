@@ -37,8 +37,8 @@ For::For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body)
 
 
 
-FuncDef::FuncDef(Type *func_type, std::string *lit, std::vector<std::tuple<Type *, Id *> *> params, Block *block) :
-    func_type(func_type), lit(lit), params(params), block(block) {}
+FuncDef::FuncDef(Type *func_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block) :
+    func_type(func_type), id(id), params(params), block(block) {}
 
 CompUnit::CompUnit(std::vector<ast::GlobalStmt *> global_stmts) : global_stmts(global_stmts) {}
 

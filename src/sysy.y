@@ -17,7 +17,7 @@
 
     int cur_nesting_level = 0;
     int cur_nesting_count[4096] = { 0 };
-    NestingInfo *cur_nesting_info = nullptr;
+    NestingInfo *cur_nesting_info = new NestingInfo();
 %}
 
 %parse-param    { ast::CompUnit *&ast }
@@ -40,7 +40,7 @@
     std::vector<std::tuple<ast::Type *, ast::Id *> *>  *ast_func_params_val;
 	}
 
-%token TK_INT TK_RETURN TK_CONST TK_IF TK_ELSE TK_WHILE TK_FOR TK_CONTINUE TK_BREAK
+%token TK_INT TK_VOID TK_RETURN TK_CONST TK_IF TK_ELSE TK_WHILE TK_FOR TK_CONTINUE TK_BREAK
 %token <str_val> TK_IDENT
 %token <int_val> TK_INT_CONST
 
@@ -98,10 +98,10 @@ comp_unit_item
 
 func_def
     : type TK_IDENT block_start '(' func_def_params ')' block block_end {
-        $$ = new ast::FuncDef($1, $2, *$5, $7);
+        $$ = new ast::FuncDef($1, new ast::Id($2, cur_nesting_info), *$5, $7);
     }
     | type TK_IDENT block_start '(' ')' block block_end {
-        $$ = new ast::FuncDef($1, $2, {}, $6);
+        $$ = new ast::FuncDef($1, new ast::Id($2, cur_nesting_info), {}, $6);
     }
 ;
 
@@ -125,11 +125,14 @@ type
     : TK_INT {
         $$ = new ast::Int();
     }
+    | TK_VOID {
+        $$ = new ast::Void();
+    }
 ;
 
 block
-    : block_start '{' block_items '}' block_end {
-        $$ = new ast::Block(*$3);
+    : '{' block_items '}' {
+        $$ = new ast::Block(*$2);
     }
 ;
 
@@ -146,8 +149,8 @@ block_items
 block_item
     : stmt ';'
     | clause
-    | block         { $$ = $1; }
-    | error ';'     { yyerrok; }
+    | block_start block block_end   { $$ = $2; }
+    | error ';'                     { yyerrok; }
 ;
 
 clause
@@ -157,17 +160,17 @@ clause
 ;
 
 if_clause
-    : TK_IF '(' expr ')' block_stmt %prec PREC_IF {
-        $$ =new ast::If($3, $5);
+    : TK_IF '(' expr ')' block_start block_stmt block_end %prec PREC_IF {
+        $$ =new ast::If($3, $6);
     }
-    | TK_IF '(' expr ')' block_stmt TK_ELSE block_stmt {
-        $$ = new ast::If($3, $5, $7);
+    | TK_IF '(' expr ')' block_start block_stmt block_end TK_ELSE block_start block_stmt block_end {
+        $$ = new ast::If($3, $6, $10);
     }
 ;
 
 while_clause
-    : TK_WHILE '(' expr ')' block_stmt {
-        $$ = new ast::While($3, $5);
+    : TK_WHILE '(' expr ')' block_start block_stmt block_end {
+        $$ = new ast::While($3, $6);
     }
 ;
 
@@ -194,9 +197,9 @@ for_iter_stmt
 ;
 
 block_stmt
-    : block_start stmt ';' block_end    { $$ = $2; }
+    : stmt ';'    { $$ = $1; }
     | clause
-    | block                             { $$ = $1; }  
+    | block       { $$ = $1; }  
 ;
 
 stmt

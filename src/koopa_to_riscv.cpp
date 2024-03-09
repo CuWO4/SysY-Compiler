@@ -290,7 +290,7 @@ void Block::to_riscv(std::string &str, riscv_trans::Info &info) const {
 }
 
 void FuncDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
-
+    // TODO
     id->to_riscv(str, info);
     str += ":\n";
 

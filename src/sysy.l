@@ -35,6 +35,7 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 ">="            { return TK_GEQ; }
 
 "int"           { return TK_INT; }
+"void"          { return TK_VOID; }
 "return"        { return TK_RETURN; }
 "const"         { return TK_CONST; }
 "if"            { return TK_IF; }

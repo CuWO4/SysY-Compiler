@@ -1,13 +1,6 @@
 #include "../include/ast.h"
-#include "../include/value_saver.h"
-
-#define extern_
+#include "../include/koopa.h"
 #include "../include/def.h"
-#include "../include/loop_tag.h"
-#undef extern_
-
-#include "../build/sysy.tab.hpp"
-
 
 #include <cassert>
 #include <cstdio>
@@ -46,7 +39,7 @@ void handle_args(int argc, const char *argv[], std::string &mode, std::string &i
 
 	#else 
 
-	mode = "-test";
+	mode = "-koopa";
 	input = "../test/hello/hello.c";
 	output = "../test/hello/hello.koopa";
 
@@ -74,8 +67,7 @@ int main(int argc, const char *argv[]) {
 		ast::CompUnit *ast;
 		yyparse(ast);
 
-		ValueSaver value_saver;
-		auto koopa = ast->to_koopa(value_saver);
+		auto koopa = ast->to_koopa();
 
 		if (mode == "-koopa") {
 			os << koopa->to_string();
