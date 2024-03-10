@@ -41,6 +41,22 @@ koopa::Id *Blocks::get_begin_block_id() {
     return begin_block_id;
 }
 
+void Blocks::throw_last_val() {
+    has_last_val = false;
+}
+
+void Blocks::set_last_val(koopa::Value *new_last_val) {
+    has_last_val = true;
+    last_val = new_last_val;
+}
+
+koopa::Value *Blocks::get_last_val() {
+    if (!has_last_val) {
+        throw "try to get a value from an expression that returns no value";
+    }
+    return last_val;
+}
+
 void operator+=(koopa_trans::Blocks &self, koopa_trans::Blocks &other) {
 
     if (other.has_last_val) self.last_val = other.last_val;

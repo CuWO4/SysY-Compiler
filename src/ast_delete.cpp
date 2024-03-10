@@ -62,7 +62,7 @@ Block::~Block() {
 }
 
 FuncDef::~FuncDef() {
-    if (func_type != nullptr) delete func_type;
+    if (ret_type != nullptr) delete ret_type;
     if (id != nullptr) delete id;
     if (block != nullptr) delete block;
 }

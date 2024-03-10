@@ -87,7 +87,7 @@ int main(int argc, const char *argv[]) {
 
 	} catch (std::string &s) {
 		std::cerr << "error: " << s << std::endl;
-	} catch (char *&s) {
+	} catch (char const *const &s) {
 		std::cerr << "error: " << s << std::endl;
 	}
 

@@ -224,7 +224,10 @@ std::string FuncDecl::to_string() const {
     for (auto param_type : param_types) {
         res += param_type->to_string() + ", ";
     }
-    if (param_types.size() > 0) res.pop_back();
+    if (param_types.size() > 0) {
+        res.pop_back(); // `,`
+        res.pop_back(); // ` `
+    }
     res += ')';
 
     if (ret_type->get_type_id() != type::Void) {

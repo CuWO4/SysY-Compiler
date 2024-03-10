@@ -405,7 +405,7 @@ public:
         public:
             Id                     *id                  = nullptr;
             std::vector<Id *>       formal_param_ids    = {};
-            Type                   *ret_type            = nullptr;
+            Type                   *ret_type            = nullptr;  // TODO  remove this
             std::vector<Block *>    blocks              = {};
 
             std::string to_string() const override;
@@ -421,7 +421,7 @@ public:
         class FuncDecl : public GlobalStmt {
         public:
             Id                  *id             = nullptr;
-            Type                *ret_type       = nullptr;
+            Type                *ret_type       = nullptr; // TODO  remove thie
 
             std::string to_string() const override;
 

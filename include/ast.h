@@ -270,12 +270,12 @@ public:
 
     class FuncDef : public GlobalStmt {
     public:
-        Type            *func_type  = nullptr;
+        Type            *ret_type  = nullptr;
         Id              *id         = nullptr;
         std::vector<std::tuple<Type *, Id *> *> params = {};
         Block           *block      = nullptr;
 
-        FuncDef(Type *func_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block);
+        FuncDef(Type *ret_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block);
 
         koopa::GlobalStmt *to_koopa() const override;
 

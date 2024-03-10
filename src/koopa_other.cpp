@@ -81,13 +81,13 @@ bool Array::operator==(Type &other) {
 
 bool Pointer::operator==(Type &other) {
     return other.get_type_id() == type::Pointer
-        && dynamic_cast<Pointer &>(other).pointed_type == pointed_type;
+        && *dynamic_cast<Pointer &>(other).pointed_type == *pointed_type;
 }
 
 bool FuncType::operator==(Type &other) {
     if (other.get_type_id() != type::FuncType) return false;
     auto other_casted = dynamic_cast<FuncType &>(other); 
-    if (other_casted.ret_type != ret_type) return false;
+    if (*other_casted.ret_type != *ret_type) return false;
     if (arg_types.size() != other_casted.arg_types.size()) return false;
     for (int i = 0; i < arg_types.size(); i++) {
         if (*arg_types[i] != *other_casted.arg_types[i]) return false;

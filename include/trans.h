@@ -75,9 +75,11 @@ namespace koopa_trans {
     public:
         koopa::Id *get_begin_block_id();
 
+        void throw_last_val();
+        void set_last_val(koopa::Value *new_last_val);
+        koopa::Value *get_last_val();
+
         std::vector<koopa::Stmt *> active_stmts = {};
-        bool has_last_val = false;
-        koopa::Value *last_val = nullptr;
 
         std::vector<koopa::Block *> blocks = {};
 
@@ -96,6 +98,8 @@ namespace koopa_trans {
         void to_riscv(std::string &str, riscv_trans::Info &info) const {}
 
     private:
+        bool has_last_val = false;
+        koopa::Value *last_val = nullptr;
         koopa::Id *begin_block_id = nullptr;
         void init_begin_block_id();
     };

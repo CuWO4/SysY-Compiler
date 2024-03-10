@@ -80,8 +80,8 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
             throw std::string("trying to build short circuit evaluation statements for `") + binary_op_name[op] + '`';
         }
 
-        auto &elv = lv_stmts->last_val;
-        auto &erv = rv_stmts->last_val;
+        auto elv = lv_stmts->get_last_val();
+        auto erv = rv_stmts->get_last_val();
 
         if (!rv->has_side_effect()) {
             if (!elv->is_const) *res += *lv_stmts;
@@ -181,26 +181,26 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
     };
 
     switch (op) {
-        case op::LOGIC_AND: case op::LOGIC_OR: res->last_val = build_short_circuit_eval_stmts(op); break;
-        case op::EQ: res->last_val = generator(koopa::op::EQ, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::NEQ: res->last_val =  generator(koopa::op::NE, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::LT: res->last_val = generator(koopa::op::LT, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::GT: res->last_val = generator(koopa::op::GT, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::LEQ: res->last_val = generator(koopa::op::LE, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::GEQ: res->last_val = generator(koopa::op::GE, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::ADD: res->last_val = generator(koopa::op::ADD, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::SUB: res->last_val = generator(koopa::op::SUB, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::MUL: res->last_val = generator(koopa::op::MUL, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::DIV: res->last_val = generator(koopa::op::DIV, lv_stmts->last_val, rv_stmts->last_val); break;
-        case op::MOD: res->last_val = generator(koopa::op::MOD, lv_stmts->last_val, rv_stmts->last_val); break;
+        case op::LOGIC_AND: case op::LOGIC_OR: res->set_last_val( build_short_circuit_eval_stmts(op) ); break;
+        case op::EQ: res->set_last_val( generator(koopa::op::EQ, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::NEQ: res->set_last_val(  generator(koopa::op::NE, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::LT: res->set_last_val( generator(koopa::op::LT, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::GT: res->set_last_val( generator(koopa::op::GT, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::LEQ: res->set_last_val( generator(koopa::op::LE, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::GEQ: res->set_last_val( generator(koopa::op::GE, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::ADD: res->set_last_val( generator(koopa::op::ADD, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::SUB: res->set_last_val( generator(koopa::op::SUB, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::MUL: res->set_last_val( generator(koopa::op::MUL, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::DIV: res->set_last_val( generator(koopa::op::DIV, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
+        case op::MOD: res->set_last_val( generator(koopa::op::MOD, lv_stmts->get_last_val(), rv_stmts->get_last_val()) ); break;
         case op::COMMA: { 
             if (lv->has_side_effect()) *res += *lv_stmts;
-            if (rv_stmts->last_val->is_const) {
-                res->last_val = rv_stmts->last_val;
+            if (rv_stmts->get_last_val()->is_const) {
+                res->set_last_val( rv_stmts->get_last_val() );
             }
             else {
                 *res += *rv_stmts;
-                res->last_val = rv_stmts->last_val;
+                res->set_last_val( rv_stmts->get_last_val() );
             }
             break;
         }
@@ -222,11 +222,11 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
             }
 
             *res += new koopa::StoreValue(
-                res->last_val,
+                res->get_last_val(),
                 value_saver.get_id('@' + *id->lit, id->nesting_info)
             );
 
-            res->last_val = id_koopa;
+            res->set_last_val( id_koopa );
 
             break;
         }
@@ -244,13 +244,13 @@ koopa_trans::Blocks *UnaryExpr::to_koopa() const {
     auto lv_stmts = lv->to_koopa();
 
     auto generator = [&](koopa::op::Op op) -> koopa::Value * {
-        if (lv_stmts->last_val->is_const) {
-            return value_saver.new_const(koopa::op::op_func[op](0, lv_stmts->last_val->val));
+        if (lv_stmts->get_last_val()->is_const) {
+            return value_saver.new_const(koopa::op::op_func[op](0, lv_stmts->get_last_val()->val));
         }
 
         *res += *lv_stmts;
 
-        if (op == koopa::op::ADD) return lv_stmts->last_val;
+        if (op == koopa::op::ADD) return lv_stmts->get_last_val();
 
         koopa::Id *new_id;
 
@@ -265,7 +265,7 @@ koopa_trans::Blocks *UnaryExpr::to_koopa() const {
             new koopa::Expr(
                 op,
                 value_saver.new_const(0),
-                lv_stmts->last_val
+                lv_stmts->get_last_val()
             )
         );
 
@@ -273,9 +273,9 @@ koopa_trans::Blocks *UnaryExpr::to_koopa() const {
     };
 
     switch (op) {
-        case op::POS: res->last_val = generator(koopa::op::ADD); break;
-        case op::NOT: res->last_val = generator(koopa::op::EQ); break;
-        case op::NEG: res->last_val = generator(koopa::op::SUB);
+        case op::POS: res->set_last_val( generator(koopa::op::ADD) ); break;
+        case op::NOT: res->set_last_val( generator(koopa::op::EQ) ); break;
+        case op::NEG: res->set_last_val( generator(koopa::op::SUB) );
     }
 
     return res;
@@ -283,7 +283,7 @@ koopa_trans::Blocks *UnaryExpr::to_koopa() const {
 
 koopa_trans::Blocks *Number::to_koopa() const {
     auto res = new koopa_trans::Blocks;
-    res->last_val = value_saver.new_const(val);
+    res->set_last_val( value_saver.new_const(val) );
     return res;
 }
 
@@ -298,7 +298,7 @@ koopa_trans::Blocks *Id::to_koopa() const {
 
     if (id_koopa->is_const) {
 
-        res->last_val = value_saver.new_const(id_koopa->val);
+        res->set_last_val( value_saver.new_const(id_koopa->val) );
         return res;
 
     }
@@ -315,7 +315,7 @@ koopa_trans::Blocks *Id::to_koopa() const {
             new koopa::Load(id_koopa)
         );
 
-        res->last_val = new_id;
+        res->set_last_val( new_id );
 
         return res;
 
@@ -323,6 +323,8 @@ koopa_trans::Blocks *Id::to_koopa() const {
 }
 
 koopa_trans::Blocks *FuncCall::to_koopa() const {
+    //TODO  check the type consistency
+
     auto res = new koopa_trans::Blocks();
 
     auto func_id_koopa = value_saver.get_func_id('@' + *func_id->lit, func_id->nesting_info);
@@ -336,14 +338,13 @@ koopa_trans::Blocks *FuncCall::to_koopa() const {
     for (auto actual_param : actual_params) {
         auto actual_param_koopa = actual_param->to_koopa();
         *res += *actual_param_koopa;
-        actual_params_koopa.push_back(actual_param_koopa->last_val);
+        actual_params_koopa.push_back(actual_param_koopa->get_last_val());
     }
 
     auto ret_type_koopa = dynamic_cast<koopa::FuncType *>(func_id_koopa->type)->ret_type;
     if (ret_type_koopa->get_type_id() == koopa::type::Void) {
         *res += new koopa::FuncCall(func_id_koopa, actual_params_koopa);
-        res->has_last_val = false;
-        res->last_val = nullptr;
+        res->throw_last_val();
     }
     else {
         auto res_id = value_saver.new_id(
@@ -354,7 +355,7 @@ koopa_trans::Blocks *FuncCall::to_koopa() const {
             res_id,
             new koopa::FuncCall(func_id_koopa, actual_params_koopa)
         );
-        res->last_val = res_id;
+        res->set_last_val( res_id );
     }
 
     return res;
@@ -376,7 +377,7 @@ koopa_trans::Blocks *VarDecl::to_koopa() const {
 
             auto rval_koopa = var_def->init->to_koopa();
 
-            if (!rval_koopa->last_val->is_const) {
+            if (!rval_koopa->get_last_val()->is_const) {
                 throw "initiating const variable `" + *var_def->id->lit + "` with a non-const value";
             }
 
@@ -385,7 +386,7 @@ koopa_trans::Blocks *VarDecl::to_koopa() const {
                 new std::string('@' + *var_def->id->lit),
                 var_def->id->nesting_info,
                 true,
-                rval_koopa->last_val->val
+                rval_koopa->get_last_val()->val
             );
 
             //! BUG refree memory
@@ -420,7 +421,7 @@ koopa_trans::Blocks *VarDecl::to_koopa() const {
                 *stmts += *rval_koopa;
 
                 *stmts += new koopa::StoreValue(
-                    rval_koopa->last_val,
+                    rval_koopa->get_last_val(),
                     value_saver.get_id('@' + *var_def->id->lit, var_def->id->nesting_info)
                 );
         }
@@ -440,7 +441,7 @@ koopa_trans::Blocks *Return::to_koopa() const {
 
     auto res = ret_val->to_koopa();
 
-    *res += new koopa::Return( res->last_val );
+    *res += new koopa::Return( res->get_last_val() );
 
     return res;
 }
@@ -474,7 +475,7 @@ koopa_trans::Blocks *If::to_koopa() const {
     if (has_else_stmt) {
         *res += *cond->to_koopa();
 
-        auto cond_koopa = res->last_val;
+        auto cond_koopa = res->get_last_val();
 
         auto then_blocks = then_stmt->to_koopa()->to_raw_blocks();
         auto else_blocks = else_stmt->to_koopa()->to_raw_blocks();
@@ -503,7 +504,7 @@ koopa_trans::Blocks *If::to_koopa() const {
     else {  /* !has_else_stmt */
         *res += *cond->to_koopa();
 
-        auto cond_koopa = res->last_val;
+        auto cond_koopa = res->get_last_val();
 
         auto then_blocks = then_stmt->to_koopa()->to_raw_blocks();
         auto end_block = new koopa::Block(
@@ -554,7 +555,7 @@ koopa_trans::Blocks *While::to_koopa() const {
 
     auto cond_koopa = cond->to_koopa();
     *while_entry += *cond_koopa;
-    *while_entry += new koopa::Branch(cond_koopa->last_val, while_body->get_begin_block_id(), while_end->get_begin_block_id());
+    *while_entry += new koopa::Branch(cond_koopa->get_last_val(), while_body->get_begin_block_id(), while_end->get_begin_block_id());
 
     auto body_koopa = body->to_koopa();
     *while_body += *body_koopa;
@@ -599,7 +600,7 @@ koopa_trans::Blocks *For::to_koopa() const {
 
     auto cond_koopa = cond->to_koopa();
     *for_entry += *cond_koopa;
-    *for_entry += new koopa::Branch(cond_koopa->last_val, for_body->get_begin_block_id(), for_end->get_begin_block_id());
+    *for_entry += new koopa::Branch(cond_koopa->get_last_val(), for_body->get_begin_block_id(), for_end->get_begin_block_id());
 
     auto body_koopa = body->to_koopa();
     *for_body += *body_koopa;
@@ -693,6 +694,8 @@ koopa::Type *Void::to_koopa() const {
 }
 
 koopa::GlobalStmt *FuncDef::to_koopa() const {
+    // TODO  check the redef
+
     auto param_types = std::vector<koopa::Type *>();
     auto param_ids = std::vector<koopa::Id *>();
 
@@ -712,13 +715,13 @@ koopa::GlobalStmt *FuncDef::to_koopa() const {
     auto id_koopa = value_saver.new_id(
         new koopa::FuncType(
             param_types,
-            func_type->to_koopa()
+            ret_type->to_koopa()
         ),
         new std::string('@' + *id->lit),
         id->nesting_info
     );
 
-    auto type_koopa = func_type->to_koopa();
+    auto type_koopa = ret_type->to_koopa();
 
     auto block_koopa = new koopa_trans::Blocks;
     for (int i = 0; i < param_types.size(); i++) {
@@ -737,7 +740,7 @@ koopa::GlobalStmt *FuncDef::to_koopa() const {
         );
     }
     *block_koopa += *block->to_koopa();
-    trim_redundant_stmts_after_end_stmt(block_koopa, func_type->to_koopa());
+    trim_redundant_stmts_after_end_stmt(block_koopa, ret_type->to_koopa());
     add_pred_succ(block_koopa);
 
     return new koopa::FuncDef(
@@ -747,6 +750,7 @@ koopa::GlobalStmt *FuncDef::to_koopa() const {
         block_koopa->to_raw_blocks()
     );
 }
+
 
 koopa::Program *CompUnit::to_koopa() const {
     std::vector<koopa::GlobalStmt *> global_stmts_koopa = {};
