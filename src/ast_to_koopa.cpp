@@ -323,8 +323,41 @@ koopa_trans::Blocks *Id::to_koopa() const {
 }
 
 koopa_trans::Blocks *FuncCall::to_koopa() const {
-    // TODO
-    return nullptr;
+    auto res = new koopa_trans::Blocks();
+
+    auto func_id_koopa = value_saver.get_func_id('@' + *func_id->lit, func_id->nesting_info);
+
+    if (func_id_koopa == nullptr) {
+        throw "call of function `" + *func_id->lit + "` undeclared";
+    }
+
+    auto actual_params_koopa = std::vector<koopa::Value *>();
+    actual_params_koopa.reserve(actual_params.size());
+    for (auto actual_param : actual_params) {
+        auto actual_param_koopa = actual_param->to_koopa();
+        *res += *actual_param_koopa;
+        actual_params_koopa.push_back(actual_param_koopa->last_val);
+    }
+
+    auto ret_type_koopa = dynamic_cast<koopa::FuncType *>(func_id_koopa->type)->ret_type;
+    if (ret_type_koopa->get_type_id() == koopa::type::Void) {
+        *res += new koopa::FuncCall(func_id_koopa, actual_params_koopa);
+        res->has_last_val = false;
+        res->last_val = nullptr;
+    }
+    else {
+        auto res_id = value_saver.new_id(
+            ret_type_koopa,
+            new_id_name()
+        );
+        *res += new koopa::SymbolDef(
+            res_id,
+            new koopa::FuncCall(func_id_koopa, actual_params_koopa)
+        );
+        res->last_val = res_id;
+    }
+
+    return res;
 }
 
 koopa_trans::Blocks *VarDecl::to_koopa() const {

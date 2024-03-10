@@ -268,37 +268,19 @@ public:
                 ~Expr() override;
             };
 
-                class ExprStmt : public NotEndStmt {
-                public:
-                    Expr *expr = nullptr;
-
-                    ExprStmt(Expr *expr);
-
-                    std::string to_string() const override;
-
-                    void to_riscv(std::string &str, riscv_trans::Info &info) const override;
-
-                    ~ExprStmt() override;
-                };
-
-            class FuncCall : public Rvalue {
+            class FuncCall : public Rvalue, public NotEndStmt {
             public:
-                Id                      *id     = nullptr;
+                Id                     *id     = nullptr;
                 std::vector<Value *>    args    = {};
 
                 std::string to_string() const override;
+
+                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
                 FuncCall(Id *id, std::vector<Value *> args);
 
                 ~FuncCall() override;
             };
-
-                class FuncCallStmt : public NotEndStmt {
-                public:
-                    FuncCall *func_call = nullptr;
-
-                    // TODO
-                };
 
         class SymbolDef : public NotEndStmt {
         public:

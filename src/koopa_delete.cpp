@@ -46,10 +46,6 @@ GetElemPtr::~GetElemPtr() {
 Expr::~Expr() {
 }
 
-ExprStmt::~ExprStmt() {
-    if (expr != nullptr) delete expr;
-}
-
 FuncCall::~FuncCall() {
 }
 

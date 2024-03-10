@@ -205,15 +205,6 @@ void Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
     info.res_lit = target_reg;
 }
 
-void ExprStmt::to_riscv(std::string &str, riscv_trans::Info &info) const {
-
-    str += build_comment(this);
-
-    expr->to_riscv(str, info);
-
-    info.refresh_reg(info.res_lit);
-}
-
 void MemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
 }
 
@@ -280,6 +271,10 @@ void Branch::to_riscv(std::string &str, riscv_trans::Info &info) const {
 
 void Jump::to_riscv(std::string &str, riscv_trans::Info &info) const {
     str += build_inst("j", to_riscv_style(*target->lit));
+}
+
+void FuncCall::to_riscv(std::string &str, riscv_trans::Info &info) const {
+    // TODO
 }
 
 void Block::to_riscv(std::string &str, riscv_trans::Info &info) const {

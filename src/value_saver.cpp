@@ -72,20 +72,36 @@ bool ValueSaver::is_id_declared(std::string lit, NestingInfo *nesting_info) {
         || ids.find(*build_key(&lit, nesting_info, true)) != ids.end();
 }
 
-/* return nullptr if id is not defined */
 koopa::Id *ValueSaver::get_id(std::string lit, NestingInfo *nesting_info) {
     if (nesting_info == nullptr) return nullptr;
 
     auto res = ids.find(*build_key(&lit, nesting_info));
     auto res_temp_style = ids.find(*build_key(&lit, nesting_info, true));
 
-    if (res == ids.end() && res_temp_style == ids.end()) {
-        return get_id(lit, nesting_info->pa);
+    if (res != ids.end() || res_temp_style != ids.end()) {
+        auto not_empty_res_id = res_temp_style != ids.end()
+            ? res_temp_style->second /* prefer temporary style */
+            : res->second;
+        return not_empty_res_id;
     }
-    else {
-        if (res_temp_style != ids.end()) return res_temp_style->second;
-        else return res->second;
+    return get_id(lit, nesting_info->pa);
+}
+
+koopa::Id *ValueSaver::get_func_id(std::string lit, NestingInfo *nesting_info) {
+    if (nesting_info == nullptr) return nullptr;
+
+    auto res = ids.find(*build_key(&lit, nesting_info));
+    auto res_temp_style = ids.find(*build_key(&lit, nesting_info, true));
+
+    if (res != ids.end() || res_temp_style != ids.end()) {
+        auto not_empty_res_id = res_temp_style != ids.end()
+            ? res_temp_style->second /* prefer temporary style */
+            : res->second;
+        if (not_empty_res_id->type->get_type_id() == koopa::type::FuncType) {
+            return not_empty_res_id;
+        }
     }
+    return get_id(lit, nesting_info->pa);
 }
 
 koopa::Const *ValueSaver::new_const(int val) {

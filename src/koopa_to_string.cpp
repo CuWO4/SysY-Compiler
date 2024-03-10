@@ -112,10 +112,6 @@ std::string Expr::to_string() const {
     return BINARY_OP_NAME[op] + ' ' + lv->to_string() + ", " + rv->to_string();
 }
 
-std::string ExprStmt::to_string() const {
-    return expr->to_string();
-}
-
 std::string FuncCall::to_string() const {
     auto res = std::string("");
 
@@ -123,7 +119,10 @@ std::string FuncCall::to_string() const {
     for (auto arg : args) {
         res += arg->to_string() + ", ";
     }
-    if (args.size() > 0) res.pop_back();
+    if (args.size() > 0) {
+        res.pop_back(); // `,`
+        res.pop_back(); // ` `
+    }
     res += ')';
 
     return res;

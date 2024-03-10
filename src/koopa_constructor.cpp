@@ -37,8 +37,6 @@ GetElemPtr::GetElemPtr(Id *base, Value *offset) : base(base), offset(offset) {}
 Expr::Expr(op::Op op, Value *lv, Value *rv, bool is_const) 
     : op(op), lv(lv), rv(rv), is_const(is_const) {}
 
-ExprStmt::ExprStmt(Expr *expr) : expr(expr) {}
-
 FuncCall::FuncCall(Id *id, std::vector<Value *> args) : id(id), args(args) {}
 
 SymbolDef::SymbolDef(Id *id, Rvalue *val) : id(id), val(val) {

@@ -4,6 +4,11 @@ int fib(int n) {
   else return fib(n - 1) + fib(n - 2);
 }
 
+void do_something() {
+  int x, y;
+}
+
 int main() {
+  do_something();
   return fib(10);
 }
