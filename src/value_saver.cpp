@@ -56,14 +56,12 @@ void ValueSaver::insert_const(koopa::Const *new_const) {
 }
 
 
-koopa::Id *ValueSaver::new_id(koopa::Type *type, std::string *lit, NestingInfo *nesting_info, 
-                              bool is_const, int val, bool is_formal_param) {
+koopa::Id *ValueSaver::new_id(koopa::Type *type, std::string *lit, NestingInfo *nesting_info, bool is_const, int val) {
     auto res = new koopa::Id(
         type, 
         build_name(lit, nesting_info), 
         is_const, 
-        val,
-        is_formal_param
+        val
     );
     insert_id(*build_key(lit, nesting_info), res);
     return res;

@@ -8,8 +8,7 @@
 
 class ValueSaver {
 public:
-    koopa::Id *new_id(koopa::Type *type, std::string *lit, NestingInfo *nesting_info = new NestingInfo(false), 
-                      bool is_const = false, int val = 0, bool is_formal_param = false);
+    koopa::Id *new_id(koopa::Type *type, std::string *lit, NestingInfo *nesting_info = new NestingInfo(false), bool is_const = false, int val = 0);
 
     bool is_id_declared(std::string lit, NestingInfo *nesting_info);
 

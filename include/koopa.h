@@ -120,13 +120,11 @@ public:
 
         int sf_offset = 0;
 
-        bool is_formal_param = false;
-
         std::string to_string() const override;
 
         void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-        Id(Type *type, std::string *lit, bool is_const = false, int val = 0, bool is_formal_param = false);
+        Id(Type *type, std::string *lit, bool is_const = false, int val = 0);
 
         ~Id() override;
     };

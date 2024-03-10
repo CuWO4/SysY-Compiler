@@ -302,12 +302,6 @@ koopa_trans::Blocks *Id::to_koopa() const {
         return res;
 
     }
-    else if (id_koopa->is_formal_param) {
-
-        res->last_val = id_koopa;
-        return res;
-
-    }
     else {
 
         auto new_id = value_saver.new_id(
@@ -671,8 +665,7 @@ koopa::GlobalStmt *FuncDef::to_koopa() const {
         auto param_id_koopa = value_saver.new_id(
             param_type_koopa, 
             new std::string('@' + *std::get<1>(*param)->lit),
-            std::get<1>(*param)->nesting_info,
-            false, 0, true
+            std::get<1>(*param)->nesting_info
         );
         param_types.push_back(param_type_koopa);
         param_ids.push_back(param_id_koopa);
@@ -689,7 +682,23 @@ koopa::GlobalStmt *FuncDef::to_koopa() const {
 
     auto type_koopa = func_type->to_koopa();
 
-    auto block_koopa = block->to_koopa();
+    auto block_koopa = new koopa_trans::Blocks;
+    for (int i = 0; i < param_types.size(); i++) {
+        auto pointer_style_param_id = value_saver.new_id(
+            new koopa::Pointer(param_types[i]),
+            new std::string('%' + *std::get<1>(*params[i])->lit),
+            std::get<1>(*params[i])->nesting_info
+        );
+        *block_koopa += new koopa::SymbolDef(
+            pointer_style_param_id,
+            new koopa::MemoryDecl(param_types[i])
+        );
+        *block_koopa += new koopa::StoreValue(
+            param_ids[i],
+            pointer_style_param_id
+        );
+    }
+    *block_koopa += *block->to_koopa();
     trim_redundant_stmts_after_end_stmt(block_koopa, func_type->to_koopa());
     add_pred_succ(block_koopa);
 
