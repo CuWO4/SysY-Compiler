@@ -11,6 +11,12 @@ UnaryExpr::~UnaryExpr() {
     if (lv != nullptr) delete lv;
 }
 
+FuncCall::~FuncCall() {
+    if (func_id != nullptr) delete func_id;
+    for (auto actual_param : actual_params) 
+        if (actual_param != nullptr) delete actual_param;
+}
+
 Id::~Id() {
     if (lit != nullptr) delete lit;
 }

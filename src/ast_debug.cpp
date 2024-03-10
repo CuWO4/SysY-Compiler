@@ -32,13 +32,29 @@ std::string Id::debug(int indent) const {
     return *lit + '(' + std::to_string(nesting_info->nesting_level) + ':' + std::to_string(nesting_info->nesting_count) + ')';
 }
 
+std::string FuncCall::debug(int indent) const {
+    auto res = build_indent(indent) + func_id->debug();
+
+    res += '(';
+    for (auto actual_param : actual_params) {
+        res += actual_param->debug() + ", ";
+    }
+    if (actual_params.size() > 0) {
+        res.pop_back(); // `,`
+        res.pop_back(); // ` `
+    }
+    res += ')';
+
+    return res;
+}
+
 std::string Number::debug(int indent) const {
     return std::to_string(val);
 }
 
 std::string VarDef::debug(int indent) const {
     return id->debug() +
-        (has_init ? " = " + init->debug() : "") + ',';
+        (has_init ? " = " + init->debug() : "") + ", ";
 }
 
 std::string VarDecl::debug(int indent) const {
@@ -109,9 +125,14 @@ std::string FuncDef::debug(int indent) const {
     auto res = build_indent(indent) + func_type->debug() + ' ' + *id->lit + '(';
     for (auto param : params) {
         res += std::get<0>(*param)->debug() + ' '
-            + std::get<1>(*param)->debug() + ',';
+            + std::get<1>(*param)->debug() + ", ";
     }
-    res += ") {\n" 
+    if (params.size() > 0) {
+        res.pop_back(); // `,`
+        res.pop_back(); // ` `
+    }
+    res += ")"; 
+    res += "{\n" 
         + block->debug(indent + 1) 
         + build_indent(indent) + "}";
     return res;

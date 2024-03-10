@@ -14,6 +14,11 @@ bool Id::has_side_effect() const {
     return false;
 }
 
+bool FuncCall::has_side_effect() const {
+    // TODO  can be handled better
+    return true;
+}
+
 bool Number::has_side_effect() const {
     return false;
 }

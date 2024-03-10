@@ -11,6 +11,9 @@ UnaryExpr::UnaryExpr(op::UnaryOp op, Expr *lv)
 Id::Id(std::string *lit, NestingInfo *nesting_info)
     : lit(lit), nesting_info(nesting_info) {}
 
+FuncCall::FuncCall(Id *func_id, std::vector<Expr *> actual_params) 
+    : func_id(func_id), actual_params(actual_params) {}
+
 Number::Number(int val) : val(val) {}
 
 VarDef::VarDef(Id *id) : id(id) {}

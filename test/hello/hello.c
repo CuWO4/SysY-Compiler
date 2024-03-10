@@ -1,9 +1,9 @@
+int fib(int n) {
+  if (n == 1) return 1;
+  else if (n == 2) return 1;
+  else return fib(n - 1) + fib(n - 2);
+}
+
 int main() {
-  int i, j, sum;
-  for (int i = 0, j = 1; i < 10; i = i + 1, j = j + 2) {
-    if (i % 2 == 0) continue;
-    if (j >= 20) break;
-    sum = sum + i + j;
-  }
-  return sum;
+  return fib(10);
 }

@@ -112,6 +112,22 @@ public:
             ~Id() override;
         };
 
+        class FuncCall : public Expr {
+        public:
+            Id *func_id = nullptr;
+            std::vector<Expr *> actual_params = {};
+
+            FuncCall(Id *func_id, std::vector<Expr *> actual_params);
+
+            koopa_trans::Blocks *to_koopa() const override;
+
+            bool has_side_effect() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~FuncCall() override;
+        };
+
         class Number : public Expr {
         public:
             int val = 0;

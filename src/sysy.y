@@ -27,16 +27,18 @@
     int             int_val;
 
     ast::FuncDef   *ast_func_def_val;
+    ast::Id        *ast_id_val;
     ast::Type      *ast_type_val;
     ast::Block     *ast_block_val;
     ast::Stmt      *ast_stmt_val;
     ast::GlobalStmt    *ast_global_stmt_val;
     ast::Expr      *ast_expr_val;
     ast::VarDef    *ast_var_def_val;
-    std::vector<ast::Stmt *>    *ast_stmt_vec_val;
-    std::vector<ast::GlobalStmt *>    *ast_global_stmt_vec_val;
-    std::vector<ast::VarDef *>  *ast_var_def_vec_val;
-    std::tuple<ast::Type *, ast::Id *>    *ast_func_param_val;
+    std::vector<ast::Expr *>               *ast_expr_vec_val;
+    std::vector<ast::Stmt *>               *ast_stmt_vec_val;
+    std::vector<ast::GlobalStmt *>         *ast_global_stmt_vec_val;
+    std::vector<ast::VarDef *>             *ast_var_def_vec_val;
+    std::tuple<ast::Type *, ast::Id *>     *ast_func_param_val;
     std::vector<std::tuple<ast::Type *, ast::Id *> *>  *ast_func_params_val;
 	}
 
@@ -45,20 +47,26 @@
 %token <int_val> TK_INT_CONST
 
 %type	<ast_func_def_val> func_def
+%type   <ast_id_val> id
 %type	<ast_type_val> type
 %type	<ast_block_val> block
 %type	<ast_global_stmt_val> comp_unit_item
 %type	<ast_stmt_val> block_item 
 %type   <ast_stmt_val> clause if_clause while_clause for_clause
 %type   <ast_stmt_val> stmt decl_stmt return_stmt continue_stmt break_stmt block_stmt empty_stmt for_init_stmt for_iter_stmt
-%type	<ast_expr_val> expr for_cond_expr
+%type	<ast_expr_val> expr no_comma_expr func_call for_cond_expr
 %type	<ast_var_def_val> var_def
 %type   <ast_global_stmt_vec_val> comp_unit_items
+%type   <ast_expr_vec_val> func_call_params
 %type   <ast_stmt_vec_val> block_items 
 %type   <ast_var_def_vec_val> var_defs
 %type   <ast_func_param_val> func_def_param 
 %type   <ast_func_params_val> func_def_params 
 %type   <int_val> number
+
+// resolve the dangling-else by give a precedence 
+%nonassoc PREC_IF
+%nonassoc TK_ELSE
 
 %left ','
 %right '='
@@ -69,10 +77,6 @@
 %left '+' '-'
 %left '*' '/' '%'
 %right PREC_UNARY_OP
-
-// resolve the dangling-else by give a precedence 
-%nonassoc PREC_IF
-%nonassoc TK_ELSE
 
 %%
 
@@ -97,11 +101,11 @@ comp_unit_item
 ;
 
 func_def
-    : type TK_IDENT block_start '(' func_def_params ')' block block_end {
-        $$ = new ast::FuncDef($1, new ast::Id($2, cur_nesting_info), *$5, $7);
+    : type id block_start '(' func_def_params ')' block block_end {
+        $$ = new ast::FuncDef($1, $2, *$5, $7);
     }
-    | type TK_IDENT block_start '(' ')' block block_end {
-        $$ = new ast::FuncDef($1, new ast::Id($2, cur_nesting_info), {}, $6);
+    | type id block_start '(' ')' block block_end {
+        $$ = new ast::FuncDef($1, $2, {}, $6);
     }
 ;
 
@@ -116,8 +120,8 @@ func_def_params
 ;
 
 func_def_param
-    : type TK_IDENT {
-        $$ = new std::tuple<ast::Type *, ast::Id *>($1, new ast::Id($2, cur_nesting_info));
+    : type id {
+        $$ = new std::tuple<ast::Type *, ast::Id *>($1, $2);
     }
 ;
 
@@ -231,11 +235,11 @@ var_defs
 ;
 
 var_def
-    : TK_IDENT '=' expr {
-        $$ = new ast::VarDef(new ast::Id($1, cur_nesting_info), $3);
+    : id '=' no_comma_expr {
+        $$ = new ast::VarDef($1, $3);
     }
-    | TK_IDENT {
-        $$ = new ast::VarDef(new ast::Id($1, cur_nesting_info));
+    | id { 
+        $$ = new ast::VarDef($1);
     }
 ;
 
@@ -265,65 +269,93 @@ empty_stmt
 ;
 
 expr
-    : '(' expr ')'                  { $$ = $2; }
-    | expr TK_LOGIC_OR expr         {
-		$$ = new ast::BinaryExpr(ast::op::LOGIC_OR, $1, $3);
-	}
-    | expr TK_LOGIC_AND expr        {
-		$$ = new ast::BinaryExpr(ast::op::LOGIC_AND, $1, $3);
-	}
-    | expr TK_EQ expr               {
-		$$ = new ast::BinaryExpr(ast::op::EQ, $1, $3);
-	}
-    | expr TK_NEQ expr              {
-		$$ = new ast::BinaryExpr(ast::op::NEQ, $1, $3);
-	}
-    | expr '<' expr                 {
-		$$ = new ast::BinaryExpr(ast::op::LT, $1, $3);
-	}
-    | expr '>' expr                 {
-		$$ = new ast::BinaryExpr(ast::op::GT, $1, $3);
-	}
-    | expr TK_LEQ expr              {
-		$$ = new ast::BinaryExpr(ast::op::LEQ, $1, $3);
-	}
-    | expr TK_GEQ expr              {
-		$$ = new ast::BinaryExpr(ast::op::GEQ, $1, $3);
-	}
-    | expr '+' expr                 {
-		$$ = new ast::BinaryExpr(ast::op::ADD, $1, $3);
-	}
-    | expr '-' expr                 {
-		$$ = new ast::BinaryExpr(ast::op::SUB, $1, $3);
-	}
-    | expr '*' expr                 {
-		$$ = new ast::BinaryExpr(ast::op::MUL, $1, $3);
-	}
-    | expr '/' expr                 {
-		$$ = new ast::BinaryExpr(ast::op::DIV, $1, $3);
-	}
-    | expr '%' expr                 {
-		$$ = new ast::BinaryExpr(ast::op::MOD, $1, $3);
-	}
-    | expr '=' expr                 {
-		$$ = new ast::BinaryExpr(ast::op::ASSIGN, $1, $3);
-	}
-    | expr ',' expr                 {
+    : no_comma_expr
+    | no_comma_expr ',' no_comma_expr {
 		$$ = new ast::BinaryExpr(ast::op::COMMA, $1, $3);
 	}
-    | '-' expr %prec PREC_UNARY_OP  {
+;
+
+no_comma_expr
+    : '(' no_comma_expr ')' { $$ = $2; }
+    | no_comma_expr TK_LOGIC_OR no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::LOGIC_OR, $1, $3);
+	}
+    | no_comma_expr TK_LOGIC_AND no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::LOGIC_AND, $1, $3);
+	}
+    | no_comma_expr TK_EQ no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::EQ, $1, $3);
+	}
+    | no_comma_expr TK_NEQ no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::NEQ, $1, $3);
+	}
+    | no_comma_expr '<' no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::LT, $1, $3);
+	}
+    | no_comma_expr '>' no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::GT, $1, $3);
+	}
+    | no_comma_expr TK_LEQ no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::LEQ, $1, $3);
+	}
+    | no_comma_expr TK_GEQ no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::GEQ, $1, $3);
+	}
+    | no_comma_expr '+' no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::ADD, $1, $3);
+	}
+    | no_comma_expr '-' no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::SUB, $1, $3);
+	}
+    | no_comma_expr '*' no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::MUL, $1, $3);
+	}
+    | no_comma_expr '/' no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::DIV, $1, $3);
+	}
+    | no_comma_expr '%' no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::MOD, $1, $3);
+	}
+    | no_comma_expr '=' no_comma_expr {
+		$$ = new ast::BinaryExpr(ast::op::ASSIGN, $1, $3);
+	}
+    | '-' no_comma_expr %prec PREC_UNARY_OP  {
 		$$ = new ast::UnaryExpr(ast::op::NEG, $2);
 	}
-    | '+' expr %prec PREC_UNARY_OP  {
+    | '+' no_comma_expr %prec PREC_UNARY_OP  {
 		$$ = new ast::UnaryExpr(ast::op::POS, $2);
 	}
-    | '!' expr %prec PREC_UNARY_OP  {
+    | '!' no_comma_expr %prec PREC_UNARY_OP  {
 		$$ = new ast::UnaryExpr(ast::op::NOT, $2);
 	}
+    | func_call
+    | id { $$ = $1; }
     | number                        {
 		$$ = new ast::Number($1);
 	}
-    | TK_IDENT                      {
+;
+
+func_call
+    : id '(' ')' {
+        $$ = new ast::FuncCall($1, {});
+    }
+    | id '(' func_call_params ')' {
+        $$ = new ast::FuncCall($1, *$3);
+    }
+;
+
+func_call_params
+    : func_call_params ',' no_comma_expr {
+        $1->push_back($3);
+        $$ = $1;
+    }
+    | no_comma_expr {
+        $$ = new std::vector<ast::Expr *>{ $1 };
+    }
+;
+
+id
+    : TK_IDENT {
         $$ = new ast::Id(new std::string(*$1), cur_nesting_info);
     }
 ;
