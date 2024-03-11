@@ -26,7 +26,7 @@ FLEX := flex
 BISON := bison
 
 # Directories
-TOP_DIR := $(shell pwd)
+TOP_DIR := ${CURDIR}
 TARGET_EXEC := compiler
 SRC_DIR := $(TOP_DIR)/src
 BUILD_DIR ?= $(TOP_DIR)/build
@@ -35,15 +35,14 @@ INC_DIR ?= $(CDE_INCLUDE_PATH)
 LDFLAGS += -L$(LIB_DIR) -lkoopa
 
 # Source files & target files
-FB_SRCS := $(patsubst $(SRC_DIR)/%.l, $(BUILD_DIR)/%.lex$(FB_EXT), $(shell find $(SRC_DIR) -name "*.l"))
-FB_SRCS += $(patsubst $(SRC_DIR)/%.y, $(BUILD_DIR)/%.tab$(FB_EXT), $(shell find $(SRC_DIR) -name "*.y"))
-SRCS := $(FB_SRCS) $(shell find $(SRC_DIR) -name "*.cpp")
+FB_SRCS := $(patsubst $(SRC_DIR)/%.l, $(BUILD_DIR)/%.lex$(FB_EXT), $(wildcard $(SRC_DIR)/*.l))
+FB_SRCS += $(patsubst $(SRC_DIR)/%.y, $(BUILD_DIR)/%.tab$(FB_EXT), $(wildcard $(SRC_DIR)/*.y))
+SRCS := $(FB_SRCS) $(wildcard $(SRC_DIR)/*.cpp)
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.cpp.o, $(SRCS))
 OBJS := $(patsubst $(BUILD_DIR)/%.cpp, $(BUILD_DIR)/%.cpp.o, $(OBJS))
 
 # Header directories & dependencies
-INC_DIRS := $(shell find $(SRC_DIR) -type d)
-INC_DIRS += $(INC_DIRS:$(SRC_DIR)%=$(BUILD_DIR)%)
+INC_DIRS := include/
 INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 CPPFLAGS = $(INC_FLAGS) -MMD -MP
 
@@ -60,14 +59,14 @@ $(BUILD_DIR)/%.cpp.o: $(BUILD_DIR)/%.cpp | $(BUILD_DIR); $(cxx_recipe)
 
 # Flex
 $(BUILD_DIR)/%.lex$(FB_EXT): $(SRC_DIR)/%.l | $(BUILD_DIR)
-	$(FLEX) $(FFLAGS) -o $@ $<
+	$(FLEX) -o$@ $(FFLAGS) $<
 
 # Bison
 $(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y | $(BUILD_DIR)
 	$(BISON) $(BFLAGS) -o $@ $<
 
 $(BUILD_DIR) :
-	mkdir $(BUILD_DIR)
+	mkdir "$(BUILD_DIR)"
 
 DEPS := $(OBJS:.o=.d)
 -include $(DEPS)
