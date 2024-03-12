@@ -78,14 +78,13 @@ FuncDef::~FuncDef() {
     for (auto formal_param_id: formal_param_ids) {
         if (formal_param_id != nullptr) delete formal_param_id;
     }
-    if (ret_type != nullptr) delete ret_type;
     for (auto block : blocks) {
         if (block != nullptr) delete block;
     }
 }
 
 FuncDecl::~FuncDecl() {
-    if (ret_type != nullptr) delete ret_type;
+    if (id != nullptr) delete id;
 }
 
 GlobalMemoryDecl::~GlobalMemoryDecl() {

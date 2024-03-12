@@ -322,15 +322,28 @@ koopa_trans::Blocks *Id::to_koopa() const {
     }
 }
 
-koopa_trans::Blocks *FuncCall::to_koopa() const {
-    //TODO  check the type consistency
+bool is_consistent(koopa::FuncType *func_type, std::vector<Expr *> actual_params) {
+    if (func_type->arg_types.size() != actual_params.size()) return false;
+    
+    // TODO  since ast::Expr currently only has int type, the type is not checked
 
+    return true;
+}
+
+koopa_trans::Blocks *FuncCall::to_koopa() const {
     auto res = new koopa_trans::Blocks();
 
     auto func_id_koopa = value_saver.get_func_id('@' + *func_id->lit, func_id->nesting_info);
 
     if (func_id_koopa == nullptr) {
         throw "call of function `" + *func_id->lit + "` undeclared";
+    }
+
+    if (!is_consistent(
+            dynamic_cast<koopa::FuncType *>(func_id_koopa->type), 
+            actual_params
+        )) {
+        throw "calling function `" + *func_id->lit + "` with mismatched actual arguments";
     }
 
     auto actual_params_koopa = std::vector<koopa::Value *>();
@@ -622,7 +635,7 @@ koopa_trans::Blocks *For::to_koopa() const {
 
 koopa_trans::Blocks *Continue::to_koopa() const {
     if (loop_tag_saver.empty()) {
-        throw "not using continue in loop";
+        throw "not using `continue` in loop";
     }
     return new koopa_trans::Blocks(
         { new koopa::Jump(loop_tag_saver.top().continue_target) }
@@ -631,7 +644,7 @@ koopa_trans::Blocks *Continue::to_koopa() const {
 
 koopa_trans::Blocks *Break::to_koopa() const {
     if (loop_tag_saver.empty()) {
-        throw "not using break in loop";
+        throw "not using `break` in loop";
     }
     return new koopa_trans::Blocks(
         { new koopa::Jump(loop_tag_saver.top().break_target) }
@@ -694,7 +707,9 @@ koopa::Type *Void::to_koopa() const {
 }
 
 koopa::GlobalStmt *FuncDef::to_koopa() const {
-    // TODO  check the redef
+    if (value_saver.get_func_id('@' + *id->lit, id->nesting_info) != nullptr) {
+        throw "`" + *id->lit + "` redefined";
+    }
 
     auto param_types = std::vector<koopa::Type *>();
     auto param_ids = std::vector<koopa::Id *>();
@@ -721,8 +736,6 @@ koopa::GlobalStmt *FuncDef::to_koopa() const {
         id->nesting_info
     );
 
-    auto type_koopa = ret_type->to_koopa();
-
     auto block_koopa = new koopa_trans::Blocks;
     for (int i = 0; i < param_types.size(); i++) {
         auto pointer_style_param_id = value_saver.new_id(
@@ -746,14 +759,103 @@ koopa::GlobalStmt *FuncDef::to_koopa() const {
     return new koopa::FuncDef(
         id_koopa,
         param_ids,
-        type_koopa,
         block_koopa->to_raw_blocks()
     );
 }
 
+/* push the declaration of lib functions */
+static void push_lib_func_decls(std::vector<koopa::GlobalStmt *> &global_stmts_koopa) {
+    global_stmts_koopa.push_back(
+        new koopa::FuncDecl(
+            value_saver.new_id(
+                new koopa::FuncType(
+                    {}, new koopa::Int
+                ),
+                new std::string("@getint")
+            )
+        )
+    );
+    global_stmts_koopa.push_back(
+        new koopa::FuncDecl(
+            value_saver.new_id(
+                new koopa::FuncType(
+                    {}, new koopa::Int
+                ),
+                new std::string("@getch")
+            )
+        )
+    );
+    global_stmts_koopa.push_back(
+        new koopa::FuncDecl(
+            value_saver.new_id(
+                new koopa::FuncType(
+                    { new koopa::Pointer(new koopa::Int) }, 
+                    new koopa::Int
+                ),
+                new std::string("@getarray")
+            )
+        )
+    );
+    global_stmts_koopa.push_back(
+        new koopa::FuncDecl(
+            value_saver.new_id(
+                new koopa::FuncType(
+                    { new koopa::Int }, 
+                    new koopa::Void
+                ),
+                new std::string("@putint")
+            )
+        )
+    );
+    global_stmts_koopa.push_back(
+        new koopa::FuncDecl(
+            value_saver.new_id(
+                new koopa::FuncType(
+                    { new koopa::Int }, 
+                    new koopa::Void
+                ),
+                new std::string("@putch")
+            )
+        )
+    );
+    global_stmts_koopa.push_back(
+        new koopa::FuncDecl(
+            value_saver.new_id(
+                new koopa::FuncType(
+                    { new koopa::Int, new koopa::Pointer(new koopa::Int) }, 
+                    new koopa::Void
+                ),
+                new std::string("@putarray")
+            )
+        )
+    );
+    global_stmts_koopa.push_back(
+        new koopa::FuncDecl(
+            value_saver.new_id(
+                new koopa::FuncType(
+                    {}, new koopa::Void
+                ),
+                new std::string("@starttime")
+            )
+        )
+    );
+    global_stmts_koopa.push_back(
+        new koopa::FuncDecl(
+            value_saver.new_id(
+                new koopa::FuncType(
+                    {}, new koopa::Void
+                ),
+                new std::string("@endtime")
+            )
+        )
+    );
+}
 
 koopa::Program *CompUnit::to_koopa() const {
     std::vector<koopa::GlobalStmt *> global_stmts_koopa = {};
+
+    /* the definition of lib functions are offered by .o file */
+    push_lib_func_decls(global_stmts_koopa);
 
     for (auto global_stmt : global_stmts) {
         global_stmts_koopa.push_back(global_stmt->to_koopa());

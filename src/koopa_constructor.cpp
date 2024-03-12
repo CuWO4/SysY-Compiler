@@ -60,12 +60,10 @@ Return::Return(Value *val) : val(val) {}
 Block::Block(Id *id, std::vector<Stmt *> stmts)
     : id(id), stmts(stmts) {}
 
-FuncDef::FuncDef(Id *id, std::vector<Id *> formal_param_ids,
-                 Type *ret_type, std::vector<Block *> blocks)
-    : id(id), formal_param_ids(formal_param_ids), ret_type(ret_type), blocks(blocks) {}
+FuncDef::FuncDef(Id *id, std::vector<Id *> formal_param_ids, std::vector<Block *> blocks)
+    : id(id), formal_param_ids(formal_param_ids), blocks(blocks) {}
 
-FuncDecl::FuncDecl(Id *id, Type *ret_type)
-    : id(id), ret_type(ret_type) {}
+FuncDecl::FuncDecl(Id *id) : id(id) {}
 
 GlobalMemoryDecl::GlobalMemoryDecl(Type *type, Initializer *initializer)
     : type(type), initializer(initializer) {}

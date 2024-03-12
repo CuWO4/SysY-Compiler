@@ -1,14 +1,10 @@
-int fib(int n) {
-  if (n == 1) return 1;
-  else if (n == 2) return 1;
-  else return fib(n - 1) + fib(n - 2);
-}
-
-void do_something() {
-  int x, y;
-}
-
 int main() {
-  do_something();
-  return fib(10);
+  int x = getint();
+  int y = getint();
+  putint(x + y);
+  int c = getch();
+  putch(c);
+  putch(33);
+  putch(10);
+  return 0;
 }

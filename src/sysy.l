@@ -11,6 +11,8 @@
 
 %}
 
+%x PREPROCESSING_SCAN_STATE
+
 WhiteSpace      [ \t\n\r]
 LineComment     "//".*
 BlockComment    "/"\*.*?\*"/"
@@ -26,6 +28,10 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 {WhiteSpace}
 {LineComment}
 {BlockComment}
+
+#               { BEGIN(PREPROCESSING_SCAN_STATE); }
+<PREPROCESSING_SCAN_STATE>\n    { BEGIN(INITIAL); }
+<PREPROCESSING_SCAN_STATE>.     /* skip all preprocessing commands */
 
 "||"            { return TK_LOGIC_OR; }
 "&&"            { return TK_LOGIC_AND; }

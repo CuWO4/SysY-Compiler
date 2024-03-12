@@ -405,15 +405,13 @@ public:
         public:
             Id                     *id                  = nullptr;
             std::vector<Id *>       formal_param_ids    = {};
-            Type                   *ret_type            = nullptr;  // TODO  remove this
             std::vector<Block *>    blocks              = {};
 
             std::string to_string() const override;
 
             void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
-            FuncDef(Id *id, std::vector<Id *> formal_param_ids,
-                    Type *ret_type, std::vector<Block *> blocks);
+            FuncDef(Id *id, std::vector<Id *> formal_param_ids, std::vector<Block *> blocks);
 
             ~FuncDef() override;
         };
@@ -421,11 +419,12 @@ public:
         class FuncDecl : public GlobalStmt {
         public:
             Id                  *id             = nullptr;
-            Type                *ret_type       = nullptr; // TODO  remove thie
 
             std::string to_string() const override;
 
-            FuncDecl(Id *id, Type *ret_type);
+            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+
+            FuncDecl(Id *id);
 
             ~FuncDecl() override;
         };

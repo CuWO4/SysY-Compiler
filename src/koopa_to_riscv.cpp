@@ -308,8 +308,9 @@ void FuncDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
     for (auto block : blocks) {
         block->to_riscv(str, info);
     }
+}
 
-    
+void FuncDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
 }
 
 void Program::to_riscv(std::string &str, riscv_trans::Info &info) const {
