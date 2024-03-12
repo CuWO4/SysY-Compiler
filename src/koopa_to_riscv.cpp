@@ -52,6 +52,10 @@ void Const::to_riscv(std::string &str, riscv_trans::Info &info) const {
     info.res_lit = target;
 }
 
+void ConstInitializer::to_riscv(std::string &str, riscv_trans::Info &info) const {
+    // TODO
+}
+
 static bool is_commutative(op::Op op) {
     switch (op) {
         case op::EQ: case op::NE: case op::ADD: case op::MUL:
@@ -308,6 +312,14 @@ void FuncDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
     for (auto block : blocks) {
         block->to_riscv(str, info);
     }
+}
+
+void GlobalSymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
+    // TODO
+}
+
+void GlobalMemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
+    // TODO
 }
 
 void FuncDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {

@@ -265,7 +265,7 @@ public:
 
 class GlobalStmt : public Base {
 public:
-    virtual koopa::GlobalStmt *to_koopa() const = 0;
+    virtual koopa_trans::GlobalStmts *to_koopa() const = 0;
 };
 
     class FuncDef : public GlobalStmt {
@@ -277,7 +277,7 @@ public:
 
         FuncDef(Type *ret_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block);
 
-        koopa::GlobalStmt *to_koopa() const override;
+        koopa_trans::GlobalStmts *to_koopa() const override;
 
         std::string debug(int indent = 0) const override;
 
@@ -293,7 +293,7 @@ public:
         GlobalVarDef(Id *id);
         GlobalVarDef(Id *id, Expr *init);
 
-        koopa::GlobalStmt *to_koopa() const override;
+        koopa_trans::GlobalStmts *to_koopa() const override;
 
         std::string debug(int indent = 0) const override;
 
@@ -309,7 +309,7 @@ public:
         GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, 
                 bool is_const = false);
 
-        koopa::GlobalStmt *to_koopa() const override;
+        koopa_trans::GlobalStmts *to_koopa() const override;
 
         std::string debug(int indent = 0) const override;
 

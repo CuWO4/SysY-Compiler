@@ -103,6 +103,30 @@ void operator+=(koopa_trans::Blocks &self, koopa::Stmt *stmt) {
     }
 }
 
+GlobalStmts::GlobalStmts() {}
+
+GlobalStmts::GlobalStmts(koopa::GlobalStmt *global_stmt) 
+    : global_stmts({global_stmt}) {}
+
+GlobalStmts::GlobalStmts(std::vector<koopa::GlobalStmt *> global_stmts) 
+    : global_stmts(global_stmts){}
+
+std::vector<koopa::GlobalStmt *> &GlobalStmts::to_raw_vector() {
+    return global_stmts;
+}
+
+void operator+=(GlobalStmts &self, GlobalStmts &other) {
+    self += other.global_stmts;
+}
+void operator+=(GlobalStmts &self, std::vector<koopa::GlobalStmt *> &global_stmts) {
+    self.global_stmts.reserve(self.global_stmts.size() + global_stmts.size());
+    self.global_stmts.insert(self.global_stmts.end(), global_stmts.begin(), global_stmts.end());
+}
+
+void operator+=(GlobalStmts &self, koopa::GlobalStmt *global_stmt) {
+    self.global_stmts.push_back(global_stmt);
+}
+
 }
 
 namespace riscv_trans {

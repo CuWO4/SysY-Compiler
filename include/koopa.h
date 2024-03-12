@@ -153,6 +153,8 @@ class Initializer : public Base {
 
         std::string to_string() const override;
 
+        void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+
         ConstInitializer(int val);
     };
 
@@ -436,6 +438,8 @@ public:
 
             std::string to_string() const override;
 
+            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+
             GlobalMemoryDecl(Type *type, Initializer *initializer);
 
             ~GlobalMemoryDecl() override;
@@ -447,6 +451,8 @@ public:
             GlobalMemoryDecl    *decl   = nullptr;
 
             std::string to_string() const override;
+
+            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
 
             GlobalSymbolDef(Id *id, GlobalMemoryDecl *decl);
 

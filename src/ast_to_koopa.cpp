@@ -374,13 +374,97 @@ koopa_trans::Blocks *FuncCall::to_koopa() const {
     return res;
 }
 
-koopa::GlobalStmt *GlobalVarDef::to_koopa() const {
+koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
     return nullptr;
 }
 
-koopa::GlobalStmt *GlobalVarDecl::to_koopa() const {
-    // TODO
-    return nullptr;
+koopa_trans::GlobalStmts *GlobalVarDecl::to_koopa() const {
+    auto global_stmts = new koopa_trans::GlobalStmts();
+
+    if (is_const) {
+
+        for (auto var_def : var_defs) {
+            if (value_saver.is_id_declared('@' + *var_def->id->lit, var_def->id->nesting_info)) {
+                throw '`' + *var_def->id->lit + "` redefined";
+            }
+
+            if (!var_def->has_init) {
+                throw "no initiator for const variable `" + *var_def->id->lit + '`';
+            }
+
+            auto rval_koopa = var_def->init->to_koopa();
+
+            if (!rval_koopa->get_last_val()->is_const) {
+                throw "initiating const variable `" + *var_def->id->lit + "` with a non-const value";
+            }
+
+            value_saver.new_id(
+                type->to_koopa(),
+                new std::string('@' + *var_def->id->lit),
+                var_def->id->nesting_info,
+                true,
+                rval_koopa->get_last_val()->val
+            );
+
+            //! BUG refree memory
+            // for (auto stmt : stmts->stmts) if (stmt != nullptr) delete stmt;
+            // delete stmts;
+        }
+
+    }
+
+    else {
+
+        for (auto var_def : var_defs) {
+            if (value_saver.is_id_declared('@' + *var_def->id->lit, var_def->id->nesting_info)) {
+                throw '`' + *var_def->id->lit + "` redefined";
+            }
+
+            if (var_def->has_init) {
+
+                auto rval_koopa = var_def->init->to_koopa();
+
+                if (!rval_koopa->get_last_val()->is_const) {
+                    throw "initiating global variable `" + *var_def->id->lit + "` with a non-const value";
+                }
+
+                *global_stmts += new koopa::GlobalSymbolDef(
+                    value_saver.new_id(
+                        new koopa::Pointer(
+                            type->to_koopa()
+                        ),
+                        new std::string('@' + *var_def->id->lit),
+                        var_def->id->nesting_info
+                    ),
+                    new koopa::GlobalMemoryDecl(
+                        type->to_koopa(),
+                        new koopa::ConstInitializer(rval_koopa->get_last_val()->val)
+                    )
+                );
+
+            }
+            else {
+
+                *global_stmts += new koopa::GlobalSymbolDef(
+                    value_saver.new_id(
+                        new koopa::Pointer(
+                            type->to_koopa()
+                        ),
+                        new std::string('@' + *var_def->id->lit),
+                        var_def->id->nesting_info
+                    ),
+                    new koopa::GlobalMemoryDecl(
+                        type->to_koopa(),
+                        new koopa::ConstInitializer(0)
+                    )
+                );
+
+            }
+        }
+
+    }
+
+    return global_stmts;
 }
 
 koopa_trans::Blocks *VarDef::to_koopa() const {
@@ -719,8 +803,8 @@ koopa::Type *Void::to_koopa() const {
     return new koopa::Void;
 }
 
-koopa::GlobalStmt *FuncDef::to_koopa() const {
-    if (value_saver.get_func_id('@' + *id->lit, id->nesting_info) != nullptr) {
+koopa_trans::GlobalStmts *FuncDef::to_koopa() const {
+    if (value_saver.get_id('@' + *id->lit, id->nesting_info) != nullptr) {
         throw "`" + *id->lit + "` redefined";
     }
 
@@ -769,10 +853,12 @@ koopa::GlobalStmt *FuncDef::to_koopa() const {
     trim_redundant_stmts_after_end_stmt(block_koopa, ret_type->to_koopa());
     add_pred_succ(block_koopa);
 
-    return new koopa::FuncDef(
-        id_koopa,
-        param_ids,
-        block_koopa->to_raw_blocks()
+    return new koopa_trans::GlobalStmts(
+        new koopa::FuncDef(
+            id_koopa,
+            param_ids,
+            block_koopa->to_raw_blocks()
+        )
     );
 }
 
@@ -865,17 +951,17 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt *> &global_stmts_k
 }
 
 koopa::Program *CompUnit::to_koopa() const {
-    std::vector<koopa::GlobalStmt *> global_stmts_koopa = {};
+    auto *global_stmts_koopa = new koopa_trans::GlobalStmts();
 
     /* the definition of lib functions are offered by .o file */
-    push_lib_func_decls(global_stmts_koopa);
+    push_lib_func_decls(global_stmts_koopa->to_raw_vector());
 
     for (auto global_stmt : global_stmts) {
-        global_stmts_koopa.push_back(global_stmt->to_koopa());
+        *global_stmts_koopa += *global_stmt->to_koopa();
     }
     
     return new koopa::Program(
-        global_stmts_koopa
+        global_stmts_koopa->to_raw_vector()
     );
 }
 

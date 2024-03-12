@@ -247,7 +247,7 @@ std::string GlobalMemoryDecl::to_string() const {
 }
 
 std::string GlobalSymbolDef::to_string() const {
-    return "global " + id->to_string() + '=' + decl->to_string();
+    return "global " + id->to_string() + '=' + decl->to_string() + '\n';
 }
 
 std::string Program::to_string() const {
