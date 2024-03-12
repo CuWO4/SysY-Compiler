@@ -67,6 +67,18 @@ FuncDef::~FuncDef() {
     if (block != nullptr) delete block;
 }
 
+GlobalVarDef::~GlobalVarDef() {
+    if (id != nullptr) delete id;
+    if (init != nullptr) delete init;
+}
+
+GlobalVarDecl::~GlobalVarDecl() {
+    if (type != nullptr) delete type;
+    for (auto var_def : var_defs) {
+        if (var_def != nullptr) delete var_def;
+    }
+}
+
 CompUnit::~CompUnit() {
     for (auto global_stmt : global_stmts)
         if (global_stmt != nullptr) delete global_stmt;

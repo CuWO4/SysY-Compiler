@@ -150,7 +150,7 @@ public:
         VarDef(Id *id);
         VarDef(Id *id, Expr *init);
 
-        koopa_trans::Blocks *to_koopa() const override { return nullptr; }
+        koopa_trans::Blocks *to_koopa() const override;
 
         std::string debug(int indent = 0) const override;
 
@@ -282,6 +282,38 @@ public:
         std::string debug(int indent = 0) const override;
 
         ~FuncDef() override;
+    };
+
+    class GlobalVarDef : public GlobalStmt {
+    public:
+        Id *id = nullptr;
+        bool has_init;
+        Expr *init = nullptr;
+
+        GlobalVarDef(Id *id);
+        GlobalVarDef(Id *id, Expr *init);
+
+        koopa::GlobalStmt *to_koopa() const override;
+
+        std::string debug(int indent = 0) const override;
+
+        ~GlobalVarDef();
+    };
+
+    class GlobalVarDecl : public GlobalStmt {
+    public:
+        Type *type = nullptr;
+        std::vector<GlobalVarDef *> var_defs = {};
+        bool is_const = false;
+
+        GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, 
+                bool is_const = false);
+
+        koopa::GlobalStmt *to_koopa() const override;
+
+        std::string debug(int indent = 0) const override;
+
+        ~GlobalVarDecl() override;
     };
 
 class CompUnit : public Base {

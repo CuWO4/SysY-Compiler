@@ -374,6 +374,19 @@ koopa_trans::Blocks *FuncCall::to_koopa() const {
     return res;
 }
 
+koopa::GlobalStmt *GlobalVarDef::to_koopa() const {
+    return nullptr;
+}
+
+koopa::GlobalStmt *GlobalVarDecl::to_koopa() const {
+    // TODO
+    return nullptr;
+}
+
+koopa_trans::Blocks *VarDef::to_koopa() const {
+    return nullptr;
+}
+
 koopa_trans::Blocks *VarDecl::to_koopa() const {
     auto stmts = new koopa_trans::Blocks();
 

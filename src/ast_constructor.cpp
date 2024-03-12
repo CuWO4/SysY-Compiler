@@ -17,7 +17,7 @@ FuncCall::FuncCall(Id *func_id, std::vector<Expr *> actual_params)
 Number::Number(int val) : val(val) {}
 
 VarDef::VarDef(Id *id) : id(id) {}
-VarDef::VarDef(Id *id, Expr *init) : id(id), init(init) { has_init = true; }
+VarDef::VarDef(Id *id, Expr *init) : id(id), has_init(true), init(init) {}
 
 VarDecl::VarDecl(Type *type, std::vector<VarDef *> var_defs, bool is_const)
     : type(type), var_defs(var_defs), is_const(is_const) {}
@@ -38,7 +38,11 @@ While::While(Expr *cond, Stmt *body) : cond(cond), body(body) {}
 For::For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body) 
     : init_stmt(init_stmt), cond(cond), iter_stmt(iter_stmt), body(body) {}
 
+GlobalVarDef::GlobalVarDef(Id *id) : id(id), has_init(false) {}
+GlobalVarDef::GlobalVarDef(Id *id, Expr *init) : id(id), has_init(true), init(init) {}
 
+GlobalVarDecl::GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, bool is_const)
+    : type(type), var_defs(var_defs), is_const(is_const) {}
 
 FuncDef::FuncDef(Type *ret_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block) :
     ret_type(ret_type), id(id), params(params), block(block) {}

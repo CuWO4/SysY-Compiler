@@ -64,6 +64,11 @@ std::string VarDecl::debug(int indent) const {
         res += var_def->debug();
     }
 
+    if (var_defs.size() > 0) {
+        res.pop_back(); // `,`
+        res.pop_back(); // ` `
+    }
+
     return res;
 }
 
@@ -135,6 +140,26 @@ std::string FuncDef::debug(int indent) const {
     res += "{\n" 
         + block->debug(indent + 1) 
         + build_indent(indent) + "}";
+    return res;
+}
+
+std::string GlobalVarDef::debug(int indent) const {
+    return id->debug() +
+        (has_init ? " = " + init->debug() : "") + ", ";
+}
+
+std::string GlobalVarDecl::debug(int indent) const {
+    auto res = build_indent(indent) + type->debug() + ' ';
+
+    for (auto var_def : var_defs) {
+        res += var_def->debug();
+    }
+
+    if (var_defs.size() > 0) {
+        res.pop_back(); // `,`
+        res.pop_back(); // ` `
+    }
+
     return res;
 }
 
