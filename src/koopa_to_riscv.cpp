@@ -29,15 +29,15 @@ static std::string build_mem(int offset, std::string base = "sp") {
     return std::to_string(offset) + '(' + base + ')';
 }
 
-void Id::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    if ((typeid(*type) == typeid(FuncType))) {
+void Id::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
+    if (id_type == koopa::id_type::FuncId) {
         str += to_riscv_style(*lit);
     }
-    else if (typeid(*type) == typeid(Label)){
+    else if (id_type == koopa::id_type::BlockLabel){
         /* empty */
     }
-    else if (typeid(*type) == typeid(Void)) {
-        /* empty */
+    else if (id_type == koopa::id_type::GlobalId) {
+        str += to_riscv_style(*lit);
     }
     else {
         auto target_reg = info.get_unused_reg();
@@ -46,14 +46,14 @@ void Id::to_riscv(std::string &str, riscv_trans::Info &info) const {
     }
 }
 
-void Const::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Const::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
     auto target = info.get_unused_reg();
     str += build_inst("li", target, std::to_string(val));
     info.res_lit = target;
 }
 
-void ConstInitializer::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    // TODO
+void ConstInitializer::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
+    str += "\t.word " + std::to_string(val) + '\n';
 }
 
 static bool is_commutative(op::Op op) {
@@ -94,7 +94,7 @@ Expr *exchanged_expr(const Expr *expr) {
     }
 }
 
-void Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Expr::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
     std::string first_reg, second_lit, target_reg;
     bool is_i_type_inst = false;
     
@@ -102,7 +102,7 @@ void Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
     if (lv->is_const && !rv->is_const && is_commutative(op) && has_i_type_inst(op)) {
 
         //! memory leak
-        exchanged_expr(this)->to_riscv(str, info);
+        exchanged_expr(this)->to_riscv(str, info, trans_mode);
         return;
         
     }
@@ -110,7 +110,7 @@ void Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
         
         is_i_type_inst = true;
 
-        lv->to_riscv(str, info);
+        lv->to_riscv(str, info, trans_mode);
         first_reg = info.res_lit;
         
         second_lit = std::to_string(rv->val);
@@ -118,10 +118,10 @@ void Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
     }
     else {
 
-        lv->to_riscv(str, info);
+        lv->to_riscv(str, info, trans_mode);
         first_reg = info.res_lit;
 
-        rv->to_riscv(str, info);
+        rv->to_riscv(str, info, trans_mode);
         second_lit = info.res_lit;
 
     }
@@ -209,22 +209,33 @@ void Expr::to_riscv(std::string &str, riscv_trans::Info &info) const {
     info.res_lit = target_reg;
 }
 
-void MemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void MemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
 }
 
-void Load::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    auto target_reg = info.get_unused_reg();
+void Load::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
+    if (addr->id_type == koopa::id_type::LocalId) {
+        auto target_reg = info.get_unused_reg();
 
-    str += build_inst("lw", target_reg, build_mem(addr->sf_offset));
+        str += build_inst("lw", target_reg, build_mem(addr->sf_offset));
 
-    info.res_lit = target_reg;
+        info.res_lit = target_reg;
+    }
+    else if (addr->id_type == koopa::id_type::GlobalId) {
+        auto target_reg = info.get_unused_reg();
+
+        str += "\t" + assign("la") + target_reg + ", ";
+        addr->to_riscv(str, info, trans_mode);
+        str += '\n';
+
+        info.res_lit = target_reg;
+    }
 }
 
-void StoreValue::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void StoreValue::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
 
     str += build_comment(this);
 
-    value->to_riscv(str, info);
+    value->to_riscv(str, info, trans_mode);
     auto val_reg = info.res_lit;
 
     str += build_inst("sw", val_reg, build_mem(addr->sf_offset));
@@ -232,13 +243,13 @@ void StoreValue::to_riscv(std::string &str, riscv_trans::Info &info) const {
     info.refresh_reg(val_reg);
 }
 
-void SymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void SymbolDef::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
 
     str += build_comment(this);
 
     if (typeid(*val) == typeid(MemoryDecl)) return;
 
-    val->to_riscv(str, info);
+    val->to_riscv(str, info, trans_mode);
     auto source_reg = info.res_lit;
 
     str += build_inst("sw", source_reg, build_mem(id->sf_offset));
@@ -246,13 +257,13 @@ void SymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
     info.refresh_reg(source_reg);
 }
 
-void Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Return::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
 
     str += build_comment(this);
 
     if (return_type == return_type::HasRetVal) {
 
-        val->to_riscv(str, info);
+        val->to_riscv(str, info, trans_mode);
         str += build_inst("mv", "a0", info.res_lit);
         info.refresh_reg(info.res_lit);
         
@@ -265,72 +276,87 @@ void Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
     str += build_inst("ret");
 }
 
-void Branch::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    cond->to_riscv(str, info);
+void Branch::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
+    cond->to_riscv(str, info, trans_mode);
     str += build_inst("bnez", info.res_lit, to_riscv_style(*target1->lit));
     str += build_inst("j", to_riscv_style(*target2->lit));
 
     info.refresh_reg(info.res_lit);
 }
 
-void Jump::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Jump::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
     str += build_inst("j", to_riscv_style(*target->lit));
 }
 
-void FuncCall::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void FuncCall::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
     // TODO
 }
 
-void Block::to_riscv(std::string &str, riscv_trans::Info &info) const {
+void Block::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
     str += to_riscv_style(*id->lit) + ":\n";
     for(auto stmt : stmts) {
-        stmt->to_riscv(str, info);
+        stmt->to_riscv(str, info, trans_mode);
     }
 }
 
-void FuncDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    // TODO
-    id->to_riscv(str, info);
-    str += ":\n";
+void FuncDef::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
+    if (trans_mode == riscv_trans::TextSegment) {
+        id->to_riscv(str, info, trans_mode);
+        str += ":\n";
 
-    int stack_frame_size = 0;
-    for (auto block : blocks) {
-        stack_frame_size += block->get_stack_frame_size();
-    }
-
-    if (stack_frame_size != 0) {
-        int start_offset = stack_frame_size;
+        int stack_frame_size = 0;
         for (auto block : blocks) {
-            block->set_id_offset(start_offset);
+            stack_frame_size += block->get_stack_frame_size();
         }
 
-        stack_frame_size = (stack_frame_size / 16 + 1) * 16;
-        info.stack_frame_size = stack_frame_size;
-        str += build_inst("addi", "sp", "sp", '-' + std::to_string(stack_frame_size));
+        if (stack_frame_size != 0) {
+            int start_offset = stack_frame_size;
+            for (auto block : blocks) {
+                block->set_id_offset(start_offset);
+            }
+
+            stack_frame_size = (stack_frame_size / 16 + 1) * 16;
+            info.stack_frame_size = stack_frame_size;
+            str += build_inst("addi", "sp", "sp", '-' + std::to_string(stack_frame_size));
+        }
+
+        for (auto block : blocks) {
+            block->to_riscv(str, info, trans_mode);
+        }
+    }
+}
+
+void GlobalSymbolDef::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
+    if (trans_mode == riscv_trans::DataSegment) {
+        str += "\t.global ";
+        id->to_riscv(str, info, trans_mode);
+        str += '\n';
+
+        id->to_riscv(str, info, trans_mode);
+        str += ":\n";
+
+        decl->to_riscv(str, info, trans_mode);
+    }
+}
+
+void GlobalMemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
+    initializer->to_riscv(str, info, trans_mode);
+}
+
+void FuncDecl::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
+}
+
+void Program::to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const {
+    str += "\t.data\n";
+    for (auto global_stmt : global_stmts) {
+        global_stmt->to_riscv(str, info, riscv_trans::DataSegment);
     }
 
-    for (auto block : blocks) {
-        block->to_riscv(str, info);
-    }
-}
 
-void GlobalSymbolDef::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    // TODO
-}
-
-void GlobalMemoryDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
-    // TODO
-}
-
-void FuncDecl::to_riscv(std::string &str, riscv_trans::Info &info) const {
-}
-
-void Program::to_riscv(std::string &str, riscv_trans::Info &info) const {
     str += "\t.text\n";
     str += "\t.global main\n";
-
     for (auto global_stmt : global_stmts) {
-        global_stmt->to_riscv(str, info);
+        global_stmt->to_riscv(str, info, riscv_trans::TextSegment);
     }
 
     

@@ -18,7 +18,7 @@ class Base {
 public:
     virtual std::string to_string() const = 0;
 
-    virtual void to_riscv(std::string &str, riscv_trans::Info &info) const = 0;
+    virtual void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const = 0;
 
     virtual ~Base() = default;
 };
@@ -29,7 +29,7 @@ namespace type {
 
 class Type : public Base {
 public:
-    void to_riscv(std::string &str, riscv_trans::Info &info) const override {}
+    void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override {}
 
     virtual type::TypeId get_type_id() = 0;
     virtual bool operator==(Type &other) = 0;
@@ -113,8 +113,13 @@ public:
     int val = 0;
 };
 
+    namespace id_type {
+        enum IdType { LocalId, GlobalId, ConstId, FuncId, BlockLabel };
+    }
+
     class Id : public Value {
     public:
+        id_type::IdType id_type;
         Type        *type   = nullptr;
         std::string *lit    = nullptr;
 
@@ -122,9 +127,9 @@ public:
 
         std::string to_string() const override;
 
-        void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+        void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
-        Id(Type *type, std::string *lit, bool is_const = false, int val = 0);
+        Id(id_type::IdType id_type, Type *type, std::string *lit, bool is_const = false, int val = 0);
 
         ~Id() override;
     };
@@ -133,7 +138,7 @@ public:
     public:
         std::string to_string() const override;
 
-        void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+        void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
         Const(int val);
     };
@@ -153,7 +158,7 @@ class Initializer : public Base {
 
         std::string to_string() const override;
 
-        void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+        void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
         ConstInitializer(int val);
     };
@@ -202,7 +207,7 @@ public:
 
                 std::string to_string() const override;
 
-                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+                void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
                 ~MemoryDecl() override;
             };
@@ -215,7 +220,7 @@ public:
 
                 std::string to_string() const override;
 
-                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+                void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
                 ~Load() override;
             };
@@ -263,7 +268,7 @@ public:
 
                 std::string to_string() const override;
 
-                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+                void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
                 Expr(op::Op op, Value *lv, Value *rv, bool is_const = false);
 
@@ -277,7 +282,7 @@ public:
 
                 std::string to_string() const override;
 
-                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+                void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
                 FuncCall(Id *id, std::vector<Value *> args);
 
@@ -291,7 +296,7 @@ public:
 
             std::string to_string() const override;
 
-            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
             SymbolDef(Id *id, Rvalue *val);
 
@@ -310,7 +315,7 @@ public:
 
                 std::string to_string() const override;
 
-                void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+                void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
                 ~StoreValue() override;
             };
@@ -339,7 +344,7 @@ public:
 
             std::string to_string() const override;
 
-            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
             Branch(Value *cond, Id *target1, Id *target2);
 
@@ -352,7 +357,7 @@ public:
 
             std::string to_string() const override;
 
-            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
             
             Jump(Id *target);
 
@@ -370,7 +375,7 @@ public:
 
             std::string to_string() const override;
 
-            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
             Return();
             Return(Value *val);
@@ -400,7 +405,7 @@ public:
 
             std::string to_string() const override;
 
-            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
             Block(Id *id, std::vector<Stmt *> stmts);
 
@@ -415,7 +420,7 @@ public:
 
             std::string to_string() const override;
 
-            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
             FuncDef(Id *id, std::vector<Id *> formal_param_ids, std::vector<Block *> blocks);
 
@@ -428,7 +433,7 @@ public:
 
             std::string to_string() const override;
 
-            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
             FuncDecl(Id *id);
 
@@ -442,7 +447,7 @@ public:
 
             std::string to_string() const override;
 
-            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
             GlobalMemoryDecl(Type *type, Initializer *initializer);
 
@@ -456,7 +461,7 @@ public:
 
             std::string to_string() const override;
 
-            void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+            void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
             GlobalSymbolDef(Id *id, GlobalMemoryDecl *decl);
 
@@ -469,7 +474,7 @@ public:
 
     std::string to_string() const override;
 
-    void to_riscv(std::string &str, riscv_trans::Info &info) const override;
+    void to_riscv(std::string &str, riscv_trans::Info &info, riscv_trans::TransMode trans_mode) const override;
 
     Program(std::vector<GlobalStmt *> global_stmts);
 

@@ -26,6 +26,11 @@ namespace riscv_trans {
 
         void refresh_reg(std::string lit);
     };
+
+    enum TransMode {
+        DataSegment,
+        TextSegment
+    };
 }
 
 namespace koopa_trans {

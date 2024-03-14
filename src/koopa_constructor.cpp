@@ -9,8 +9,8 @@ Pointer::Pointer(Type *pointed_type) : pointed_type(pointed_type) {}
 FuncType::FuncType(std::vector<Type *> arg_types, Type *ret_type)
     : arg_types(arg_types), ret_type(ret_type) {}
 
-Id::Id(Type *type, std::string *lit, bool is_const, int val) 
-    : type(type), lit(lit) {
+Id::Id(id_type::IdType id_type, Type *type, std::string *lit, bool is_const, int val) 
+    : id_type(id_type), type(type), lit(lit) {
     this->val = val;
     this->is_const = is_const;
 
