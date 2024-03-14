@@ -156,14 +156,19 @@ public:
 
         ~VarDef();
     };
+
+    namespace decl_type {
+        enum DeclType { VolatileDecl, ConstDecl };
+    }
+
     class VarDecl : public Stmt {
     public:
         Type *type = nullptr;
         std::vector<VarDef *> var_defs = {};
-        bool is_const = false;
+        decl_type::DeclType decl_type = decl_type::VolatileDecl;
 
         VarDecl(Type *type, std::vector<VarDef *> var_defs, 
-                bool is_const = false);
+                decl_type::DeclType decl_type = decl_type::VolatileDecl);
 
         koopa_trans::Blocks *to_koopa() const override;
 
@@ -172,9 +177,13 @@ public:
         ~VarDecl() override;
     };
 
+    namespace return_type {
+        enum ReturnType { HasRetVal, NotHasRetVal };
+    }
+
     class Return : public Stmt {
     public:
-        bool has_return_val = true;
+        return_type::ReturnType return_type = return_type::NotHasRetVal;
         Expr *ret_val = nullptr;
 
         Return();
@@ -304,10 +313,10 @@ public:
     public:
         Type *type = nullptr;
         std::vector<GlobalVarDef *> var_defs = {};
-        bool is_const = false;
+        decl_type::DeclType decl_type = decl_type::VolatileDecl;
 
         GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, 
-                bool is_const = false);
+                      decl_type::DeclType decl_type = decl_type::VolatileDecl);
 
         koopa_trans::GlobalStmts *to_koopa() const override;
 

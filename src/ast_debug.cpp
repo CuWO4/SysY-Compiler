@@ -53,12 +53,12 @@ std::string Number::debug(int indent) const {
 }
 
 std::string VarDef::debug(int indent) const {
-    return id->debug() +
+    return  id->debug() +
         (has_init ? " = " + init->debug() : "") + ", ";
 }
 
 std::string VarDecl::debug(int indent) const {
-    auto res = build_indent(indent) + type->debug() + ' ';
+    auto res = build_indent(indent) + (decl_type == decl_type::ConstDecl ? "const" : "") + type->debug() + ' ';
 
     for (auto var_def : var_defs) {
         res += var_def->debug();
@@ -73,7 +73,7 @@ std::string VarDecl::debug(int indent) const {
 }
 
 std::string Return::debug(int indent) const {
-    return build_indent(indent) + "Return " + (has_return_val ? ret_val->debug() : "");
+    return build_indent(indent) + "Return " + (return_type == return_type::HasRetVal ? ret_val->debug() : "");
 }
 
 std::string If::debug(int indent) const {
@@ -149,7 +149,7 @@ std::string GlobalVarDef::debug(int indent) const {
 }
 
 std::string GlobalVarDecl::debug(int indent) const {
-    auto res = build_indent(indent) + type->debug() + ' ';
+    auto res = build_indent(indent) + (decl_type == decl_type::ConstDecl ? "const" : "") + type->debug() + ' ';
 
     for (auto var_def : var_defs) {
         res += var_def->debug();

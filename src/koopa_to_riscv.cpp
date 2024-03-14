@@ -250,7 +250,7 @@ void Return::to_riscv(std::string &str, riscv_trans::Info &info) const {
 
     str += build_comment(this);
 
-    if (has_return_val) {
+    if (return_type == return_type::HasRetVal) {
 
         val->to_riscv(str, info);
         str += build_inst("mv", "a0", info.res_lit);

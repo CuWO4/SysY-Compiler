@@ -150,7 +150,7 @@ std::string Jump::to_string() const {
 }
 
 std::string Return::to_string() const {
-    return "ret " + (has_return_val ? val->to_string() : "");
+    return "ret " + (return_type == return_type::HasRetVal ? val->to_string() : "");
 }
 
 std::string Block::to_string() const {

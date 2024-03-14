@@ -381,7 +381,7 @@ koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
 koopa_trans::GlobalStmts *GlobalVarDecl::to_koopa() const {
     auto global_stmts = new koopa_trans::GlobalStmts();
 
-    if (is_const) {
+    if (decl_type == decl_type::ConstDecl) {
 
         for (auto var_def : var_defs) {
             if (value_saver.is_id_declared('@' + *var_def->id->lit, var_def->id->nesting_info)) {
@@ -474,7 +474,7 @@ koopa_trans::Blocks *VarDef::to_koopa() const {
 koopa_trans::Blocks *VarDecl::to_koopa() const {
     auto stmts = new koopa_trans::Blocks();
 
-    if (is_const) {
+    if (decl_type == decl_type::ConstDecl) {
 
         for (auto var_def : var_defs) {
             if (value_saver.is_id_declared('@' + *var_def->id->lit, var_def->id->nesting_info)) {
@@ -543,7 +543,7 @@ koopa_trans::Blocks *VarDecl::to_koopa() const {
 }
 
 koopa_trans::Blocks *Return::to_koopa() const {
-    if (!has_return_val) {
+    if (return_type == return_type::NotHasRetVal) {
         auto res = new koopa_trans::Blocks();
         *res += new koopa::Return();
         return res;

@@ -359,9 +359,13 @@ public:
             ~Jump() override;
         };
 
+        namespace return_type {
+            enum ReturnType { HasRetVal, NotHasRetVal };
+        }
+
         class Return : public EndStmt {
         public:
-            bool has_return_val = true;
+            return_type::ReturnType return_type;
             Value *val = nullptr;
 
             std::string to_string() const override;

@@ -54,8 +54,8 @@ Branch::Branch(Value *cond, Id *target1, Id *target2)
 
 Jump::Jump(Id *target) : target(target) {}
 
-Return::Return() : has_return_val(false) {}
-Return::Return(Value *val) : val(val) {}
+Return::Return() : return_type(return_type::NotHasRetVal) {}
+Return::Return(Value *val) : return_type(return_type::HasRetVal), val(val) {}
 
 Block::Block(Id *id, std::vector<Stmt *> stmts)
     : id(id), stmts(stmts) {}

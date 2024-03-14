@@ -108,7 +108,7 @@ global_var_decl
         $$ = new ast::GlobalVarDecl($1, *$2);
     }
     | TK_CONST type global_var_defs {
-        $$ = new ast::GlobalVarDecl($2, *$3, true);
+        $$ = new ast::GlobalVarDecl($2, *$3, ast::decl_type::ConstDecl);
     }
 ;
 
@@ -251,7 +251,7 @@ decl_stmt
         $$ = new ast::VarDecl($1, *$2);
     }
     | TK_CONST type var_defs {
-        $$ = new ast::VarDecl($2, *$3, true);
+        $$ = new ast::VarDecl($2, *$3, ast::decl_type::ConstDecl);
     }
 ;
 

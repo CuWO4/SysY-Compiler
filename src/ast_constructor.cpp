@@ -19,11 +19,11 @@ Number::Number(int val) : val(val) {}
 VarDef::VarDef(Id *id) : id(id) {}
 VarDef::VarDef(Id *id, Expr *init) : id(id), has_init(true), init(init) {}
 
-VarDecl::VarDecl(Type *type, std::vector<VarDef *> var_defs, bool is_const)
-    : type(type), var_defs(var_defs), is_const(is_const) {}
+VarDecl::VarDecl(Type *type, std::vector<VarDef *> var_defs, decl_type::DeclType decl_type)
+    : type(type), var_defs(var_defs), decl_type(decl_type) {}
 
-Return::Return() : has_return_val(false) {}
-Return::Return(Expr *ret_val) : ret_val(ret_val) {}
+Return::Return() : return_type(return_type::NotHasRetVal) {}
+Return::Return(Expr *ret_val) : return_type(return_type::HasRetVal), ret_val(ret_val) {}
 
 Block::Block(std::vector<Stmt *> stmts) : stmts(stmts) {}
 
@@ -41,8 +41,8 @@ For::For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body)
 GlobalVarDef::GlobalVarDef(Id *id) : id(id), has_init(false) {}
 GlobalVarDef::GlobalVarDef(Id *id, Expr *init) : id(id), has_init(true), init(init) {}
 
-GlobalVarDecl::GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, bool is_const)
-    : type(type), var_defs(var_defs), is_const(is_const) {}
+GlobalVarDecl::GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, decl_type::DeclType decl_type)
+    : type(type), var_defs(var_defs), decl_type(decl_type) {}
 
 FuncDef::FuncDef(Type *ret_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block) :
     ret_type(ret_type), id(id), params(params), block(block) {}
