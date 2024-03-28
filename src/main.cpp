@@ -75,10 +75,9 @@ int main(int argc, const char *argv[]) {
 		else if (mode == "-riscv") {
 
 			std::string riscv_string = "";
-			riscv_trans::Info riscv_info = riscv_trans::Info();
 
 			/* the `trans_mode` actually does not work for `CompUnit` */
-			koopa->to_riscv(riscv_string, riscv_info, riscv_trans::DataSegment); 
+			koopa->prog_to_riscv(riscv_string); 
 
 			os << riscv_string;
 		}

@@ -10,7 +10,7 @@ public:
     NestingInfo(int nl = 0, int nc = 0, NestingInfo *pa = nullptr) :
         nesting_level(nl), nesting_count(nc), pa(pa) {}
 
-    NestingInfo(bool need_suffix) : need_suffix(need_suffix) {}
+    NestingInfo(bool need_suffix): need_suffix(need_suffix) {}
 };
 
 #endif

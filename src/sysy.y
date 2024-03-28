@@ -6,7 +6,6 @@
 
     #include "../include/ast.h"
     #include "../include/nesting_info.h"
-    #include "../include/trans.h"
 
     int yylex();
     void yyerror(ast::CompUnit *&ast, const char *s);
@@ -395,7 +394,7 @@ number
     : TK_INT_CONST
 ;
 
-block_start : {
+block_start: {
     cur_nesting_level++;
 
     auto new_nesting_info = new NestingInfo(
@@ -406,7 +405,7 @@ block_start : {
     cur_nesting_info = new_nesting_info;
 }
 
-block_end : {
+block_end: {
     cur_nesting_count[cur_nesting_level]++;
     cur_nesting_level--;
 

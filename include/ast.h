@@ -1,9 +1,9 @@
 #ifndef AST_H_
 #define AST_H_
 
-#include "trans.h"
+#include "koopa_trans.h"
 #include "koopa.h"
-#include "value_saver.h"
+#include "value_manager.h"
 #include "nesting_info.h"
 
 #include <iostream>
@@ -12,331 +12,335 @@
 
 namespace koopa {
     class Base;
-    class ValueSaver;
+    class ValueManager;
 }
 
 namespace ast {
 
-class Base {
-public:
-    virtual std::string debug(int indent = 0) const = 0;
-
-    virtual ~Base() = default;
-};
-
-class Type : public Base {
-public:
-    virtual koopa::Type* to_koopa() const = 0;
-};
-
-    class Int : public Type {
+    class Base {
     public:
-        koopa::Type* to_koopa() const override;
+        virtual std::string debug(int indent = 0) const = 0;
 
-        std::string debug(int indent = 0) const override;
+        virtual ~Base() = default;
     };
 
-    class Void :public Type {
-        koopa::Type *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-    };
-
-namespace op {
-    enum BinaryOp {
-        LOGIC_OR, LOGIC_AND, EQ, NEQ, LT, GT, LEQ, GEQ,
-        ADD, SUB, MUL, DIV, MOD, COMMA, ASSIGN
-    };
-
-    enum UnaryOp {
-        NEG, POS, NOT,
-    };
-}
-
-class Stmt : public Base {
-public:
-    virtual koopa_trans::Blocks *to_koopa() const = 0;
-};
-
-    class Expr : public Stmt {
+    class Type: public Base {
     public:
-        virtual bool has_side_effect() const = 0;
+        virtual koopa::Type* to_koopa() const = 0;
     };
 
-        class BinaryExpr : public Expr {
+        class Int: public Type {
         public:
-            op::BinaryOp    op  = op::LOGIC_OR;
-            Expr            *lv = nullptr;
-            Expr            *rv = nullptr;
-
-            BinaryExpr(op::BinaryOp op, Expr *lv, Expr* rv);
-
-            koopa_trans::Blocks *to_koopa() const override;
-
-            bool has_side_effect() const override;
-
-            std::string debug(int indent = 0) const override;
-
-            ~BinaryExpr() override;
-        };
-
-        class UnaryExpr : public Expr {
-        public:
-            op::UnaryOp     op  = op::NEG;
-            Expr            *lv = nullptr;
-
-            UnaryExpr(op::UnaryOp op, Expr *lv);
-
-            koopa_trans::Blocks *to_koopa() const override;
-
-            bool has_side_effect() const override;
-
-            std::string debug(int indent = 0) const override;
-
-            ~UnaryExpr() override;
-        };
-
-        class Id : public Expr {
-        public:
-            std::string *lit;
-            NestingInfo *nesting_info = nullptr;
-
-            Id(std::string *lit, NestingInfo *nesting_info);
-
-            koopa_trans::Blocks *to_koopa() const override;
-
-            bool has_side_effect() const override;
-
-            std::string debug(int indent = 0) const override;
-
-            ~Id() override;
-        };
-
-        class FuncCall : public Expr {
-        public:
-            Id *func_id = nullptr;
-            std::vector<Expr *> actual_params = {};
-
-            FuncCall(Id *func_id, std::vector<Expr *> actual_params);
-
-            koopa_trans::Blocks *to_koopa() const override;
-
-            bool has_side_effect() const override;
-
-            std::string debug(int indent = 0) const override;
-
-            ~FuncCall() override;
-        };
-
-        class Number : public Expr {
-        public:
-            int val = 0;
-
-            Number(int val);
-
-            koopa_trans::Blocks *to_koopa() const override;
-
-            bool has_side_effect() const override;
+            koopa::Type* to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
         };
 
-    class VarDef : public Stmt {
-    public:
-        Id *id = nullptr;
-        bool has_init = false;
-        Expr *init = nullptr;
+        class Void :public Type {
+            koopa::Type *to_koopa() const override;
 
-        VarDef(Id *id);
-        VarDef(Id *id, Expr *init);
+            std::string debug(int indent = 0) const override;
+        };
 
-        koopa_trans::Blocks *to_koopa() const override;
+    namespace op {
+        enum BinaryOp {
+            LOGIC_OR, LOGIC_AND, EQ, NEQ, LT, GT, LEQ, GEQ,
+            ADD, SUB, MUL, DIV, MOD, COMMA, ASSIGN
+        };
 
-        std::string debug(int indent = 0) const override;
-
-        ~VarDef();
-    };
-
-    namespace decl_type {
-        enum DeclType { VolatileDecl, ConstDecl };
+        enum UnaryOp {
+            NEG, POS, NOT,
+        };
     }
+    using BinaryOp = op::BinaryOp;
+    using UnaryOp = op::UnaryOp;
 
-    class VarDecl : public Stmt {
+    class Stmt: public Base {
     public:
-        Type *type = nullptr;
-        std::vector<VarDef *> var_defs = {};
-        decl_type::DeclType decl_type = decl_type::VolatileDecl;
+        virtual koopa_trans::Blocks *to_koopa() const = 0;
+    };
 
-        VarDecl(Type *type, std::vector<VarDef *> var_defs, 
-                decl_type::DeclType decl_type = decl_type::VolatileDecl);
+        class Expr: public Stmt {
+        public:
+            virtual bool has_side_effect() const = 0;
+        };
 
-        koopa_trans::Blocks *to_koopa() const override;
+            class BinaryExpr: public Expr {
+            public:
+                BinaryOp        op  = op::LOGIC_OR;
+                Expr           *lv = nullptr;
+                Expr           *rv = nullptr;
+
+                BinaryExpr(BinaryOp op, Expr *lv, Expr* rv);
+
+                koopa_trans::Blocks *to_koopa() const override;
+
+                bool has_side_effect() const override;
+
+                std::string debug(int indent = 0) const override;
+
+                ~BinaryExpr() override;
+            };
+
+            class UnaryExpr: public Expr {
+            public:
+                UnaryOp     op  = op::NEG;
+                Expr            *lv = nullptr;
+
+                UnaryExpr(UnaryOp op, Expr *lv);
+
+                koopa_trans::Blocks *to_koopa() const override;
+
+                bool has_side_effect() const override;
+
+                std::string debug(int indent = 0) const override;
+
+                ~UnaryExpr() override;
+            };
+
+            class Id: public Expr {
+            public:
+                std::string *lit;
+                NestingInfo *nesting_info = nullptr;
+
+                Id(std::string *lit, NestingInfo *nesting_info);
+
+                koopa_trans::Blocks *to_koopa() const override;
+
+                bool has_side_effect() const override;
+
+                std::string debug(int indent = 0) const override;
+
+                ~Id() override;
+            };
+
+            class FuncCall: public Expr {
+            public:
+                Id *func_id = nullptr;
+                std::vector<Expr *> actual_params = {};
+
+                FuncCall(Id *func_id, std::vector<Expr *> actual_params);
+
+                koopa_trans::Blocks *to_koopa() const override;
+
+                bool has_side_effect() const override;
+
+                std::string debug(int indent = 0) const override;
+
+                ~FuncCall() override;
+            };
+
+            class Number: public Expr {
+            public:
+                int val = 0;
+
+                Number(int val);
+
+                koopa_trans::Blocks *to_koopa() const override;
+
+                bool has_side_effect() const override;
+
+                std::string debug(int indent = 0) const override;
+            };
+
+        class VarDef: public Stmt {
+        public:
+            Id *id = nullptr;
+            bool has_init = false;
+            Expr *init = nullptr;
+
+            VarDef(Id *id);
+            VarDef(Id *id, Expr *init);
+
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~VarDef();
+        };
+
+        namespace decl_type {
+            enum DeclType { VolatileDecl, ConstDecl };
+        }
+        using DeclType = decl_type::DeclType;
+
+        class VarDecl: public Stmt {
+        public:
+            Type *type = nullptr;
+            std::vector<VarDef *> var_defs = {};
+            DeclType decl_type = decl_type::VolatileDecl;
+
+            VarDecl(Type *type, std::vector<VarDef *> var_defs, 
+                    DeclType decl_type = decl_type::VolatileDecl);
+
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~VarDecl() override;
+        };
+
+        namespace return_type {
+            enum ReturnType { HasRetVal, NotHasRetVal };
+        }
+        using ReturnType = return_type::ReturnType;
+
+        class Return: public Stmt {
+        public:
+            ReturnType return_type = return_type::NotHasRetVal;
+            Expr *ret_val = nullptr;
+
+            Return();
+            Return(Expr *ret_val);
+
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~Return() override;
+        };
+
+        class Block: public Stmt {
+        public:
+            std::vector<Stmt *> stmts = {};
+
+            Block(std::vector<Stmt *> stmts);
+
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~Block() override;
+        };
+
+        class If: public Stmt {
+        public:
+            Expr *cond = nullptr;
+
+            bool has_else_stmt = false;
+            Stmt *then_stmt = nullptr;
+            Stmt *else_stmt = nullptr;
+
+            If(Expr *cond, Stmt *then_stmt);
+
+            If(Expr *cond, Stmt *then_stmt, Stmt *else_stmt);
+
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~If() override;
+        };
+
+        class While: public Stmt {
+        public:
+            Expr *cond =nullptr;
+            Stmt *body = nullptr;
+
+            While(Expr *cond, Stmt *body);
+
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~While() override;
+        };
+
+        class For: public Stmt {
+        public:
+            Stmt *init_stmt = {};
+            Expr *cond =nullptr;
+            Stmt * iter_stmt = {};
+            Stmt *body = nullptr;
+
+            For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body);
+
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~For() override;
+        };
+
+        class Continue: public Stmt {
+        public:
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+        };
+
+        class Break: public Stmt {
+        public:
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+        };
+
+    class GlobalStmt: public Base {
+    public:
+        virtual koopa_trans::GlobalStmts *to_koopa() const = 0;
+    };
+
+        class FuncDef: public GlobalStmt {
+        public:
+            Type            *ret_type  = nullptr;
+            Id              *id         = nullptr;
+            std::vector<std::tuple<Type *, Id *> *> params = {};
+            Block           *block      = nullptr;
+
+            FuncDef(Type *ret_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block);
+
+            koopa_trans::GlobalStmts *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~FuncDef() override;
+        };
+
+        class GlobalVarDef: public GlobalStmt {
+        public:
+            Id *id = nullptr;
+            bool has_init;
+            Expr *init = nullptr;
+
+            GlobalVarDef(Id *id);
+            GlobalVarDef(Id *id, Expr *init);
+
+            koopa_trans::GlobalStmts *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~GlobalVarDef();
+        };
+
+        class GlobalVarDecl: public GlobalStmt {
+        public:
+            Type *type = nullptr;
+            std::vector<GlobalVarDef *> var_defs = {};
+            DeclType decl_type = decl_type::VolatileDecl;
+
+            GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, 
+                        DeclType decl_type = decl_type::VolatileDecl);
+
+            koopa_trans::GlobalStmts *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+            ~GlobalVarDecl() override;
+        };
+
+    class CompUnit: public Base {
+    public:
+        std::vector<GlobalStmt *> global_stmts = {};
+
+        CompUnit(std::vector<GlobalStmt *> global_stmts);
+
+        koopa::Program *to_koopa() const;
 
         std::string debug(int indent = 0) const override;
 
-        ~VarDecl() override;
+        ~CompUnit() override;
     };
-
-    namespace return_type {
-        enum ReturnType { HasRetVal, NotHasRetVal };
-    }
-
-    class Return : public Stmt {
-    public:
-        return_type::ReturnType return_type = return_type::NotHasRetVal;
-        Expr *ret_val = nullptr;
-
-        Return();
-        Return(Expr *ret_val);
-
-        koopa_trans::Blocks *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~Return() override;
-    };
-
-    class Block : public Stmt {
-    public:
-        std::vector<Stmt *> stmts = {};
-
-        Block(std::vector<Stmt *> stmts);
-
-        koopa_trans::Blocks *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~Block() override;
-    };
-
-    class If : public Stmt {
-    public:
-        Expr *cond = nullptr;
-
-        bool has_else_stmt = false;
-        Stmt *then_stmt = nullptr;
-        Stmt *else_stmt = nullptr;
-
-        If(Expr *cond, Stmt *then_stmt);
-
-        If(Expr *cond, Stmt *then_stmt, Stmt *else_stmt);
-
-        koopa_trans::Blocks *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~If() override;
-    };
-
-    class While : public Stmt {
-    public:
-        Expr *cond =nullptr;
-        Stmt *body = nullptr;
-
-        While(Expr *cond, Stmt *body);
-
-        koopa_trans::Blocks *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~While() override;
-    };
-
-    class For : public Stmt {
-    public:
-        Stmt *init_stmt = {};
-        Expr *cond =nullptr;
-        Stmt * iter_stmt = {};
-        Stmt *body = nullptr;
-
-        For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body);
-
-        koopa_trans::Blocks *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~For() override;
-    };
-
-    class Continue : public Stmt {
-    public:
-        koopa_trans::Blocks *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-    };
-
-    class Break : public Stmt {
-    public:
-        koopa_trans::Blocks *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-    };
-
-class GlobalStmt : public Base {
-public:
-    virtual koopa_trans::GlobalStmts *to_koopa() const = 0;
-};
-
-    class FuncDef : public GlobalStmt {
-    public:
-        Type            *ret_type  = nullptr;
-        Id              *id         = nullptr;
-        std::vector<std::tuple<Type *, Id *> *> params = {};
-        Block           *block      = nullptr;
-
-        FuncDef(Type *ret_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block);
-
-        koopa_trans::GlobalStmts *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~FuncDef() override;
-    };
-
-    class GlobalVarDef : public GlobalStmt {
-    public:
-        Id *id = nullptr;
-        bool has_init;
-        Expr *init = nullptr;
-
-        GlobalVarDef(Id *id);
-        GlobalVarDef(Id *id, Expr *init);
-
-        koopa_trans::GlobalStmts *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~GlobalVarDef();
-    };
-
-    class GlobalVarDecl : public GlobalStmt {
-    public:
-        Type *type = nullptr;
-        std::vector<GlobalVarDef *> var_defs = {};
-        decl_type::DeclType decl_type = decl_type::VolatileDecl;
-
-        GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, 
-                      decl_type::DeclType decl_type = decl_type::VolatileDecl);
-
-        koopa_trans::GlobalStmts *to_koopa() const override;
-
-        std::string debug(int indent = 0) const override;
-
-        ~GlobalVarDecl() override;
-    };
-
-class CompUnit : public Base {
-public:
-    std::vector<GlobalStmt *> global_stmts = {};
-
-    CompUnit(std::vector<GlobalStmt *> global_stmts);
-
-    koopa::Program *to_koopa() const;
-
-    std::string debug(int indent = 0) const override;
-
-    ~CompUnit() override;
-};
 
 }
 

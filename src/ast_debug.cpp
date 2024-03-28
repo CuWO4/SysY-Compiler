@@ -36,7 +36,7 @@ std::string FuncCall::debug(int indent) const {
     auto res = build_indent(indent) + func_id->debug();
 
     res += '(';
-    for (auto actual_param : actual_params) {
+    for (auto actual_param: actual_params) {
         res += actual_param->debug() + ", ";
     }
     if (actual_params.size() > 0) {
@@ -54,13 +54,13 @@ std::string Number::debug(int indent) const {
 
 std::string VarDef::debug(int indent) const {
     return  id->debug() +
-        (has_init ? " = " + init->debug() : "") + ", ";
+        (has_init ? " = " + init->debug(): "") + ", ";
 }
 
 std::string VarDecl::debug(int indent) const {
-    auto res = build_indent(indent) + (decl_type == decl_type::ConstDecl ? "const" : "") + type->debug() + ' ';
+    auto res = build_indent(indent) + (decl_type == decl_type::ConstDecl ? "const": "") + type->debug() + ' ';
 
-    for (auto var_def : var_defs) {
+    for (auto var_def: var_defs) {
         res += var_def->debug();
     }
 
@@ -73,7 +73,7 @@ std::string VarDecl::debug(int indent) const {
 }
 
 std::string Return::debug(int indent) const {
-    return build_indent(indent) + "Return " + (return_type == return_type::HasRetVal ? ret_val->debug() : "");
+    return build_indent(indent) + "Return " + (return_type == return_type::HasRetVal ? ret_val->debug(): "");
 }
 
 std::string If::debug(int indent) const {
@@ -111,7 +111,7 @@ std::string Break::debug(int indent) const {
 std::string Block::debug(int indent) const {
     auto res = std::string("");
 
-    for (auto stmt : stmts) {
+    for (auto stmt: stmts) {
         res += stmt->debug(indent) + '\n';
     }
 
@@ -128,7 +128,7 @@ std::string Void::debug(int indent) const {
 
 std::string FuncDef::debug(int indent) const {
     auto res = build_indent(indent) + ret_type->debug() + ' ' + *id->lit + '(';
-    for (auto param : params) {
+    for (auto param: params) {
         res += std::get<0>(*param)->debug() + ' '
             + std::get<1>(*param)->debug() + ", ";
     }
@@ -145,13 +145,13 @@ std::string FuncDef::debug(int indent) const {
 
 std::string GlobalVarDef::debug(int indent) const {
     return id->debug() +
-        (has_init ? " = " + init->debug() : "") + ", ";
+        (has_init ? " = " + init->debug(): "") + ", ";
 }
 
 std::string GlobalVarDecl::debug(int indent) const {
-    auto res = build_indent(indent) + (decl_type == decl_type::ConstDecl ? "const" : "") + type->debug() + ' ';
+    auto res = build_indent(indent) + (decl_type == decl_type::ConstDecl ? "const": "") + type->debug() + ' ';
 
-    for (auto var_def : var_defs) {
+    for (auto var_def: var_defs) {
         res += var_def->debug();
     }
 
@@ -166,7 +166,7 @@ std::string GlobalVarDecl::debug(int indent) const {
 std::string CompUnit::debug(int indent) const {
     std::string res = "";
 
-    for (auto global_stmt : global_stmts) {
+    for (auto global_stmt: global_stmts) {
         res += global_stmt->debug() + '\n';
     }
     

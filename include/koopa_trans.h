@@ -1,8 +1,10 @@
-#ifndef TRANS_H_
-#define TRANS_H_
+#ifndef KOOPA_TRANS_H_
+#define KOOPA_TRANS_H_
 
 #include <vector>
 #include <string>
+
+#include "riscv_trans.h"
 
 namespace koopa {
     class Stmt;
@@ -11,26 +13,6 @@ namespace koopa {
     class Id;
     class Label;
     class GlobalStmt;
-}
-
-namespace riscv_trans {
-    class Info {
-    public:
-        int stack_frame_size = 0;
-
-        std::string res_lit = "";
-
-        static constexpr int REG_COUNT = 7;
-        bool is_reg_used[REG_COUNT] = { 0 };
-        std::string get_unused_reg();
-
-        void refresh_reg(std::string lit);
-    };
-
-    enum TransMode {
-        DataSegment,
-        TextSegment
-    };
 }
 
 namespace koopa_trans {
@@ -100,7 +82,7 @@ namespace koopa_trans {
         friend void operator+=(Blocks &self, koopa::Stmt *stmt);
 
         std::string to_string() const { return ""; }
-        void to_riscv(std::string &str, riscv_trans::Info &info) const {}
+        void to_riscv(std::string &str) const {}
 
     private:
         bool has_last_val = false;

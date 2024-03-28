@@ -13,7 +13,7 @@ UnaryExpr::~UnaryExpr() {
 
 FuncCall::~FuncCall() {
     if (func_id != nullptr) delete func_id;
-    for (auto actual_param : actual_params) 
+    for (auto actual_param: actual_params) 
         if (actual_param != nullptr) delete actual_param;
 }
 
@@ -28,7 +28,7 @@ VarDef::~VarDef() {
 
 VarDecl::~VarDecl() {
     if (type != nullptr) delete type;
-    for (auto var_def : var_defs) {
+    for (auto var_def: var_defs) {
         if (var_def != nullptr) delete var_def;
     }
 }
@@ -56,7 +56,7 @@ For::~For() {
 }
 
 Block::~Block() {
-    for (auto stmt : stmts) {
+    for (auto stmt: stmts) {
         if (stmt != nullptr) delete stmt;
     }
 }
@@ -74,13 +74,13 @@ GlobalVarDef::~GlobalVarDef() {
 
 GlobalVarDecl::~GlobalVarDecl() {
     if (type != nullptr) delete type;
-    for (auto var_def : var_defs) {
+    for (auto var_def: var_defs) {
         if (var_def != nullptr) delete var_def;
     }
 }
 
 CompUnit::~CompUnit() {
-    for (auto global_stmt : global_stmts)
+    for (auto global_stmt: global_stmts)
         if (global_stmt != nullptr) delete global_stmt;
 }
 

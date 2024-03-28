@@ -11,7 +11,7 @@ Pointer::~Pointer() {
 }
 
 FuncType::~FuncType() {
-    for (auto arg_type : arg_types) {
+    for (auto arg_type: arg_types) {
         if (arg_type != nullptr) delete arg_type;
     }
 
@@ -25,7 +25,7 @@ Id::~Id() {
 }
 
 Aggregate::~Aggregate() {
-    for (auto initializer : initializers) {
+    for (auto initializer: initializers) {
         if (initializer != nullptr) delete initializer;
     }
 }
@@ -69,7 +69,7 @@ Return::~Return() {
 }
 
 Block::~Block() {
-    for (auto stmt : stmts) {
+    for (auto stmt: stmts) {
         if (stmt != nullptr) delete stmt;
     }
 }
@@ -78,7 +78,7 @@ FuncDef::~FuncDef() {
     for (auto formal_param_id: formal_param_ids) {
         if (formal_param_id != nullptr) delete formal_param_id;
     }
-    for (auto block : blocks) {
+    for (auto block: blocks) {
         if (block != nullptr) delete block;
     }
 }
@@ -97,7 +97,7 @@ GlobalSymbolDef::~GlobalSymbolDef() {
 }
 
 Program::~Program() {
-    for (auto global_stmt : global_stmts) {
+    for (auto global_stmt: global_stmts) {
         if (global_stmt != nullptr) delete global_stmt;
     }
 }

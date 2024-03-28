@@ -12,6 +12,6 @@ public:
     LoopTag(koopa::Id *continue_target, koopa::Id *break_target);
 };
 
-extern std::stack<LoopTag> loop_tag_saver;
+extern std::stack<LoopTag> loop_tag_manager;
 
 #endif

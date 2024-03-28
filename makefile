@@ -87,27 +87,27 @@ once:
 clean:
 	-rm -rf $(BUILD_DIR)
 
-lldb : $(BUILD_DIR)/$(TARGET_EXEC)
+lldb: $(BUILD_DIR)/$(TARGET_EXEC)
 	lldb $(BUILD_DIR)/$(TARGET_EXEC) -- -test ./test/hello/hello.c -o ./test/hello/hello.koopa
 
-test-hello-test : $(BUILD_DIR)/$(TARGET_EXEC)
+test-hello-test: $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -test ./test/hello/hello.c
 
-test-hello-koopa : $(BUILD_DIR)/$(TARGET_EXEC)
+test-hello-koopa: $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -koopa ./test/hello/hello.c -o ./test/hello/hello.koopa
 
-test-hello-riscv : $(BUILD_DIR)/$(TARGET_EXEC)
+test-hello-riscv: $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S
 
-test-hello : test-hello-koopa test-hello-riscv
+test-hello: test-hello-koopa test-hello-riscv
 
-test-hello-koopa-debug : $(BUILD_DIR)/$(TARGET_EXEC)
+test-hello-koopa-debug: $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -koopa ./test/hello/hello.c -o ./test/hello/hello.koopa -dbg-k
 
-test-hello-riscv-debug : $(BUILD_DIR)/$(TARGET_EXEC)
+test-hello-riscv-debug: $(BUILD_DIR)/$(TARGET_EXEC)
 	$(BUILD_DIR)/$(TARGET_EXEC) -riscv ./test/hello/hello.c -o ./test/hello/hello.S -dbg-r
 
-test-hello-debug : test-hello-koopa-debug test-hello-riscv-debug
+test-hello-debug: test-hello-koopa-debug test-hello-riscv-debug
 
 test-all-koopa :
 	autotest -koopa /root/compiler
@@ -115,7 +115,7 @@ test-all-koopa :
 test-all-riscv :
 	autotest -riscv /root/compiler
 
-test-all : test-all-koopa test-all-riscv
+test-all: test-all-koopa test-all-riscv
 
 test-lv1-koopa :
 	autotest -koopa -s lv1 /root/compiler
@@ -123,7 +123,7 @@ test-lv1-koopa :
 test-lv1-riscv :
 	autotest -riscv -s lv1 /root/compiler
 
-test-lv1 : test-lv1-koopa test-lv1-riscv
+test-lv1: test-lv1-koopa test-lv1-riscv
 
 test-lv3-koopa :
 	autotest -koopa -s lv3 /root/compiler
@@ -131,7 +131,7 @@ test-lv3-koopa :
 test-lv3-riscv :
 	autotest -riscv -s lv3 /root/compiler
 
-test-lv3 : test-lv3-koopa test-lv3-riscv
+test-lv3: test-lv3-koopa test-lv3-riscv
 
 test-lv4-koopa :
 	autotest -koopa -s lv4 /root/compiler
@@ -139,7 +139,7 @@ test-lv4-koopa :
 test-lv4-riscv :
 	autotest -riscv -s lv4 /root/compiler
 
-test-lv4 : test-lv4-koopa test-lv4-riscv
+test-lv4: test-lv4-koopa test-lv4-riscv
 
 test-lv5-koopa :
 	autotest -koopa -s lv5 /root/compiler
@@ -147,7 +147,7 @@ test-lv5-koopa :
 test-lv5-riscv :
 	autotest -riscv -s lv5 /root/compiler
 
-test-lv5 : test-lv5-koopa test-lv5-riscv
+test-lv5: test-lv5-koopa test-lv5-riscv
 
 test-lv6-koopa :
 	autotest -koopa -s lv6 /root/compiler
@@ -155,7 +155,7 @@ test-lv6-koopa :
 test-lv6-riscv :
 	autotest -riscv -s lv6 /root/compiler
 
-test-lv6 : test-lv6-koopa test-lv6-riscv
+test-lv6: test-lv6-koopa test-lv6-riscv
 
 test-lv7-koopa :
 	autotest -koopa -s lv7 /root/compiler
@@ -163,7 +163,7 @@ test-lv7-koopa :
 test-lv7-riscv :
 	autotest -riscv -s lv7 /root/compiler
 
-test-lv7 : test-lv7-koopa test-lv7-riscv
+test-lv7: test-lv7-koopa test-lv7-riscv
 
 test-lv8-koopa :
 	autotest -koopa -s lv8 /root/compiler
@@ -171,7 +171,7 @@ test-lv8-koopa :
 test-lv8-riscv :
 	autotest -riscv -s lv8 /root/compiler
 
-test-lv8 : test-lv8-koopa test-lv8-riscv
+test-lv8: test-lv8-koopa test-lv8-riscv
 
 test-lv9-koopa :
 	autotest -koopa -s lv9 /root/compiler
@@ -179,7 +179,7 @@ test-lv9-koopa :
 test-lv9-riscv :
 	autotest -riscv -s lv9 /root/compiler
 
-test-lv9 : test-lv9-koopa test-lv9-riscv
+test-lv9: test-lv9-koopa test-lv9-riscv
 
 test-perf-koopa :
 	autotest -koopa -s perf /root/compiler
@@ -187,7 +187,7 @@ test-perf-koopa :
 test-perf-riscv :
 	autotest -riscv -s perf /root/compiler
 
-test-perf : test-perf-koopa test-perf-riscv
+test-perf: test-perf-koopa test-perf-riscv
 
 docker :
 	docker run -it --rm -v ${CURDIR}:/root/compiler  maxxing/compiler-dev bash 

@@ -1,7 +1,7 @@
-#include "../include/trans.h"
+#include "../include/koopa_trans.h"
 #include "../include/koopa.h"
 #include "../include/name.h"
-#include "../include/value_saver.h"
+#include "../include/value_manager.h"
 
 namespace koopa_trans {
 
@@ -19,7 +19,7 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
         new koopa::Block(
             begin_block_id != nullptr 
                 ? begin_block_id
-                : value_saver.new_id(koopa::id_type::BlockLabel, new koopa::Label, new_block_name()),
+                : value_manager.new_id(koopa::id_type::BlockLabel, new koopa::Label, new_block_name()),
             active_stmts
         ) 
     );
@@ -31,7 +31,7 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
 }
 
 void Blocks::init_begin_block_id() {
-    begin_block_id = value_saver.new_id(koopa::id_type::BlockLabel, new koopa::Label, new_block_name());
+    begin_block_id = value_manager.new_id(koopa::id_type::BlockLabel, new koopa::Label, new_block_name());
 }
 
 koopa::Id *Blocks::get_begin_block_id() {
@@ -125,26 +125,6 @@ void operator+=(GlobalStmts &self, std::vector<koopa::GlobalStmt *> &global_stmt
 
 void operator+=(GlobalStmts &self, koopa::GlobalStmt *global_stmt) {
     self.global_stmts.push_back(global_stmt);
-}
-
-}
-
-namespace riscv_trans {
-
-std::string Info::get_unused_reg() {
-    for (int i = 0; i < REG_COUNT; i++) {
-        if (is_reg_used[i] == false) {
-            is_reg_used[i] = true;
-            return 't' + std::to_string(i);
-        }
-    }
-    throw "not enough reg";
-}
-
-void Info::refresh_reg(std::string lit) {
-    int i = lit.at(1) - '0';
-    if (i >= REG_COUNT) throw "use unknown register";
-    is_reg_used[i] = false;
 }
 
 }

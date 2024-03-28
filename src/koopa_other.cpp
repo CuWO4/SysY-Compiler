@@ -2,28 +2,6 @@
 
 namespace koopa {
 
-int Block::get_stack_frame_size() {
-
-    int stack_frame_size = 0;
-
-    for (auto stmt : stmts)  {
-        if (!stmt->is_unit) stack_frame_size += 4;
-    }
-
-    return stack_frame_size;
-}
-
-void Block::set_id_offset(int &offset) {
-
-    for (auto stmt : stmts) {
-        if (typeid(*stmt) == typeid(SymbolDef)) {
-            offset -= 4;
-            static_cast<SymbolDef *>(stmt)->id->sf_offset = offset;
-        }
-    }
-
-}
-
 void operator+=(Block &self, Stmt *stmt) {
     self.stmts.push_back(stmt);
 }
@@ -59,12 +37,12 @@ bool NotEndStmt::is_end_stmt() { return false; }
 bool EndStmt::is_end_stmt() { return true; }
 bool GlobalStmt::is_end_stmt() { return false; }
 
-type::TypeId Int::get_type_id() { return type::Int; }
-type::TypeId Array::get_type_id() { return type::Array; }
-type::TypeId Pointer::get_type_id() { return type::Pointer; }
-type::TypeId FuncType::get_type_id() { return type::FuncType; }
-type::TypeId Label::get_type_id() { return type::Label; }
-type::TypeId Void::get_type_id() { return type::Void; }
+TypeId Int::get_type_id() { return type::Int; }
+TypeId Array::get_type_id() { return type::Array; }
+TypeId Pointer::get_type_id() { return type::Pointer; }
+TypeId FuncType::get_type_id() { return type::FuncType; }
+TypeId Label::get_type_id() { return type::Label; }
+TypeId Void::get_type_id() { return type::Void; }
 
 bool Type::operator!=(Type &other) {
     return !(*this == other);
