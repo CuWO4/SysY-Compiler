@@ -108,10 +108,10 @@ namespace riscv_trans {
     };
 
     // memory
-    class Memory: public RiscvStorage {
+    class StackFrame: public RiscvStorage {
     public:
-        Memory();
-        Memory(int offset);
+        StackFrame();
+        StackFrame(int offset);
 
         std::string get(Register target_reg) override;
         std::string save(Register source_reg) override;

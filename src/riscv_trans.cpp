@@ -91,24 +91,24 @@ namespace riscv_trans {
     std::string DataSeg::get_lit() { return lit; }
 
 
-    Memory::Memory(): offset(0) {}
-    Memory::Memory(int offset): offset(offset) {}
+    StackFrame::StackFrame(): offset(0) {}
+    StackFrame::StackFrame(int offset): offset(offset) {}
 
-    std::string Memory::get(Register target_reg) { 
+    std::string StackFrame::get(Register target_reg) { 
         return build_inst(
             "lw",
             target_reg.get_lit(),
             get_lit()
         ); 
     }
-    std::string Memory::save(Register source_reg) {
+    std::string StackFrame::save(Register source_reg) {
         return build_inst(
             "sw",
             source_reg.get_lit(),
             get_lit()
         );
     }
-    std::string Memory::get_lit() { return build_mem(offset); }
+    std::string StackFrame::get_lit() { return build_mem(offset); }
 
 
     TempRegManager::TempRegManager() {

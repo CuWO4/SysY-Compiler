@@ -69,7 +69,7 @@ void riscv_trans::allocate_ids_storage_location(const koopa::FuncDef *func_def) 
 
     for (auto id : ids) {
         stack_frame_size -= 4;
-        riscv_trans::id_storage_map.register_id(id, new riscv_trans::Memory(stack_frame_size));
+        riscv_trans::id_storage_map.register_id(id, new riscv_trans::StackFrame(stack_frame_size));
     }
 
     int param_count = 0;
@@ -83,7 +83,7 @@ void riscv_trans::allocate_ids_storage_location(const koopa::FuncDef *func_def) 
         else {
             riscv_trans::id_storage_map.register_id(
                 id, 
-                new riscv_trans::Memory(current_stack_frame_size + 4 * (param_count - 8))
+                new riscv_trans::StackFrame(current_stack_frame_size + 4 * (param_count - 8))
             );
         }
         param_count++;
