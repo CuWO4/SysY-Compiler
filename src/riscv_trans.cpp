@@ -53,15 +53,40 @@ namespace riscv_trans {
     DataSeg::DataSeg(std::string lit): lit(lit) {}
 
     std::string DataSeg::get(Register target_reg) { 
-        return build_inst(
+        // 32-bit compiler, la is enough
+        // in 64-bit case, we need %hi and %lo
+        auto res = build_inst(
             "la",
             target_reg.get_lit(),
             get_lit()
         ); 
+        res += build_inst(
+            "lw",
+            target_reg.get_lit(),
+            build_mem(0, target_reg)
+        );
+
+        return res;
     }
     std::string DataSeg::save(Register source_reg) {
-        // TODO
-        return "";
+        auto addr_reg = temp_reg_manager.get_unused_reg();
+
+        // 32-bit compiler, la is enough
+        // in 64-bit case, we need %hi and %lo
+        auto res = build_inst(
+            "la",
+            addr_reg.get_lit(),
+            get_lit()
+        ); 
+        res += build_inst(
+            "sw",
+            source_reg.get_lit(),
+            build_mem(0, addr_reg)
+        );
+
+        temp_reg_manager.refresh_reg(addr_reg);
+
+        return res;
     }
     std::string DataSeg::get_lit() { return lit; }
 
@@ -83,7 +108,7 @@ namespace riscv_trans {
             get_lit()
         );
     }
-    std::string Memory::get_lit() { return std::to_string(offset) + "(sp)"; }
+    std::string Memory::get_lit() { return build_mem(offset); }
 
 
     TempRegManager::TempRegManager() {

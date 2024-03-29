@@ -37,6 +37,11 @@ std::string build_inst(std::string op_code,
 );
 
 /**
+ * @example  build_mem(4, Register("sp")) => "4(sp)"
+ */
+std::string build_mem(int offset, riscv_trans::Register base_addr = riscv_trans::Register("sp"));
+
+/**
  * @return  string form of the source koopa line if in `debug_mode_riscv` is true
  */
 std::string build_comment(const koopa::Base *obj);

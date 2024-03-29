@@ -232,7 +232,7 @@ void Return::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) 
 
     if (riscv_trans::current_has_called_func) {
         str += build_inst(
-            "lw", "ra", std::to_string(riscv_trans::current_stack_frame_size - 4) + "(sp)"
+            "lw", "ra", build_mem(riscv_trans::current_stack_frame_size - 4)
         );
     }
 

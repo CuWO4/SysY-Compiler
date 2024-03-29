@@ -37,6 +37,10 @@ std::string build_inst(
     return res;
 }
 
+std::string build_mem(int offset, riscv_trans::Register base_addr) {
+    return std::to_string(offset) + '(' + base_addr.get_lit() + ')';
+}
+
 std::string build_comment(const koopa::Base *obj) {
     auto str = obj->to_string();
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
