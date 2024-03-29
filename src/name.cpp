@@ -38,5 +38,12 @@ std::string build_inst(
 }
 
 std::string build_comment(const koopa::Base *obj) {
-    return debug_mode_riscv ? "\t# " + obj->to_string() + '\n': "";
+    auto str = obj->to_string();
+    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+
+    if (typeid(*obj) == typeid(koopa::FuncDef)) {
+        str = str.substr(0, str.find_first_of('{'));
+    }
+
+    return debug_mode_riscv ? "\t# " + str + '\n': "";
 }

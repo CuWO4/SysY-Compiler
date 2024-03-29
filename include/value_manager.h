@@ -15,12 +15,13 @@
  * call `leave_func` while leaving.
  */
 class ValueManager {
-// TODO  convert to a hierarchical structure that supports saving global variables and iterative access
 // simulate, but not change the interface. add method `ids_of_func`, and return a iterable type
 public:
-    koopa::Id *new_id(koopa::IdType id_type, koopa::Type *type, std::string *lit, 
-                      NestingInfo *nesting_info = new NestingInfo(false), 
-                      bool is_const = false, int val = 0);
+    koopa::Id *new_id(
+        koopa::IdType id_type, koopa::Type *type, std::string *lit, 
+        NestingInfo *nesting_info = new NestingInfo(false), 
+        bool is_const = false, int val = 0
+    );
 
     bool is_id_declared(std::string lit, NestingInfo *nesting_info);
 
@@ -34,6 +35,13 @@ public:
      */
     void enter_func(std::string func_id_lit);
     void leave_func();
+    /*
+     * when in formal parameters translation mode, `new_id` will not save
+     * id to `ids`; in other word, they will not be get when calling 
+     * `get_func_ids`
+     */
+    void enter_formal_params();
+    void leave_formal_params();
 
     /**
      * @return  vector of ids defined in certain function
@@ -51,10 +59,12 @@ public:
 
 private:
     bool in_func = false;
+    bool formal_param_trans_state = false;
     std::string current_func_id_lit;
 
     std::unordered_map<std::string, koopa::Id *> global_ids = {};
     std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id *> *> ids = {};
+    std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id *> *> formal_params = {};
 
     std::unordered_set<koopa::Const *> consts = {};
 

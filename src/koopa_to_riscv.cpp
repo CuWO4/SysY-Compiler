@@ -211,7 +211,7 @@ void SymbolDef::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mod
     str += build_comment(this);
 
     //! ugly and not safe
-    if (typeid(val) == typeid(MemoryDecl *)) return;
+    if (typeid(*val) == typeid(MemoryDecl)) return;
 
     auto source_reg = val->rvalue_to_riscv(str);
 
@@ -228,6 +228,12 @@ void Return::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) 
         auto ret_val_reg = val->value_to_riscv(str);
         str += build_inst("mv", "a0", ret_val_reg.get_lit());
         riscv_trans::temp_reg_manager.refresh_reg(ret_val_reg);
+    }
+
+    if (riscv_trans::current_has_called_func) {
+        str += build_inst(
+            "lw", "ra", std::to_string(riscv_trans::current_stack_frame_size - 4) + "(sp)"
+        );
     }
 
     if (riscv_trans::current_stack_frame_size != 0) {
@@ -258,6 +264,8 @@ riscv_trans::Register FuncCall::rvalue_to_riscv(std::string &str) const {
 }
 
 void FuncCall::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {
+    str += build_comment(dynamic_cast<const koopa::Stmt *>(this));
+
     // TODO
 }
 
@@ -268,20 +276,36 @@ void Block::block_to_riscv(std::string &str) const {
     }
 }
 
+/*
+ * register function parameters into `riscv_trans::id_storage_map`
+ * 
+ * the first eight parameters are placed in a0-a7 in sequence, and 
+ * the remaining parameters are placed on the stack frame, in order 
+ * 0(sp), 4(sp), 8(sp)...
+ */
+
 void FuncDef::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {
     if (trans_mode == riscv_trans::trans_mode::TextSegment) {
+
+        str += build_comment(this);
         
         value_manager.enter_func(*id->lit);
 
+        riscv_trans::allocate_ids_storage_location(this);
+
         id->value_to_riscv(str);
         str += ":\n";
-
-        riscv_trans::allocate_ids_storage_location(*id->lit);
 
         if (riscv_trans::current_stack_frame_size != 0) {
             str += build_inst(
                 "addi", "sp", "sp", 
                 '-' + std::to_string(riscv_trans::current_stack_frame_size));
+        }
+
+        if (riscv_trans::current_has_called_func) {
+            str += build_inst(
+                "sw", "ra", std::to_string(riscv_trans::current_stack_frame_size - 4) + "(sp)"
+            );
         }
 
         for (auto block: blocks) {
@@ -294,6 +318,13 @@ void FuncDef::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode)
 
 void GlobalSymbolDef::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {
     if (trans_mode == riscv_trans::trans_mode::DataSegment) {
+        riscv_trans::id_storage_map.register_id(
+            id, 
+            new riscv_trans::DataSeg(to_riscv_style(*id->lit))
+        );
+
+        str += build_comment(this);
+
         str += "\t.global ";
         id->value_to_riscv(str);
         str += '\n';

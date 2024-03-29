@@ -13,6 +13,7 @@ namespace koopa {
     class Id;
     class Label;
     class GlobalStmt;
+    class FuncDef;
 }
 
 namespace riscv_trans {
@@ -50,20 +51,20 @@ namespace riscv_trans {
     /*
      * register
      *
-     *          |  ABI name |  description
-     *  x0      | zero      | always zero
-     *  x1      | ra        | return address
-     *  x2      | sp        | stack pointer
-     *  x3      | gp        | global pointer
-     *  x4      | tp        | thread pointer
-     *  x5      | t0        | temporary/alternate link register
-     *  x6-7    | t1-2      | temporary register
-     *  x8      | s0/fp     | saving register/frame pointer
-     *  x9      | s1        | saving register
-     *  x10-11  | a0-1      | function parameters/return value
-     *  x12-17  | a2-7      | function parameters
-     *  x18-27  | s2-11     | saving register
-     *  x28-31  | t3-6      | temporary register
+     *          |  ABI name |  description                      |  saver
+     *  x0      | zero      | always zero                       | N/A
+     *  x1      | ra        | return address                    | caller
+     *  x2      | sp        | stack pointer                     | callee
+     *  x3      | gp        | global pointer                    | N/A
+     *  x4      | tp        | thread pointer                    | N/A
+     *  x5      | t0        | temporary/alternate link register |   ...r
+     *  x6-7    | t1-2      | temporary register                |   ...r
+     *  x8      | s0/fp     | saving register/frame pointer     |   ...e
+     *  x9      | s1        | saving register                   |   ...e
+     *  x10-11  | a0-1      | function parameters/return value  |   ...r
+     *  x12-17  | a2-7      | function parameters               |   ...r
+     *  x18-27  | s2-11     | saving register                   |   ...e
+     *  x28-31  | t3-6      | temporary register                |   ...r
      *
      * save s0 and fp at different numbers (although in the standard they are the 
      * same register and have the same number)
@@ -160,12 +161,20 @@ namespace riscv_trans {
      * stack frame size (bit) of function currently at 
      */
     extern int current_stack_frame_size;
+    /*
+     * whether function currently at calls function
+     * if it's true, save ra at the stack frame
+     */
+    extern bool current_has_called_func;
 
     /*
+     * allocate storage location for identifier & formal parameters
+     * of `func_def`
+     *
      * implemented in `allocate.cpp`, an interface reserved for future 
      * register allocation algorithms
      */
-    void allocate_ids_storage_location(std::string func_id_lit);
+    void allocate_ids_storage_location(const koopa::FuncDef *func_def);
 
     /*
      * indicate which stage the riscv translation is currently in

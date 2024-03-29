@@ -30,7 +30,10 @@ static std::string *build_key(std::string *lit, NestingInfo *nesting_info, bool 
 std::unordered_map<std::string, int> existed_id_counts = {};
 static std::string *build_name(std::string *lit, NestingInfo *nesting_info) {
     if (!nesting_info->need_suffix) return lit;
-    if (*lit == "@main" && nesting_info->nesting_count == 0 && nesting_info->nesting_level == 0) return lit;
+    if (nesting_info->nesting_count == 0 && nesting_info->nesting_level == 0) {
+        // add no suffix for global identifiers
+        return lit;
+    }
 
     auto existed_id_count_pair = existed_id_counts.find(*lit);
     int existed_id_count = 0;
@@ -50,8 +53,17 @@ static std::string *build_name(std::string *lit, NestingInfo *nesting_info) {
 
 
 void ValueManager::insert_id(std::string key, koopa::Id *new_id) {
+
     if (!in_func) {
         global_ids.insert(
+            std::pair<std::string, koopa::Id *>(key, new_id)
+        ); 
+    }
+    else if (formal_param_trans_state) {
+        auto current_manager = formal_params.find(current_func_id_lit);
+        assert(current_manager != ids.end());
+
+        current_manager->second->insert(
             std::pair<std::string, koopa::Id *>(key, new_id)
         ); 
     }
@@ -83,7 +95,7 @@ koopa::Id *ValueManager::new_id(
         is_const, 
         val
     );
-    insert_id(*build_key(lit, nesting_info), res);
+    insert_id(*build_key(lit, nesting_info, lit->at(0) == '%'), res);
     return res;
 }
 
@@ -102,8 +114,11 @@ bool ValueManager::is_id_declared(std::string lit, NestingInfo *nesting_info) {
     
     auto current_manager = ids.find(current_func_id_lit);
     assert(current_manager != ids.end());
+    auto param_manager = formal_params.find(current_func_id_lit);
+    assert(param_manager != ids.end());
 
     return is_id_declared_impl(*current_manager->second, lit, nesting_info)
+        || is_id_declared_impl(*param_manager->second, lit, nesting_info)
         || is_id_declared_impl(global_ids, lit, nesting_info);
 }
 
@@ -139,10 +154,13 @@ koopa::Id *ValueManager::get_id(std::string lit, NestingInfo *nesting_info) {
     else {
         auto current_manager = ids.find(current_func_id_lit);
         assert(current_manager != ids.end());
+        auto param_manager = formal_params.find(current_func_id_lit);
+        assert(param_manager != ids.end());
 
         auto res = get_id_impl(*current_manager->second, lit, nesting_info);
-        return res != nullptr
-            ? res
+        auto param = get_id_impl(*param_manager->second, lit, nesting_info);
+        return res != nullptr || param != nullptr
+            ? (res != nullptr ? res : param)
             : get_id(lit, nesting_info->pa);
     }
 }
@@ -179,10 +197,24 @@ void ValueManager::enter_func(std::string func_id_lit) {
             new std::unordered_map<std::string, koopa::Id *>({})
         )
     );
+    formal_params.insert(
+        std::pair<std::string, std::unordered_map<std::string, koopa::Id *> *>(
+            current_func_id_lit,
+            new std::unordered_map<std::string, koopa::Id *>({})
+        )
+    );
 }
 
 void ValueManager::leave_func() {
     in_func = false;
+}
+
+void ValueManager::enter_formal_params() {
+    formal_param_trans_state = true;
+}
+
+void ValueManager::leave_formal_params() {
+    formal_param_trans_state = false;
 }
 
 std::vector<koopa::Id *> ValueManager::get_func_ids(std::string func_id_lit) {
@@ -193,7 +225,7 @@ std::vector<koopa::Id *> ValueManager::get_func_ids(std::string func_id_lit) {
     }
 
     std::vector<koopa::Id *> res;
-    
+
     res.reserve(func_manager->second->size());
     for (auto id_pair: *func_manager->second) {
         res.push_back(id_pair.second);

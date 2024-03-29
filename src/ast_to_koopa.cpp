@@ -824,6 +824,7 @@ koopa_trans::GlobalStmts *FuncDef::to_koopa() const {
     auto param_types = std::vector<koopa::Type *>();
     auto param_ids = std::vector<koopa::Id *>();
 
+    value_manager.enter_formal_params();
     param_types.reserve(params.size());
     param_ids.reserve(params.size());
     for (auto param: params) {
@@ -837,6 +838,7 @@ koopa_trans::GlobalStmts *FuncDef::to_koopa() const {
         param_types.push_back(param_type_koopa);
         param_ids.push_back(param_id_koopa);
     }
+    value_manager.leave_formal_params();
 
     value_manager.leave_func(); // func_id is global identifier
     auto id_koopa = value_manager.new_id(
