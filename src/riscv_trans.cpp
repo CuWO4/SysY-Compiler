@@ -16,6 +16,7 @@ namespace riscv_trans {
     IdStorageMap id_storage_map;
 
     int current_stack_frame_size = 0;
+    bool current_has_called_func = false;
 
     Register::Register(): serial_num(0) {}
     Register::Register(int serial_num): serial_num(serial_num) {}
@@ -32,7 +33,7 @@ namespace riscv_trans {
 
     std::string Register::get(Register target_reg) { 
         return build_inst(
-            "lw",
+            "mv",
             target_reg.get_lit(),
             get_lit()
         ); 
@@ -131,6 +132,5 @@ namespace riscv_trans {
             std::pair<const koopa::Id *, RiscvStorage *>(id, storage)
         );
     }
-
 
 }

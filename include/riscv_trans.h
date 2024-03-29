@@ -13,6 +13,7 @@ namespace koopa {
     class Id;
     class Label;
     class GlobalStmt;
+    class FuncDef;
 }
 
 namespace riscv_trans {
@@ -160,12 +161,20 @@ namespace riscv_trans {
      * stack frame size (bit) of function currently at 
      */
     extern int current_stack_frame_size;
+    /*
+     * whether function currently at calls function
+     * if it's true, save ra at the stack frame
+     */
+    extern bool current_has_called_func;
 
     /*
+     * allocate storage location for identifier & formal parameters
+     * of `func_def`
+     *
      * implemented in `allocate.cpp`, an interface reserved for future 
      * register allocation algorithms
      */
-    void allocate_ids_storage_location(std::string func_id_lit);
+    void allocate_ids_storage_location(const koopa::FuncDef *func_def);
 
     /*
      * indicate which stage the riscv translation is currently in
