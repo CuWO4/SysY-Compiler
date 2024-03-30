@@ -258,11 +258,11 @@ void Jump::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) co
     str += build_inst("j", to_riscv_style(*target->lit));
 }
 
-riscv_trans::Register FuncCall::rvalue_to_riscv(std::string &str) const {
+static void func_call_to_riscv_impl(const koopa::FuncCall *self, std::string &str) {
     // no need to save registers since all identifiers so far have been stored on the stack frame
 
-    for (int i = 0; i < args.size(); i++) {
-        auto arg_reg = args[i]->value_to_riscv(str);
+    for (int i = 0; i < self->args.size(); i++) {
+        auto arg_reg = self->args[i]->value_to_riscv(str);
 
         if (i < 8) {
             str += build_inst(
@@ -284,40 +284,18 @@ riscv_trans::Register FuncCall::rvalue_to_riscv(std::string &str) const {
 
     str += build_inst(
         "call",
-        to_riscv_style(*id->lit)
+        to_riscv_style(*self->id->lit)
     );
+}
+
+riscv_trans::Register FuncCall::rvalue_to_riscv(std::string &str) const {
+    func_call_to_riscv_impl(this, str);
 
     return riscv_trans::Register("a0");
 }
 
 void FuncCall::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {
-    str += build_comment(dynamic_cast<const koopa::Stmt *>(this));
-
-    for (int i = 0; i < args.size(); i++) {
-        auto arg_reg = args[i]->value_to_riscv(str);
-
-        if (i < 8) {
-            str += build_inst(
-                "mv",
-                'a' + std::to_string(i),
-                arg_reg.get_lit()
-            );
-        }
-        else {
-            str += build_inst(
-                "sw",
-                arg_reg.get_lit(),
-                build_mem(4 * (i - 8))
-            );
-        }
-
-        riscv_trans::temp_reg_manager.refresh_reg(arg_reg);
-    }
-
-    str += build_inst(
-        "call",
-        to_riscv_style(*id->lit)
-    );
+    func_call_to_riscv_impl(this, str);
 }
 
 void Block::block_to_riscv(std::string &str) const {

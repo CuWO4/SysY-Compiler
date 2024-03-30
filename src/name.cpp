@@ -2,6 +2,8 @@
 #include "../include/name.h"
 #include "../include/def.h"
 
+#include <algorithm>
+
 std::string *new_block_name() {
     return new std::string("%LLB_" + std::to_string(block_count++));
 }

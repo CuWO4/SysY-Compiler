@@ -81,7 +81,7 @@ run-riscv :
 	ld.lld build/hello.o -L$$CDE_LIBRARY_PATH/riscv32 -lsysy -o build/hello
 	qemu-riscv32-static build/hello
 
-once:
+once: $(FB_SRCS) | $(BUILD_DIR)
 	$(CXX) $(SRCS) $(LDFLAGS) -lpthread -ldl -o $(BUILD_DIR)/$(TARGET_EXEC)
 
 clean:
