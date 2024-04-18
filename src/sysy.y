@@ -399,7 +399,7 @@ func_call_params
 
 id
     : TK_IDENT {
-        $$ = new ast::Id(new std::string(*$1), cur_nesting_info);
+        $$ = new ast::Id(*$1, cur_nesting_info);
     }
 ;
 

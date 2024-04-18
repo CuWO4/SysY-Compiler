@@ -4,22 +4,22 @@
 
 ValueManager value_manager;
 
-static std::string *build_key(std::string *lit, NestingInfo *nesting_info, bool temp_style = false) {
+static std::string build_key(
+    std::string lit, 
+    NestingInfo *nesting_info, 
+    bool temp_style = false
+) {
     if (temp_style) {
-        std::string new_lit = *lit;
+        std::string new_lit = lit;
         new_lit[0] = '%';
-        return new std::string(
-            new_lit 
+        return new_lit 
             + '_' + std::to_string(nesting_info->nesting_level) 
-            + '_' + std::to_string(nesting_info->nesting_count)
-        );
+            + '_' + std::to_string(nesting_info->nesting_count);
     }
     else {
-        return new std::string(
-            *lit 
+        return lit 
             + '_' + std::to_string(nesting_info->nesting_level) 
-            + '_' + std::to_string(nesting_info->nesting_count)
-        );
+            + '_' + std::to_string(nesting_info->nesting_count);
     }
 }
 
@@ -28,18 +28,18 @@ static std::string *build_key(std::string *lit, NestingInfo *nesting_info, bool 
  * for converting name style from `a_1_2` to `a_2`
  */
 std::unordered_map<std::string, int> existed_id_counts = {};
-static std::string *build_name(std::string *lit, NestingInfo *nesting_info) {
+static std::string build_name(std::string lit, NestingInfo *nesting_info) {
     if (!nesting_info->need_suffix) return lit;
     if (nesting_info->nesting_count == 0 && nesting_info->nesting_level == 0) {
         // add no suffix for global identifiers
         return lit;
     }
 
-    auto existed_id_count_pair = existed_id_counts.find(*lit);
+    auto existed_id_count_pair = existed_id_counts.find(lit);
     int existed_id_count = 0;
     if (existed_id_count_pair == existed_id_counts.end()) {
         existed_id_counts.insert(
-            std::pair<std::string, int>(*lit, 1)
+            std::pair<std::string, int>(lit, 1)
         );
         existed_id_count = 0;
     }
@@ -48,7 +48,7 @@ static std::string *build_name(std::string *lit, NestingInfo *nesting_info) {
         existed_id_count_pair->second++;
     }
 
-    return new std::string(*lit + '_' + std::to_string(existed_id_count));
+    return lit + '_' + std::to_string(existed_id_count);
 }
 
 
@@ -85,7 +85,7 @@ void ValueManager::insert_const(koopa::Const *new_const) {
 
 koopa::Id *ValueManager::new_id(
     koopa::IdType id_type, koopa::Type *type, 
-    std::string *lit, NestingInfo *nesting_info, 
+    std::string lit, NestingInfo *nesting_info, 
     bool is_const, int val
 ) {
     auto res = new koopa::Id(
@@ -95,7 +95,7 @@ koopa::Id *ValueManager::new_id(
         is_const, 
         val
     );
-    insert_id(*build_key(lit, nesting_info, lit->at(0) == '%'), res);
+    insert_id(build_key(lit, nesting_info, lit.at(0) == '%'), res);
     return res;
 }
 
@@ -103,8 +103,8 @@ bool is_id_declared_impl(
     std::unordered_map<std::string, koopa::Id *> &id_manager, 
     std::string lit, NestingInfo *nesting_info
 ) {
-    return id_manager.find(*build_key(&lit, nesting_info)) != id_manager.end()
-        || id_manager.find(*build_key(&lit, nesting_info, true)) != id_manager.end();
+    return id_manager.find(build_key(lit, nesting_info)) != id_manager.end()
+        || id_manager.find(build_key(lit, nesting_info, true)) != id_manager.end();
 }
 
 bool ValueManager::is_id_declared(std::string lit, NestingInfo *nesting_info) {
@@ -131,9 +131,9 @@ static koopa::Id * get_id_impl(
     std::unordered_map<std::string, koopa::Id *> &id_manager,
     std::string lit, NestingInfo *nesting_info
 ) {
-    auto res = id_manager.find(*build_key(&lit, nesting_info));
+    auto res = id_manager.find(build_key(lit, nesting_info));
     auto res_temp_style = id_manager.find(
-        *build_key(&lit, nesting_info, true)
+        build_key(lit, nesting_info, true)
     );
 
     if (res != id_manager.end() 
@@ -257,7 +257,16 @@ koopa::Undef *ValueManager::new_undef() {
     return undef;
 }
 
-ValueManager::ValueManager() {
+ValueManager::ValueManager()
+    : in_func(false), 
+    formal_param_trans_state(false),
+    current_func_id_lit(""),
+    global_ids({}),
+    ids({}),
+    formal_params({}),
+    consts({}),
+    undef(nullptr)
+{
     //TODO
     // undef = new koopa::Undef;
 }

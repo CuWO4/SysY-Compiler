@@ -78,9 +78,9 @@ namespace ast {
 
             class BinaryExpr: public Expr {
             public:
-                BinaryOp        op  = op::LOGIC_OR;
-                Expr           *lv = nullptr;
-                Expr           *rv = nullptr;
+                BinaryOp    op;
+                Expr       *lv;
+                Expr       *rv;
 
                 BinaryExpr(BinaryOp op, Expr *lv, Expr* rv);
 
@@ -93,8 +93,8 @@ namespace ast {
 
             class UnaryExpr: public Expr {
             public:
-                UnaryOp     op  = op::NEG;
-                Expr            *lv = nullptr;
+                UnaryOp     op;
+                Expr       *lv;
 
                 UnaryExpr(UnaryOp op, Expr *lv);
 
@@ -107,10 +107,10 @@ namespace ast {
 
             class Id: public Expr {
             public:
-                std::string *lit;
-                NestingInfo *nesting_info = nullptr;
+                std::string     lit;
+                NestingInfo    *nesting_info;
 
-                Id(std::string *lit, NestingInfo *nesting_info);
+                Id(std::string lit, NestingInfo *nesting_info);
 
                 koopa_trans::Blocks *to_koopa() const override;
 
@@ -121,8 +121,8 @@ namespace ast {
 
             class FuncCall: public Expr {
             public:
-                Id *func_id = nullptr;
-                std::vector<Expr *> actual_params = {};
+                Id                  *func_id;
+                std::vector<Expr *>  actual_params;
 
                 FuncCall(Id *func_id, std::vector<Expr *> actual_params);
 
@@ -135,7 +135,7 @@ namespace ast {
 
             class Number: public Expr {
             public:
-                int val = 0;
+                int val;
 
                 Number(int val);
 
@@ -151,7 +151,6 @@ namespace ast {
         }
         using DeclType = decl_type::DeclType;
 
-        // TODO  change to template class, which represent it's a local/global VarDef
         class VarDef: public Stmt {
         public:
             DeclType    decl_type;
@@ -173,7 +172,7 @@ namespace ast {
 
         class VarDecl: public Stmt {
         public:
-            std::vector<VarDef *> var_defs = {};
+            std::vector<VarDef *> var_defs;
 
             VarDecl(std::vector<VarDef *>);
 
@@ -189,8 +188,8 @@ namespace ast {
 
         class Return: public Stmt {
         public:
-            ReturnType return_type = return_type::NotHasRetVal;
-            Expr *ret_val = nullptr;
+            ReturnType  return_type;
+            Expr       *ret_val;
 
             Return();
             Return(Expr *ret_val);
@@ -202,7 +201,7 @@ namespace ast {
 
         class Block: public Stmt {
         public:
-            std::vector<Stmt *> stmts = {};
+            std::vector<Stmt *> stmts;
 
             Block(std::vector<Stmt *> stmts);
 
@@ -213,11 +212,11 @@ namespace ast {
 
         class If: public Stmt {
         public:
-            Expr *cond = nullptr;
+            Expr *cond;
 
-            bool has_else_stmt = false;
-            Stmt *then_stmt = nullptr;
-            Stmt *else_stmt = nullptr;
+            bool  has_else_stmt;
+            Stmt *then_stmt;
+            Stmt *else_stmt;
 
             If(Expr *cond, Stmt *then_stmt);
 
@@ -230,8 +229,8 @@ namespace ast {
 
         class While: public Stmt {
         public:
-            Expr *cond =nullptr;
-            Stmt *body = nullptr;
+            Expr *cond;
+            Stmt *body;
 
             While(Expr *cond, Stmt *body);
 
@@ -242,10 +241,10 @@ namespace ast {
 
         class For: public Stmt {
         public:
-            Stmt *init_stmt = {};
-            Expr *cond =nullptr;
-            Stmt * iter_stmt = {};
-            Stmt *body = nullptr;
+            Stmt *init_stmt;
+            Expr *cond;
+            Stmt *iter_stmt;
+            Stmt *body;
 
             For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body);
 
@@ -275,12 +274,17 @@ namespace ast {
 
         class FuncDef: public GlobalStmt {
         public:
-            Type            *ret_type  = nullptr;
-            Id              *id         = nullptr;
-            std::vector<std::tuple<Type *, Id *> *> params = {};
-            Block           *block      = nullptr;
+            Type            *ret_type;
+            Id              *id;
+            std::vector<std::tuple<Type *, Id *> *> params;
+            Block           *block;
 
-            FuncDef(Type *ret_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block);
+            FuncDef(
+                Type *ret_type, 
+                Id *id, 
+                std::vector<std::tuple<Type *, Id *> *> params, 
+                Block *block
+            );
 
             koopa_trans::GlobalStmts *to_koopa() const override;
 
@@ -297,6 +301,7 @@ namespace ast {
             Expr       *init;
 
             GlobalVarDef(Type *, Id *, DeclType = decl_type::VolatileDecl);
+
             GlobalVarDef(
                 Type *, Id *, Expr *, 
                 DeclType = decl_type::VolatileDecl
@@ -310,7 +315,7 @@ namespace ast {
         // TODO
         class GlobalVarDecl: public GlobalStmt {
         public:
-            std::vector<GlobalVarDef *> var_defs = {};
+            std::vector<GlobalVarDef *> var_defs;
 
             GlobalVarDecl(std::vector<GlobalVarDef *> var_defs);
 
@@ -321,7 +326,7 @@ namespace ast {
 
     class CompUnit: public Base {
     public:
-        std::vector<GlobalStmt *> global_stmts = {};
+        std::vector<GlobalStmt *> global_stmts;
 
         CompUnit(std::vector<GlobalStmt *> global_stmts);
 

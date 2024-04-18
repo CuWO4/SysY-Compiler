@@ -146,7 +146,7 @@ namespace riscv_trans {
         auto res = map.find(id);
 
         if (res == map.end()) {
-            throw "identifier `" + *id->lit + "` is not registered in `IdStorageMap`";
+            throw "identifier `" + id->lit + "` is not registered in `IdStorageMap`";
         }
 
         return res->second;

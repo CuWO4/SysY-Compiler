@@ -43,7 +43,7 @@ std::string Void::to_string() const {
 }
 
 std::string Id::to_string() const {
-    auto res = *lit;
+    auto res = lit;
     if (debug_mode_koopa_type) {
         if ((type->get_type_id() == type::Int)
             || (type->get_type_id() == type::Array)
@@ -109,7 +109,8 @@ static std::string BINARY_OP_NAME[] = {
 };
 
 std::string Expr::to_string() const {
-    return BINARY_OP_NAME[op] + ' ' + lv->to_string() + ", " + rv->to_string();
+    return BINARY_OP_NAME[op] + ' ' + lv->to_string() 
+        + ", " + rv->to_string();
 }
 
 std::string FuncCall::to_string() const {
@@ -191,7 +192,7 @@ std::string FuncDef::to_string() const {
 
     res += '(';
     for (auto formal_param_id: formal_param_ids) {
-        res += *formal_param_id->lit + ": " + formal_param_id->type->to_string() + ", ";
+        res += formal_param_id->lit + ": " + formal_param_id->type->to_string() + ", ";
     }
     if (formal_param_ids.size() > 0) { 
         res.pop_back(); // ` `

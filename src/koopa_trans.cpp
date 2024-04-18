@@ -6,10 +6,16 @@
 namespace koopa_trans {
 
 Blocks::Blocks(std::vector<koopa::Stmt *> stmts)
-    : active_stmts(stmts), has_last_val(true), last_val(nullptr) {}
+    : active_stmts(stmts), blocks({}), 
+    has_last_val(true), last_val(nullptr),
+    begin_block_id(nullptr) {}
 
 Blocks::Blocks(std::vector<koopa::Stmt *> stmts, koopa::Value *last_val)
-    : active_stmts(stmts), has_last_val(true), last_val(last_val) {}
+    : active_stmts(stmts), blocks({}),
+    has_last_val(true), last_val(last_val),
+    begin_block_id(nullptr) {
+    assert(last_val);
+}
 
 std::vector<koopa::Block *> Blocks::to_raw_blocks() {
     auto res = std::vector<koopa::Block *>{};
@@ -19,7 +25,11 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
         new koopa::Block(
             begin_block_id != nullptr 
                 ? begin_block_id
-                : value_manager.new_id(koopa::id_type::BlockLabel, new koopa::Label, new_block_name()),
+                : value_manager.new_id(
+                    koopa::id_type::BlockLabel, 
+                    new koopa::Label, 
+                    new_block_name()
+                ),
             active_stmts
         ) 
     );
@@ -31,7 +41,11 @@ std::vector<koopa::Block *> Blocks::to_raw_blocks() {
 }
 
 void Blocks::init_begin_block_id() {
-    begin_block_id = value_manager.new_id(koopa::id_type::BlockLabel, new koopa::Label, new_block_name());
+    begin_block_id = value_manager.new_id(
+        koopa::id_type::BlockLabel, 
+        new koopa::Label, 
+        new_block_name()
+    );
 }
 
 koopa::Id *Blocks::get_begin_block_id() {
@@ -63,7 +77,11 @@ void operator+=(koopa_trans::Blocks &self, koopa_trans::Blocks &other) {
 
     if (self.blocks.empty()) {
         self.active_stmts.reserve(self.active_stmts.size() + other.active_stmts.size());
-        self.active_stmts.insert(self.active_stmts.end(), other.active_stmts.begin(), other.active_stmts.end());
+        self.active_stmts.insert(
+            self.active_stmts.end(), 
+            other.active_stmts.begin(), 
+            other.active_stmts.end()
+        );
 
         self.blocks = other.blocks;
     }
@@ -103,10 +121,12 @@ void operator+=(koopa_trans::Blocks &self, koopa::Stmt *stmt) {
     }
 }
 
-GlobalStmts::GlobalStmts() {}
+GlobalStmts::GlobalStmts(): global_stmts({}) {}
 
 GlobalStmts::GlobalStmts(koopa::GlobalStmt *global_stmt) 
-    : global_stmts({global_stmt}) {}
+    : global_stmts({global_stmt}) {
+    assert(global_stmt);
+}
 
 GlobalStmts::GlobalStmts(std::vector<koopa::GlobalStmt *> global_stmts) 
     : global_stmts(global_stmts){}
@@ -120,7 +140,11 @@ void operator+=(GlobalStmts &self, GlobalStmts &other) {
 }
 void operator+=(GlobalStmts &self, std::vector<koopa::GlobalStmt *> &global_stmts) {
     self.global_stmts.reserve(self.global_stmts.size() + global_stmts.size());
-    self.global_stmts.insert(self.global_stmts.end(), global_stmts.begin(), global_stmts.end());
+    self.global_stmts.insert(
+        self.global_stmts.end(), 
+        global_stmts.begin(), 
+        global_stmts.end()
+    );
 }
 
 void operator+=(GlobalStmts &self, koopa::GlobalStmt *global_stmt) {

@@ -9,7 +9,7 @@ namespace koopa {
 
 riscv_trans::Register Id::value_to_riscv(std::string &str) const {
     if (id_type == koopa::id_type::FuncId) {
-        str += to_riscv_style(*lit);
+        str += to_riscv_style(lit);
         return riscv_trans::Register();
     }
     else if (id_type == koopa::id_type::BlockLabel){
@@ -17,7 +17,7 @@ riscv_trans::Register Id::value_to_riscv(std::string &str) const {
         return riscv_trans::Register();
     }
     else if (id_type == koopa::id_type::GlobalId) {
-        str += to_riscv_style(*lit);
+        str += to_riscv_style(lit);
         return riscv_trans::Register();
     }
     else {
@@ -106,75 +106,187 @@ riscv_trans::Register Expr::rvalue_to_riscv(std::string &str) const {
 
     switch (op) {
         case op::NE: {
-            str += build_inst("xor", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"xor",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             str += build_inst("snez", target_reg.get_lit(), target_reg.get_lit());
             break;
         }
         case op::EQ: {
-            str += build_inst("xor", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"xor",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             str += build_inst("seqz", target_reg.get_lit(), target_reg.get_lit());
             break;
         }
         case op::GT: {
-            str += build_inst("sgt", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"sgt",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::LT: {
-            str += build_inst("slt", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"slt",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::GE: {
-            str += build_inst("slt", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
-            str += build_inst("xori", target_reg.get_lit(), target_reg.get_lit(), "1");
+            str += build_inst(
+				"slt",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
+            str += build_inst(
+                "xori", 
+                target_reg.get_lit(), 
+                target_reg.get_lit(), 
+                "1"
+            );
             break;
         }
         case op::LE: {
-            str += build_inst("sgt", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
-            str += build_inst("xori", target_reg.get_lit(), target_reg.get_lit(), "1");
+            str += build_inst(
+				"sgt",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
+            str += build_inst(
+                "xori", 
+                target_reg.get_lit(), 
+                target_reg.get_lit(), 
+                "1"
+            );
             break;
         }
         case op::ADD: {
-            str += build_inst("add", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"add",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::SUB: {
-            str += build_inst("sub", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"sub",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::MUL: {
-            str += build_inst("mul", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"mul",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::DIV: {
-            str += build_inst("div", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"div",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::MOD: {
-            str += build_inst("rem", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"rem",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::AND: {
-            str += build_inst("and", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"and",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::OR: {
-            str += build_inst("or", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"or",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::XOR: {
-            str += build_inst("xor", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"xor",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::SHL: {
-            str += build_inst("sll", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"sll",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::SHR: {
-            str += build_inst("srl", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"srl",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
         case op::SAR: {
-            str += build_inst("sra", target_reg.get_lit(), first_reg.get_lit(), second_lit, is_i_type_inst);
+            str += build_inst(
+				"sra",
+				target_reg.get_lit(),
+				first_reg.get_lit(),
+				second_lit,
+				is_i_type_inst
+			);
             break;
         }
     }
@@ -248,14 +360,14 @@ void Return::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) 
 
 void Branch::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {
     auto cond_reg = cond->value_to_riscv(str);
-    str += build_inst("bnez", cond_reg.get_lit(), to_riscv_style(*target1->lit));
-    str += build_inst("j", to_riscv_style(*target2->lit));
+    str += build_inst("bnez", cond_reg.get_lit(), to_riscv_style(target1->lit));
+    str += build_inst("j", to_riscv_style(target2->lit));
 
     riscv_trans::temp_reg_manager.refresh_reg(cond_reg);
 }
 
 void Jump::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {
-    str += build_inst("j", to_riscv_style(*target->lit));
+    str += build_inst("j", to_riscv_style(target->lit));
 }
 
 static void func_call_to_riscv_impl(const koopa::FuncCall *self, std::string &str) {
@@ -284,7 +396,7 @@ static void func_call_to_riscv_impl(const koopa::FuncCall *self, std::string &st
 
     str += build_inst(
         "call",
-        to_riscv_style(*self->id->lit)
+        to_riscv_style(self->id->lit)
     );
 }
 
@@ -299,7 +411,7 @@ void FuncCall::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode
 }
 
 void Block::block_to_riscv(std::string &str) const {
-    str += to_riscv_style(*id->lit) + ":\n";
+    str += to_riscv_style(id->lit) + ":\n";
     for(auto stmt: stmts) {
         stmt->stmt_to_riscv(str, riscv_trans::trans_mode::TextSegment);
     }
@@ -318,7 +430,7 @@ void FuncDef::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode)
 
         str += build_comment(this);
         
-        value_manager.enter_func(*id->lit);
+        value_manager.enter_func(id->lit);
 
         riscv_trans::allocate_ids_storage_location(this);
 
@@ -349,7 +461,7 @@ void GlobalSymbolDef::stmt_to_riscv(std::string &str, riscv_trans::TransMode tra
     if (trans_mode == riscv_trans::trans_mode::DataSegment) {
         riscv_trans::id_storage_map.register_id(
             id, 
-            new riscv_trans::DataSeg(to_riscv_style(*id->lit))
+            new riscv_trans::DataSeg(to_riscv_style(id->lit))
         );
 
         str += build_comment(this);

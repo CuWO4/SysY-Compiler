@@ -9,7 +9,7 @@ void riscv_trans::allocate_ids_storage_location(const koopa::FuncDef *func_def) 
      * naive strategy: allocate all identifiers to stack frame
      */
 
-    auto ids = value_manager.get_func_ids(*func_def->id->lit);
+    auto ids = value_manager.get_func_ids(func_def->id->lit);
 
     int stack_frame_size = 4 * ids.size();
 
@@ -32,13 +32,16 @@ void riscv_trans::allocate_ids_storage_location(const koopa::FuncDef *func_def) 
             }
             else if (
                 typeid(*stmt) == typeid(koopa::SymbolDef) 
-                && typeid(*static_cast<koopa::SymbolDef *>(stmt)->val) == typeid(koopa::FuncCall)
+                && typeid(*static_cast<koopa::SymbolDef *>(stmt)->val) 
+                    == typeid(koopa::FuncCall)
             ) {
                 current_has_called_func = true;
 
                 max_called_func_param_n = max(
                     max_called_func_param_n, 
-                    static_cast<koopa::FuncCall *>(static_cast<koopa::SymbolDef *>(stmt)->val)->args.size()
+                    static_cast<koopa::FuncCall *>(
+                        static_cast<koopa::SymbolDef *>(stmt)->val
+                    )->args.size()
                 );
             }
 
@@ -69,7 +72,10 @@ void riscv_trans::allocate_ids_storage_location(const koopa::FuncDef *func_def) 
 
     for (auto id : ids) {
         stack_frame_size -= 4;
-        riscv_trans::id_storage_map.register_id(id, new riscv_trans::StackFrame(stack_frame_size));
+        riscv_trans::id_storage_map.register_id(
+            id, 
+            new riscv_trans::StackFrame(stack_frame_size)
+        );
     }
 
     int param_count = 0;
@@ -83,7 +89,9 @@ void riscv_trans::allocate_ids_storage_location(const koopa::FuncDef *func_def) 
         else {
             riscv_trans::id_storage_map.register_id(
                 id, 
-                new riscv_trans::StackFrame(current_stack_frame_size + 4 * (param_count - 8))
+                new riscv_trans::StackFrame(
+                    current_stack_frame_size + 4 * (param_count - 8)
+                )
             );
         }
         param_count++;

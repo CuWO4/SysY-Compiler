@@ -18,8 +18,8 @@ class ValueManager {
 // simulate, but not change the interface. add method `ids_of_func`, and return a iterable type
 public:
     koopa::Id *new_id(
-        koopa::IdType id_type, koopa::Type *type, std::string *lit, 
-        NestingInfo *nesting_info = new NestingInfo(false), 
+        koopa::IdType id_type, koopa::Type *type, std::string lit, 
+        NestingInfo *nesting_info = new NestingInfo(), 
         bool is_const = false, int val = 0
     );
 
@@ -58,18 +58,18 @@ public:
     ~ValueManager();
 
 private:
-    bool in_func = false;
-    bool formal_param_trans_state = false;
+    bool in_func;
+    bool formal_param_trans_state;
     std::string current_func_id_lit;
 
-    std::unordered_map<std::string, koopa::Id *> global_ids = {};
-    std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id *> *> ids = {};
-    std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id *> *> formal_params = {};
+    std::unordered_map<std::string, koopa::Id *> global_ids;
+    std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id *> *> ids;
+    std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id *> *> formal_params;
 
-    std::unordered_set<koopa::Const *> consts = {};
+    std::unordered_set<koopa::Const *> consts;
 
     // singleton
-    koopa::Undef *undef = nullptr;
+    koopa::Undef *undef;
     
     void insert_id(std::string key, koopa::Id *new_id);
 

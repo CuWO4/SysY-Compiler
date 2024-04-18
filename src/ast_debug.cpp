@@ -29,7 +29,9 @@ std::string UnaryExpr::debug(int indent) const {
 }
 
 std::string Id::debug(int indent) const {
-    return *lit + '(' + std::to_string(nesting_info->nesting_level) + ':' + std::to_string(nesting_info->nesting_count) + ')';
+    return lit 
+        + '(' + std::to_string(nesting_info->nesting_level) 
+        + ':' + std::to_string(nesting_info->nesting_count) + ')';
 }
 
 std::string FuncCall::debug(int indent) const {
@@ -70,7 +72,8 @@ std::string VarDecl::debug(int indent) const {
 }
 
 std::string Return::debug(int indent) const {
-    return build_indent(indent) + "Return " + (return_type == return_type::HasRetVal ? ret_val->debug(): "");
+    return build_indent(indent) + "Return " 
+        + (return_type == return_type::HasRetVal ? ret_val->debug(): "");
 }
 
 std::string If::debug(int indent) const {
@@ -86,13 +89,17 @@ std::string If::debug(int indent) const {
 }
 
 std::string While::debug(int indent) const {
-    return build_indent(indent) + "While ( " + cond->debug() + " ) {\n"
+    return build_indent(indent) + "While ( " 
+        + cond->debug() + " ) {\n"
         + body->debug(indent + 1) + '\n'
         + build_indent(indent) + "}";
 }
 
 std::string For::debug(int indent) const {
-    return  build_indent(indent) + "For ( " + init_stmt->debug() + "; " + cond->debug() + "; " + iter_stmt->debug() + ") {\n"
+    return  build_indent(indent) + "For ( " 
+        + init_stmt->debug() + "; " 
+        + cond->debug() + "; " 
+        + iter_stmt->debug() + ") {\n"
         + body->debug(indent + 1) + '\n'
         + build_indent(indent) + "}";
 }
@@ -124,7 +131,7 @@ std::string Void::debug(int indent) const {
 }
 
 std::string FuncDef::debug(int indent) const {
-    auto res = build_indent(indent) + ret_type->debug() + ' ' + *id->lit + '(';
+    auto res = build_indent(indent) + ret_type->debug() + ' ' + id->lit + '(';
     for (auto param: params) {
         res += std::get<0>(*param)->debug() + ' '
             + std::get<1>(*param)->debug() + ", ";

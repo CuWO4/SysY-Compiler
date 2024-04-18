@@ -3,14 +3,20 @@
 
 class NestingInfo {
 public:
-    bool need_suffix = true;
-    int nesting_level = 0, nesting_count = 0;
-    NestingInfo *pa = nullptr;
+    bool            need_suffix;
+    int             nesting_level;
+    int             nesting_count;
+    NestingInfo    *pa;
 
-    NestingInfo(int nl = 0, int nc = 0, NestingInfo *pa = nullptr) :
-        nesting_level(nl), nesting_count(nc), pa(pa) {}
+    // need suffix = false
+    NestingInfo();
 
-    NestingInfo(bool need_suffix): need_suffix(need_suffix) {}
+    NestingInfo(
+        int nesting_level, 
+        int nesting_count, 
+        NestingInfo *pa
+    );
+
 };
 
 #endif

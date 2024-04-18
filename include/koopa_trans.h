@@ -70,8 +70,8 @@ namespace koopa_trans {
         void set_last_val(koopa::Value *new_last_val);
         koopa::Value *get_last_val();
 
-        std::vector<koopa::Stmt *> active_stmts = {};
-        std::vector<koopa::Block *> blocks = {};
+        std::vector<koopa::Stmt *> active_stmts;
+        std::vector<koopa::Block *> blocks;
 
         std::vector<koopa::Block *> to_raw_blocks();
 
@@ -81,14 +81,11 @@ namespace koopa_trans {
         friend void operator+=(Blocks &self, std::vector<koopa::Stmt *> &stmts);
         friend void operator+=(Blocks &self, koopa::Stmt *stmt);
 
-        std::string to_string() const { return ""; }
-        void to_riscv(std::string &str) const {}
-
     private:
-        bool has_last_val = false;
-        koopa::Value *last_val = nullptr;
+        bool has_last_val;
+        koopa::Value *last_val;
 
-        koopa::Id *begin_block_id = nullptr;
+        koopa::Id *begin_block_id;
 
         void init_begin_block_id();
     };
@@ -102,11 +99,14 @@ namespace koopa_trans {
         std::vector<koopa::GlobalStmt *> &to_raw_vector();
 
         friend void operator+=(GlobalStmts &self, GlobalStmts &other);
-        friend void operator+=(GlobalStmts &self, std::vector<koopa::GlobalStmt *> &global_stmts);
+        friend void operator+=(
+            GlobalStmts &self, 
+            std::vector<koopa::GlobalStmt *> &global_stmts
+        );
         friend void operator+=(GlobalStmts &self, koopa::GlobalStmt *global_stmt);
 
     private:
-        std::vector<koopa::GlobalStmt *> global_stmts = {};
+        std::vector<koopa::GlobalStmt *> global_stmts;
     };
 
 }
