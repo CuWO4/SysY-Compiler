@@ -233,9 +233,6 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
         }
     }
 
-    // delete lv_stmts;
-    // delete rv_stmts;
-
     return res;
 }
 
@@ -379,173 +376,144 @@ koopa_trans::Blocks *FuncCall::to_koopa() const {
 }
 
 koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
-    return nullptr;
+    if (value_manager.is_id_declared('@' + *id->lit, id->nesting_info)) {
+        throw '`' + *id->lit + "` redefined";
+    }
+
+    auto stmts = new koopa_trans::GlobalStmts();
+    
+    if (decl_type == decl_type::ConstDecl) {
+        if (!has_init) {
+            throw "no initiator for const variable `" + *id->lit + '`';
+        }
+
+        auto rval_koopa = init->to_koopa();
+
+        if (!rval_koopa->get_last_val()->is_const) {
+            throw "initiating const variable `" + *id->lit + "` with a non-const value";
+        }
+
+        value_manager.new_id(
+            koopa::id_type::GlobalId,
+            type->to_koopa(),
+            new std::string('@' + *id->lit),
+            id->nesting_info,
+            true,
+            rval_koopa->get_last_val()->val
+        );
+    }
+    else { /* decl_type != decl_type::ConstDecl */
+        if (has_init) {
+            auto rval_koopa = init->to_koopa();
+
+            if (!rval_koopa->get_last_val()->is_const) {
+                throw "initiating global variable `" + *id->lit + "` with a non-const value";
+            }
+
+            *stmts += new koopa::GlobalSymbolDef(
+                value_manager.new_id(
+                    koopa::id_type::GlobalId,
+                    new koopa::Pointer(
+                        type->to_koopa()
+                    ),
+                    new std::string('@' + *id->lit),
+                    id->nesting_info
+                ),
+                new koopa::GlobalMemoryDecl(
+                    type->to_koopa(),
+                    new koopa::ConstInitializer(rval_koopa->get_last_val()->val)
+                )
+            );
+        }
+        else { /* !has_init */
+            *stmts += new koopa::GlobalSymbolDef(
+                value_manager.new_id(
+                    koopa::id_type::GlobalId,
+                    new koopa::Pointer(
+                        type->to_koopa()
+                    ),
+                    new std::string('@' + *id->lit),
+                    id->nesting_info
+                ),
+                new koopa::GlobalMemoryDecl(
+                    type->to_koopa(),
+                    new koopa::ConstInitializer(0)
+                )
+            );
+        }
+    } /* decl_type ?= decl_type::ConstDecl */
+
+    return stmts;
 }
 
 koopa_trans::GlobalStmts *GlobalVarDecl::to_koopa() const {
-    auto global_stmts = new koopa_trans::GlobalStmts();
+    auto stmts = new koopa_trans::GlobalStmts();
 
-    if (decl_type == decl_type::ConstDecl) {
-
-        for (auto var_def: var_defs) {
-            if (value_manager.is_id_declared('@' + *var_def->id->lit, var_def->id->nesting_info)) {
-                throw '`' + *var_def->id->lit + "` redefined";
-            }
-
-            if (!var_def->has_init) {
-                throw "no initiator for const variable `" + *var_def->id->lit + '`';
-            }
-
-            auto rval_koopa = var_def->init->to_koopa();
-
-            if (!rval_koopa->get_last_val()->is_const) {
-                throw "initiating const variable `" + *var_def->id->lit + "` with a non-const value";
-            }
-
-            value_manager.new_id(
-                koopa::id_type::GlobalId,
-                type->to_koopa(),
-                new std::string('@' + *var_def->id->lit),
-                var_def->id->nesting_info,
-                true,
-                rval_koopa->get_last_val()->val
-            );
-
-            //! BUG refree memory
-            // for (auto stmt: stmts->stmts) if (stmt != nullptr) delete stmt;
-            // delete stmts;
-        }
-
+    for (auto var_def: var_defs) {
+        *stmts += *var_def->to_koopa();
     }
 
-    else {
-
-        for (auto var_def: var_defs) {
-            if (value_manager.is_id_declared('@' + *var_def->id->lit, var_def->id->nesting_info)) {
-                throw '`' + *var_def->id->lit + "` redefined";
-            }
-
-            if (var_def->has_init) {
-
-                auto rval_koopa = var_def->init->to_koopa();
-
-                if (!rval_koopa->get_last_val()->is_const) {
-                    throw "initiating global variable `" + *var_def->id->lit + "` with a non-const value";
-                }
-
-                *global_stmts += new koopa::GlobalSymbolDef(
-                    value_manager.new_id(
-                        koopa::id_type::GlobalId,
-                        new koopa::Pointer(
-                            type->to_koopa()
-                        ),
-                        new std::string('@' + *var_def->id->lit),
-                        var_def->id->nesting_info
-                    ),
-                    new koopa::GlobalMemoryDecl(
-                        type->to_koopa(),
-                        new koopa::ConstInitializer(rval_koopa->get_last_val()->val)
-                    )
-                );
-
-            }
-            else {
-
-                *global_stmts += new koopa::GlobalSymbolDef(
-                    value_manager.new_id(
-                        koopa::id_type::GlobalId,
-                        new koopa::Pointer(
-                            type->to_koopa()
-                        ),
-                        new std::string('@' + *var_def->id->lit),
-                        var_def->id->nesting_info
-                    ),
-                    new koopa::GlobalMemoryDecl(
-                        type->to_koopa(),
-                        new koopa::ConstInitializer(0)
-                    )
-                );
-
-            }
-        }
-
-    }
-
-    return global_stmts;
+    return stmts;
 }
 
 koopa_trans::Blocks *VarDef::to_koopa() const {
-    return nullptr;
+    if (value_manager.is_id_declared('@' + *id->lit, id->nesting_info)) {
+        throw '`' + *id->lit + "` redefined";
+    }
+    
+    auto stmts = new koopa_trans::Blocks();
+    
+    if (decl_type == decl_type::ConstDecl) {
+        if (!has_init) {
+            throw "no initiator for const variable `" + *id->lit + '`';
+        }
+
+        auto rval_koopa = init->to_koopa();
+
+        if (!rval_koopa->get_last_val()->is_const) {
+            throw "initiating const variable `" + *id->lit + "` with a non-const value";
+        }
+
+        value_manager.new_id(
+            koopa::id_type::LocalId,
+            type->to_koopa(),
+            new std::string('@' + *id->lit),
+            id->nesting_info,
+            true,
+            rval_koopa->get_last_val()->val
+        );
+    }
+    else { /* decl_type != decl_type::ConstDecl */
+        *stmts += new koopa::SymbolDef(
+            value_manager.new_id(
+                koopa::id_type::LocalId,
+                new koopa::Pointer(
+                    type->to_koopa()
+                ),
+                new std::string('@' + *id->lit),
+                id->nesting_info
+            ),
+            new koopa::MemoryDecl(type->to_koopa())
+        );
+
+        if (has_init) {
+            auto rval_koopa = init->to_koopa();
+            *stmts += *rval_koopa;
+            *stmts += new koopa::StoreValue(
+                rval_koopa->get_last_val(),
+                value_manager.get_id('@' + *id->lit, id->nesting_info)
+            );
+        }
+    }
+
+    return stmts;
 }
 
 koopa_trans::Blocks *VarDecl::to_koopa() const {
     auto stmts = new koopa_trans::Blocks();
 
-    if (decl_type == decl_type::ConstDecl) {
-
-        for (auto var_def: var_defs) {
-            if (value_manager.is_id_declared('@' + *var_def->id->lit, var_def->id->nesting_info)) {
-                throw '`' + *var_def->id->lit + "` redefined";
-            }
-
-            if (!var_def->has_init) {
-                throw "no initiator for const variable `" + *var_def->id->lit + '`';
-            }
-
-            auto rval_koopa = var_def->init->to_koopa();
-
-            if (!rval_koopa->get_last_val()->is_const) {
-                throw "initiating const variable `" + *var_def->id->lit + "` with a non-const value";
-            }
-
-            value_manager.new_id(
-                koopa::id_type::LocalId,
-                type->to_koopa(),
-                new std::string('@' + *var_def->id->lit),
-                var_def->id->nesting_info,
-                true,
-                rval_koopa->get_last_val()->val
-            );
-
-            //! BUG refree memory
-            // for (auto stmt: stmts->stmts) if (stmt != nullptr) delete stmt;
-            // delete stmts;
-        }
-
-    }
-
-    else {
-
-        for (auto var_def: var_defs) {
-            if (value_manager.is_id_declared('@' + *var_def->id->lit, var_def->id->nesting_info)) {
-                throw '`' + *var_def->id->lit + "` redefined";
-            }
-
-            *stmts += new koopa::SymbolDef(
-                value_manager.new_id(
-                    koopa::id_type::LocalId,
-                    new koopa::Pointer(
-                        type->to_koopa()
-                    ),
-                    new std::string('@' + *var_def->id->lit),
-                    var_def->id->nesting_info
-                ),
-                new koopa::MemoryDecl(type->to_koopa())
-            );
-
-            if (var_def->has_init) {
-
-                auto rval_koopa = var_def->init->to_koopa();
-
-                *stmts += *rval_koopa;
-
-                *stmts += new koopa::StoreValue(
-                    rval_koopa->get_last_val(),
-                    value_manager.get_id('@' + *var_def->id->lit, var_def->id->nesting_info)
-                );
-        }
-        }
-
+    for (auto var_def: var_defs) {
+        *stmts += *var_def->to_koopa();
     }
 
     return stmts;

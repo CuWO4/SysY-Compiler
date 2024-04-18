@@ -27,6 +27,9 @@ namespace ast {
     class Type: public Base {
     public:
         virtual koopa::Type* to_koopa() const = 0;
+
+        // TODO
+        // virtual bool operator==(Type &other) = 0;
     };
 
         class Int: public Type {
@@ -40,6 +43,14 @@ namespace ast {
             koopa::Type *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
+        };
+
+        class Pointer: public Type {
+            // TODO
+        };
+
+        class Array: public Type {
+            // TODO
         };
 
     namespace op {
@@ -78,8 +89,6 @@ namespace ast {
                 bool has_side_effect() const override;
 
                 std::string debug(int indent = 0) const override;
-
-                ~BinaryExpr() override;
             };
 
             class UnaryExpr: public Expr {
@@ -94,8 +103,6 @@ namespace ast {
                 bool has_side_effect() const override;
 
                 std::string debug(int indent = 0) const override;
-
-                ~UnaryExpr() override;
             };
 
             class Id: public Expr {
@@ -110,8 +117,6 @@ namespace ast {
                 bool has_side_effect() const override;
 
                 std::string debug(int indent = 0) const override;
-
-                ~Id() override;
             };
 
             class FuncCall: public Expr {
@@ -126,8 +131,6 @@ namespace ast {
                 bool has_side_effect() const override;
 
                 std::string debug(int indent = 0) const override;
-
-                ~FuncCall() override;
             };
 
             class Number: public Expr {
@@ -143,41 +146,40 @@ namespace ast {
                 std::string debug(int indent = 0) const override;
             };
 
-        class VarDef: public Stmt {
-        public:
-            Id *id = nullptr;
-            bool has_init = false;
-            Expr *init = nullptr;
-
-            VarDef(Id *id);
-            VarDef(Id *id, Expr *init);
-
-            koopa_trans::Blocks *to_koopa() const override;
-
-            std::string debug(int indent = 0) const override;
-
-            ~VarDef();
-        };
-
         namespace decl_type {
             enum DeclType { VolatileDecl, ConstDecl };
         }
         using DeclType = decl_type::DeclType;
 
-        class VarDecl: public Stmt {
+        // TODO  change to template class, which represent it's a local/global VarDef
+        class VarDef: public Stmt {
         public:
-            Type *type = nullptr;
-            std::vector<VarDef *> var_defs = {};
-            DeclType decl_type = decl_type::VolatileDecl;
+            DeclType    decl_type;
+            Type       *type;
+            Id         *id;
+            bool        has_init;
+            Expr       *init;
 
-            VarDecl(Type *type, std::vector<VarDef *> var_defs, 
-                    DeclType decl_type = decl_type::VolatileDecl);
+            VarDef(Type *, Id *, DeclType = decl_type::VolatileDecl);
+            VarDef(
+                Type *, Id *, Expr *, 
+                DeclType = decl_type::VolatileDecl
+            );
 
             koopa_trans::Blocks *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
+        };
 
-            ~VarDecl() override;
+        class VarDecl: public Stmt {
+        public:
+            std::vector<VarDef *> var_defs = {};
+
+            VarDecl(std::vector<VarDef *>);
+
+            koopa_trans::Blocks *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
         };
 
         namespace return_type {
@@ -196,8 +198,6 @@ namespace ast {
             koopa_trans::Blocks *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            ~Return() override;
         };
 
         class Block: public Stmt {
@@ -209,8 +209,6 @@ namespace ast {
             koopa_trans::Blocks *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            ~Block() override;
         };
 
         class If: public Stmt {
@@ -228,8 +226,6 @@ namespace ast {
             koopa_trans::Blocks *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            ~If() override;
         };
 
         class While: public Stmt {
@@ -242,8 +238,6 @@ namespace ast {
             koopa_trans::Blocks *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            ~While() override;
         };
 
         class For: public Stmt {
@@ -258,8 +252,6 @@ namespace ast {
             koopa_trans::Blocks *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            ~For() override;
         };
 
         class Continue: public Stmt {
@@ -293,40 +285,38 @@ namespace ast {
             koopa_trans::GlobalStmts *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            ~FuncDef() override;
         };
 
+        // TODO
         class GlobalVarDef: public GlobalStmt {
         public:
-            Id *id = nullptr;
-            bool has_init;
-            Expr *init = nullptr;
+            DeclType    decl_type;
+            Type       *type;
+            Id         *id;
+            bool        has_init;
+            Expr       *init;
 
-            GlobalVarDef(Id *id);
-            GlobalVarDef(Id *id, Expr *init);
-
+            GlobalVarDef(Type *, Id *, DeclType = decl_type::VolatileDecl);
+            GlobalVarDef(
+                Type *, Id *, Expr *, 
+                DeclType = decl_type::VolatileDecl
+            );
             koopa_trans::GlobalStmts *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            ~GlobalVarDef();
         };
 
+
+        // TODO
         class GlobalVarDecl: public GlobalStmt {
         public:
-            Type *type = nullptr;
             std::vector<GlobalVarDef *> var_defs = {};
-            DeclType decl_type = decl_type::VolatileDecl;
 
-            GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, 
-                        DeclType decl_type = decl_type::VolatileDecl);
+            GlobalVarDecl(std::vector<GlobalVarDef *> var_defs);
 
             koopa_trans::GlobalStmts *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            ~GlobalVarDecl() override;
         };
 
     class CompUnit: public Base {
@@ -338,8 +328,6 @@ namespace ast {
         koopa::Program *to_koopa() const;
 
         std::string debug(int indent = 0) const override;
-
-        ~CompUnit() override;
     };
 
 }

@@ -263,8 +263,4 @@ ValueManager::ValueManager() {
 }
 
 ValueManager::~ValueManager() { 
-    // TODO in koopa::Base *ast::koopa::Id::to_koopa(), refree of pointed type
-    // for (auto id_pair: ids) delete id_pair.second;
-    // for (auto const_val: consts) delete const_val;
-    // if (undef != nullptr) delete undef;
 }

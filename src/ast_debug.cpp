@@ -53,22 +53,19 @@ std::string Number::debug(int indent) const {
 }
 
 std::string VarDef::debug(int indent) const {
-    return  id->debug() +
-        (has_init ? " = " + init->debug(): "") + ", ";
+    return 
+        build_indent(indent)
+        + (decl_type == decl_type::ConstDecl ? "const " : "")
+        + type->debug() + ' '
+        + id->debug()
+        + (has_init ? " = " + init->debug() : "");
 }
 
 std::string VarDecl::debug(int indent) const {
-    auto res = build_indent(indent) + (decl_type == decl_type::ConstDecl ? "const": "") + type->debug() + ' ';
-
+    std::string res = "";
     for (auto var_def: var_defs) {
-        res += var_def->debug();
+        res += var_def->debug(indent) + '\n';
     }
-
-    if (var_defs.size() > 0) {
-        res.pop_back(); // `,`
-        res.pop_back(); // ` `
-    }
-
     return res;
 }
 
@@ -144,22 +141,19 @@ std::string FuncDef::debug(int indent) const {
 }
 
 std::string GlobalVarDef::debug(int indent) const {
-    return id->debug() +
-        (has_init ? " = " + init->debug(): "") + ", ";
+    return 
+        build_indent(indent)
+        + (decl_type == decl_type::ConstDecl ? "const " : "")
+        + type->debug() + ' '
+        + id->debug()
+        + (has_init ? " = " + init->debug() : "");
 }
 
 std::string GlobalVarDecl::debug(int indent) const {
-    auto res = build_indent(indent) + (decl_type == decl_type::ConstDecl ? "const": "") + type->debug() + ' ';
-
+    std::string res = "";
     for (auto var_def: var_defs) {
-        res += var_def->debug();
+        res += var_def->debug(indent) + '\n';
     }
-
-    if (var_defs.size() > 0) {
-        res.pop_back(); // `,`
-        res.pop_back(); // ` `
-    }
-
     return res;
 }
 

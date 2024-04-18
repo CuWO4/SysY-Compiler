@@ -6,6 +6,7 @@
 
     #include "../include/ast.h"
     #include "../include/nesting_info.h"
+    #include "../include/parser.h"
 
     int yylex();
     void yyerror(ast::CompUnit *&ast, const char *s);
@@ -25,19 +26,18 @@
     std::string    *str_val;
     int             int_val;
 
+    parser::VarDefManager                  *parser_var_def_manager_val;
+    std::vector<parser::VarDefManager *>   *parser_var_def_manager_vec_val;
+
     ast::Id        *ast_id_val;
     ast::Type      *ast_type_val;
     ast::Block     *ast_block_val;
     ast::Stmt      *ast_stmt_val;
     ast::GlobalStmt    *ast_global_stmt_val;
     ast::Expr      *ast_expr_val;
-    ast::VarDef    *ast_var_def_val;
-    ast::GlobalVarDef  *ast_global_var_def_val;
     std::vector<ast::Expr *>               *ast_expr_vec_val;
     std::vector<ast::Stmt *>               *ast_stmt_vec_val;
     std::vector<ast::GlobalStmt *>         *ast_global_stmt_vec_val;
-    std::vector<ast::VarDef *>             *ast_var_def_vec_val;
-    std::vector<ast::GlobalVarDef *>       *ast_global_var_def_vec_val;
     std::tuple<ast::Type *, ast::Id *>     *ast_func_param_val;
     std::vector<std::tuple<ast::Type *, ast::Id *> *>  *ast_func_params_val;
 	}
@@ -54,13 +54,11 @@
 %type   <ast_stmt_val> clause if_clause while_clause for_clause
 %type   <ast_stmt_val> stmt decl_stmt return_stmt continue_stmt break_stmt block_stmt empty_stmt for_init_stmt for_iter_stmt
 %type	<ast_expr_val> expr no_comma_expr func_call for_cond_expr
-%type	<ast_var_def_val> var_def
-%type   <ast_global_var_def_val> global_var_def
+%type   <parser_var_def_manager_val> var_def
+%type	<parser_var_def_manager_vec_val> var_defs
 %type   <ast_global_stmt_vec_val> comp_unit_items
 %type   <ast_expr_vec_val> func_call_params
 %type   <ast_stmt_vec_val> block_items 
-%type   <ast_var_def_vec_val> var_defs
-%type   <ast_global_var_def_vec_val> global_var_defs
 %type   <ast_func_param_val> func_def_param 
 %type   <ast_func_params_val> func_def_params 
 %type   <int_val> number
@@ -103,30 +101,28 @@ comp_unit_item
 ;
 
 global_var_decl
-    : type global_var_defs {
-        $$ = new ast::GlobalVarDecl($1, *$2);
-    }
-    | TK_CONST type global_var_defs {
-        $$ = new ast::GlobalVarDecl($2, *$3, ast::decl_type::ConstDecl);
-    }
-;
+    : type var_defs {
+        auto var_defs = std::vector<ast::GlobalVarDef *>();
+        var_defs.reserve($2->size());
 
-global_var_defs
-    : global_var_defs ',' global_var_def {
-        $1->push_back($3);
-        $$ = $1;
-    }
-    | global_var_def {
-        $$ = new std::vector<ast::GlobalVarDef *>{ $1 };
-    }
-;
+        for (auto manager: *$2) {
+            var_defs.push_back(
+                manager->to_ast_global_var_def($1, ast::decl_type::VolatileDecl)
+            );
+        }
 
-global_var_def
-    : id '=' no_comma_expr {
-        $$ = new ast::GlobalVarDef($1, $3);
+        $$ = new ast::GlobalVarDecl(var_defs);
     }
-    | id { 
-        $$ = new ast::GlobalVarDef($1);
+    | TK_CONST type var_defs {
+        auto var_defs = std::vector<ast::GlobalVarDef *>();
+
+        for (auto manager: *$3) {
+            var_defs.push_back(
+                manager->to_ast_global_var_def($2, ast::decl_type::ConstDecl)
+            );
+        }
+
+        $$ = new ast::GlobalVarDecl(var_defs);
     }
 ;
 
@@ -247,10 +243,27 @@ stmt
 
 decl_stmt
     : type var_defs {
-        $$ = new ast::VarDecl($1, *$2);
+        auto var_defs = std::vector<ast::VarDef *>();
+        var_defs.reserve($2->size());
+
+        for (auto manager: *$2) {
+            var_defs.push_back(
+                manager->to_ast_var_def($1, ast::decl_type::VolatileDecl)
+            );
+        }
+
+        $$ = new ast::VarDecl(var_defs);
     }
     | TK_CONST type var_defs {
-        $$ = new ast::VarDecl($2, *$3, ast::decl_type::ConstDecl);
+        auto var_defs = std::vector<ast::VarDef *>();
+
+        for (auto manager: *$3) {
+            var_defs.push_back(
+                manager->to_ast_var_def($2, ast::decl_type::ConstDecl)
+            );
+        }
+
+        $$ = new ast::VarDecl(var_defs);
     }
 ;
 
@@ -260,16 +273,16 @@ var_defs
         $$ = $1;
     }
     | var_def {
-        $$ = new std::vector<ast::VarDef *>{ $1 };
+        $$ = new std::vector<parser::VarDefManager *>{ $1 };
     }
 ;
 
 var_def
     : id '=' no_comma_expr {
-        $$ = new ast::VarDef($1, $3);
+        $$ = new parser::VarDefManager(new parser::Primitive, $1, $3);
     }
     | id { 
-        $$ = new ast::VarDef($1);
+        $$ = new parser::VarDefManager(new parser::Primitive, $1);
     }
 ;
 

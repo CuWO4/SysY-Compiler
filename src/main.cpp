@@ -81,10 +81,6 @@ int main(int argc, const char *argv[]) {
 
 			os << riscv_string;
 		}
-
-		// delete koopa;
-		// delete ast;
-
 	} catch (std::string &s) {
 		std::cerr << "error: " << s << std::endl;
 	} catch (char const *const &s) {

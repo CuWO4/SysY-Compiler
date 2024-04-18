@@ -39,7 +39,6 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
-
     };
 
     class Array: public Type {
@@ -53,8 +52,6 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
-
-        ~Array() override;
     };
 
     class Pointer: public Type {
@@ -67,8 +64,6 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
-
-        ~Pointer() override;
     };
 
     class FuncType: public Type {
@@ -82,8 +77,6 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
-
-        ~FuncType() override;
     };
 
     class Void: public Type {
@@ -92,7 +85,6 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
-
     };
 
     class Label: public Type {
@@ -101,7 +93,6 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
-
     };
 
 class Value: public Base {
@@ -128,8 +119,6 @@ public:
         riscv_trans::Register value_to_riscv(std::string &str) const override;
 
         Id(IdType id_type, Type *type, std::string *lit, bool is_const = false, int val = 0);
-
-        ~Id() override;
     };
 
     class Const: public Value {
@@ -144,7 +133,6 @@ public:
     class Undef: public Value {
 
         std::string to_string() const override;
-
     };
 
 class Initializer: public Base {
@@ -170,20 +158,16 @@ class Initializer: public Base {
         std::string to_string() const override;
 
         Aggregate(std::vector<Initializer *> initializers);
-
-        ~Aggregate() override;
     };
 
     class Zeroinit: public Initializer {
 
         std::string to_string() const override;
-
     };
 
     class UndefInitializer: public Initializer {
 
         std::string to_string() const override;
-
     };
 
 class Stmt: public Base {
@@ -215,8 +199,6 @@ public:
                 std::string to_string() const override;
 
                 riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
-
-                ~MemoryDecl() override;
             };
 
             class Load: public Rvalue {
@@ -228,8 +210,6 @@ public:
                 std::string to_string() const override;
 
                 riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
-
-                ~Load() override;
             };
 
             class GetPtr: public Rvalue {
@@ -240,8 +220,6 @@ public:
                 std::string to_string() const override;
 
                 GetPtr(Id *base, Value *offset);
-
-                ~GetPtr() override;
             };
 
             class GetElemPtr: public Rvalue {
@@ -252,8 +230,6 @@ public:
                 std::string to_string() const override;
 
                 GetElemPtr(Id *base, Value *offset);
-
-                ~GetElemPtr() override;
             };
 
             namespace op {
@@ -279,8 +255,6 @@ public:
                 riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
 
                 Expr(Op op, Value *lv, Value *rv, bool is_const = false);
-
-                ~Expr() override;
             };
 
             class FuncCall: public Rvalue, public NotEndStmt {
@@ -294,8 +268,6 @@ public:
                 riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
 
                 FuncCall(Id *id, std::vector<Value *> args);
-
-                ~FuncCall() override;
             };
 
         class SymbolDef: public NotEndStmt {
@@ -308,8 +280,6 @@ public:
             void stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const override;
 
             SymbolDef(Id *id, Rvalue *val);
-
-            ~SymbolDef() override;
         };
 
         class Store: public NotEndStmt {
@@ -325,8 +295,6 @@ public:
                 std::string to_string() const override;
 
                 void stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const override;
-
-                ~StoreValue() override;
             };
 
             class StoreInitializer: public Store {
@@ -337,8 +305,6 @@ public:
                 std::string to_string() const override;
 
                 StoreInitializer(Initializer *initializer, Id *addr);
-
-                ~StoreInitializer() override;
             };
 
     class EndStmt: public Stmt {
@@ -356,8 +322,6 @@ public:
             void stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const override;
 
             Branch(Value *cond, Id *target1, Id *target2);
-
-            ~Branch() override;
         };
 
         class Jump: public EndStmt {
@@ -369,8 +333,6 @@ public:
             void stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const override;
             
             Jump(Id *target);
-
-            ~Jump() override;
         };
 
         namespace return_type {
@@ -389,8 +351,6 @@ public:
 
             Return();
             Return(Value *val);
-
-            ~Return() override;
         };
 
     class GlobalStmt: public Stmt {
@@ -414,8 +374,6 @@ public:
             void block_to_riscv(std::string &str) const;
 
             Block(Id *id, std::vector<Stmt *> stmts);
-
-            ~Block() override;
         };
 
         class FuncDef: public GlobalStmt {
@@ -429,8 +387,6 @@ public:
             void stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const override;
 
             FuncDef(Id *id, std::vector<Id *> formal_param_ids, std::vector<Block *> blocks);
-
-            ~FuncDef() override;
         };
 
         class FuncDecl: public GlobalStmt {
@@ -442,8 +398,6 @@ public:
             void stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const override;
 
             FuncDecl(Id *id);
-
-            ~FuncDecl() override;
         };
 
         class GlobalMemoryDecl: public GlobalStmt {
@@ -456,8 +410,6 @@ public:
             void stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const override;
 
             GlobalMemoryDecl(Type *type, Initializer *initializer);
-
-            ~GlobalMemoryDecl() override;
         };
 
         class GlobalSymbolDef: public GlobalStmt {
@@ -470,8 +422,6 @@ public:
             void stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const override;
 
             GlobalSymbolDef(Id *id, GlobalMemoryDecl *decl);
-
-            ~GlobalSymbolDef() override;
         };
 
 class Program: public Base {
@@ -484,7 +434,6 @@ public:
 
     Program(std::vector<GlobalStmt *> global_stmts);
 
-    ~Program() override;
 };
 
 }

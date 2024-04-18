@@ -16,11 +16,13 @@ FuncCall::FuncCall(Id *func_id, std::vector<Expr *> actual_params)
 
 Number::Number(int val): val(val) {}
 
-VarDef::VarDef(Id *id): id(id) {}
-VarDef::VarDef(Id *id, Expr *init): id(id), has_init(true), init(init) {}
+VarDef::VarDef(Type *type, Id *id, DeclType decl_type)
+    : decl_type(decl_type), type(type), id(id), has_init(false), init(nullptr) {}
+VarDef::VarDef(
+    Type *type, Id *id, Expr *init, DeclType decl_type
+) : decl_type(decl_type), type(type), id(id), has_init(true), init(init) {}
 
-VarDecl::VarDecl(Type *type, std::vector<VarDef *> var_defs, DeclType decl_type)
-    : type(type), var_defs(var_defs), decl_type(decl_type) {}
+VarDecl::VarDecl(std::vector<VarDef *> var_defs) : var_defs(var_defs) {}
 
 Return::Return(): return_type(return_type::NotHasRetVal) {}
 Return::Return(Expr *ret_val): return_type(return_type::HasRetVal), ret_val(ret_val) {}
@@ -38,11 +40,13 @@ While::While(Expr *cond, Stmt *body): cond(cond), body(body) {}
 For::For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body) 
     : init_stmt(init_stmt), cond(cond), iter_stmt(iter_stmt), body(body) {}
 
-GlobalVarDef::GlobalVarDef(Id *id): id(id), has_init(false) {}
-GlobalVarDef::GlobalVarDef(Id *id, Expr *init): id(id), has_init(true), init(init) {}
+GlobalVarDef::GlobalVarDef(Type *type, Id *id, DeclType decl_type)
+    : decl_type(decl_type), type(type), id(id), has_init(false), init(nullptr) {}
+GlobalVarDef::GlobalVarDef(
+    Type *type, Id *id, Expr *init, DeclType decl_type
+) : decl_type(decl_type), type(type), id(id), has_init(true), init(init) {}
 
-GlobalVarDecl::GlobalVarDecl(Type *type, std::vector<GlobalVarDef *> var_defs, DeclType decl_type)
-    : type(type), var_defs(var_defs), decl_type(decl_type) {}
+GlobalVarDecl::GlobalVarDecl(std::vector<GlobalVarDef *> var_defs) : var_defs(var_defs) {}
 
 FuncDef::FuncDef(Type *ret_type, Id *id, std::vector<std::tuple<Type *, Id *> *> params, Block *block) :
     ret_type(ret_type), id(id), params(params), block(block) {}
