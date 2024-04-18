@@ -7,6 +7,7 @@
 #include "../include/loop_tag.h"
 
 #include <string>
+#include <functional>
 
 namespace ast {
 

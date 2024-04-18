@@ -6,9 +6,7 @@
 #include "value_manager.h"
 #include "nesting_info.h"
 
-#include <iostream>
 #include <vector>
-#include <functional>
 
 namespace koopa {
     class Base;

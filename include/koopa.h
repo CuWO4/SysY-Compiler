@@ -4,13 +4,11 @@
 #include "nesting_info.h"
 #include "riscv_trans.h"
 
-#include <iostream>
 #include <assert.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <functional>
 
 namespace koopa {
 
