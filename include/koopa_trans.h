@@ -61,6 +61,7 @@ namespace koopa_trans {
      */
     class Blocks {
     public:
+        Blocks(koopa::Value *last_val);
         Blocks(std::vector<koopa::Stmt *> stmts = {});
         Blocks(std::vector<koopa::Stmt *> stmts, koopa::Value *last_val);
 

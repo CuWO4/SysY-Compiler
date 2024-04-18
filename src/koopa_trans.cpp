@@ -5,6 +5,11 @@
 
 namespace koopa_trans {
 
+Blocks::Blocks(koopa::Value *last_val)
+    : active_stmts({}), blocks({}), 
+    has_last_val(true), last_val(last_val),
+    begin_block_id(nullptr) {}
+
 Blocks::Blocks(std::vector<koopa::Stmt *> stmts)
     : active_stmts(stmts), blocks({}), 
     has_last_val(true), last_val(nullptr),

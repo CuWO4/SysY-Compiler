@@ -336,9 +336,7 @@ koopa_trans::Blocks *UnaryExpr::to_koopa() const {
 }
 
 koopa_trans::Blocks *Number::to_koopa() const {
-    auto res = new koopa_trans::Blocks;
-    res->set_last_val( value_manager.new_const(val) );
-    return res;
+    return new koopa_trans::Blocks(value_manager.new_const(val));
 }
 
 koopa_trans::Blocks *Id::to_koopa() const {
@@ -351,10 +349,7 @@ koopa_trans::Blocks *Id::to_koopa() const {
     }
 
     if (id_koopa->is_const) {
-
-        res->set_last_val( value_manager.new_const(id_koopa->val) );
-        return res;
-
+        return new koopa_trans::Blocks(value_manager.new_const(id_koopa->val));
     }
     else {
 
