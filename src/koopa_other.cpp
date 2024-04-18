@@ -11,28 +11,6 @@ void operator+=(Block &self, std::vector<Stmt *> stmts) {
     self.stmts.insert(self.stmts.end(), stmts.begin(), stmts.end());
 }
 
-namespace op {
-    std::function<int(int, int)> op_func[] = {
-        [] (int a, int b) { return a != b; },
-        [] (int a, int b) { return a == b; },
-        [] (int a, int b) { return a > b; },
-        [] (int a, int b) { return a < b; },
-        [] (int a, int b) { return a >= b; },
-        [] (int a, int b) { return a <= b; },
-        [] (int a, int b) { return a + b; },
-        [] (int a, int b) { return a - b; },
-        [] (int a, int b) { return a * b; },
-        [] (int a, int b) { return a / b; },
-        [] (int a, int b) { return a % b; },
-        [] (int a, int b) { return a & b; },
-        [] (int a, int b) { return a | b; },
-        [] (int a, int b) { return a ^ b; },
-        [] (int a, int b) { return a << b; },
-        [] (int a, int b) { return (unsigned)a >> (unsigned)b; },
-        [] (int a, int b) { return a >> b; },
-    };
-}
-
 bool NotEndStmt::is_end_stmt() { return false; }
 bool EndStmt::is_end_stmt() { return true; }
 bool GlobalStmt::is_end_stmt() { return false; }

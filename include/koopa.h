@@ -252,8 +252,6 @@ public:
                     NE, EQ, GT, LT, GE, LE, ADD, SUB, MUL,
                     DIV, MOD, AND, OR, XOR, SHL, SHR, SAR,
                 };  
-
-                extern std::function<int(int, int)> op_func[17];
             }
             using Op = op::Op;
 
