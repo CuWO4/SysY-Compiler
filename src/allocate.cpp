@@ -1,3 +1,5 @@
+#include <typeinfo>
+
 #include "../include/riscv_trans.h"
 
 #include "../include/value_manager.h"

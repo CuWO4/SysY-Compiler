@@ -4,6 +4,8 @@
 #include "../include/value_manager.h"
 
 #include <string>
+#include <typeinfo>
+
 
 namespace koopa {
 

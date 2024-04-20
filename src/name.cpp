@@ -3,6 +3,7 @@
 #include "../include/def.h"
 
 #include <algorithm>
+#include <typeinfo>
 
 std::string new_block_name() {
     return "%LLB_" + std::to_string(block_count++);
