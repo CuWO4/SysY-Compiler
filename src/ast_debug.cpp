@@ -68,6 +68,9 @@ std::string VarDecl::debug(int indent) const {
     for (auto var_def: var_defs) {
         res += var_def->debug(indent) + '\n';
     }
+    if (var_defs.size() > 0) {
+        res.pop_back(); // `'\n`
+    }
     return res;
 }
 
@@ -131,11 +134,11 @@ std::string Void::debug(int indent) const {
 }
 
 std::string Pointer::debug(int indent) const {
-    return pointed_type->debug() + "[]";
+    return '(' + pointed_type->debug() + ")[]";
 }
 
 std::string Array::debug(int indent) const {
-    return element_type->debug() + '[' + length->debug() + ']';
+    return '(' + element_type->debug() + ")[" + length->debug() + ']';
 }
 
 std::string FuncDef::debug(int indent) const {
@@ -168,6 +171,9 @@ std::string GlobalVarDecl::debug(int indent) const {
     std::string res = "";
     for (auto var_def: var_defs) {
         res += var_def->debug(indent) + '\n';
+    }
+    if (var_defs.size() > 0) {
+        res.pop_back(); // `'\n`
     }
     return res;
 }

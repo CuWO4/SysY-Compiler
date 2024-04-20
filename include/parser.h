@@ -19,11 +19,11 @@ namespace parser {
 
         class Array: public TypeManger {
         public:
-            Array(ast::Expr *size, TypeManger *element_type);
+            Array(ast::Expr *length, TypeManger *element_type);
             ast::Type *to_ast_type(ast::Type *primitive_type) override;
 
         private:
-            ast::Expr *size;
+            ast::Expr *length;
             TypeManger *element_type;
         };
 
@@ -68,6 +68,14 @@ namespace parser {
             ast::Type *primitive_type, 
             ast::DeclType
         );
+
+        /**
+         * wrap type with pointer/array
+         * @example  { a, Primitive }.wrap_pointer()
+         *      => { a, Pointer { Primitive } }
+         */
+        void wrap_pointer();
+        void wrap_array(ast::Expr *length);
 
     private:
         TypeManger *type_manager;

@@ -57,7 +57,7 @@
 %type   <parser_var_def_manager_val> var_def
 %type	<parser_var_def_manager_vec_val> var_defs
 %type   <ast_global_stmt_vec_val> comp_unit_items
-%type   <ast_expr_vec_val> func_call_params
+%type   <ast_expr_vec_val> func_call_params var_def_trace
 %type   <ast_stmt_vec_val> block_items 
 %type   <ast_func_param_val> func_def_param 
 %type   <ast_func_params_val> func_def_params 
@@ -145,6 +145,7 @@ func_def_params
     }
 ;
 
+// TODO  change to var_def
 func_def_param
     : type id {
         $$ = new std::tuple<ast::Type *, ast::Id *>($1, $2);
@@ -277,12 +278,49 @@ var_defs
     }
 ;
 
-var_def
-    : id '=' no_comma_expr {
-        $$ = new parser::VarDefManager(new parser::Primitive, $1, $3);
+//
+// to generate dimension vector of variable declaration, 
+// use nullptr to represent pointer
+// .e.g  a[][3][4 + x] => { nullptr, 3, (4 + x) }  b => {}
+//
+var_def_trace
+    : var_def_trace '[' ']' {
+        $1->push_back(nullptr);
+        $$ = $1;
     }
-    | id { 
-        $$ = new parser::VarDefManager(new parser::Primitive, $1);
+    | var_def_trace '[' no_comma_expr ']' {
+        $1->push_back($3);
+        $$ = $1;
+    }
+    | {
+        $$ = new std::vector<ast::Expr *>{};
+    }
+;
+
+var_def
+    : id var_def_trace '=' no_comma_expr {
+        auto res = new parser::VarDefManager(new parser::Primitive, $1, $4);
+        for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
+            if (*dim == nullptr) {
+                res->wrap_pointer();
+            }
+            else {
+                res->wrap_array(*dim);
+            }
+        }
+        $$ = res;
+    }
+    | id var_def_trace { 
+        auto res = new parser::VarDefManager(new parser::Primitive, $1);
+        for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
+            if (*dim == nullptr) {
+                res->wrap_pointer();
+            }
+            else {
+                res->wrap_array(*dim);
+            }
+        }
+        $$ = res;
     }
 ;
 

@@ -2,13 +2,13 @@
 
 namespace parser {
 
-    Array::Array(ast::Expr *size, TypeManger *element_type)
-        : size(size), element_type(element_type) {}
+    Array::Array(ast::Expr *length, TypeManger *element_type)
+        : length(length), element_type(element_type) {}
 
     ast::Type *Array::to_ast_type(ast::Type *primitive_type) {
         return new ast::Array(
             element_type->to_ast_type(primitive_type),
-            size
+            length
         );
     }
 
@@ -70,6 +70,14 @@ namespace parser {
                 decl_type
             );
         }
+    }
+
+    void VarDefManager::wrap_pointer() {
+        type_manager = new Pointer(type_manager);
+    }
+
+    void VarDefManager::wrap_array(ast::Expr *length) {
+        type_manager = new Array(length, type_manager);
     }
 
 }
