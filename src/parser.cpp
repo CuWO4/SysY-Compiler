@@ -2,7 +2,21 @@
 
 namespace parser {
 
-    // TODO  implement parser::Array & parser::Pointer
+    Array::Array(ast::Expr *size, TypeManger *element_type)
+        : size(size), element_type(element_type) {}
+
+    ast::Type *Array::to_ast_type(ast::Type *primitive_type) {
+        return new ast::Array(
+            element_type->to_ast_type(primitive_type),
+            size
+        );
+    }
+
+    Pointer::Pointer(TypeManger *pointed_type): pointed_type(pointed_type) {}
+
+    ast::Type *Pointer::to_ast_type(ast::Type *primitive_type) {
+        return new ast::Pointer(pointed_type->to_ast_type(primitive_type));
+    }
 
     Primitive::Primitive() {}
 

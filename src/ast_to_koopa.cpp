@@ -492,6 +492,11 @@ koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
         throw '`' + id->lit + "` redefined";
     }
 
+    if (type->to_koopa()->get_type_id() != koopa::type::Int) {
+        // TODO
+        return nullptr;
+    }
+
     auto stmts = new koopa_trans::GlobalStmts();
     
     if (decl_type == decl_type::ConstDecl) {
@@ -572,6 +577,11 @@ koopa_trans::GlobalStmts *GlobalVarDecl::to_koopa() const {
 koopa_trans::Blocks *VarDef::to_koopa() const {
     if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
         throw '`' + id->lit + "` redefined";
+    }
+
+    if (type->to_koopa()->get_type_id() != koopa::type::Int) {
+        // TODO
+        return nullptr;
     }
     
     auto stmts = new koopa_trans::Blocks();
@@ -919,6 +929,22 @@ koopa::Type *Int::to_koopa() const {
 koopa::Type *Void::to_koopa() const {
     return new koopa::Void;
 }
+
+koopa::Type *Pointer::to_koopa() const {
+    return new koopa::Pointer(pointed_type->to_koopa());
+}
+
+koopa::Type *Array::to_koopa() const {
+    auto length_koopa = length->to_koopa();
+    if (!length_koopa->get_last_val()->is_const) {
+        throw "declaring array with a variant length `" + length->debug() + "`";
+    }
+    return new koopa::Array(
+        element_type->to_koopa(), 
+        length_koopa->get_last_val()->val
+    );
+}
+
 
 koopa_trans::GlobalStmts *FuncDef::to_koopa() const {
     if (value_manager.get_id('@' + id->lit, id->nesting_info) != nullptr) {

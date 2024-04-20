@@ -130,6 +130,14 @@ std::string Void::debug(int indent) const {
     return "Void";
 }
 
+std::string Pointer::debug(int indent) const {
+    return pointed_type->debug() + "[]";
+}
+
+std::string Array::debug(int indent) const {
+    return element_type->debug() + '[' + length->debug() + ']';
+}
+
 std::string FuncDef::debug(int indent) const {
     auto res = build_indent(indent) + ret_type->debug() + ' ' + id->lit + '(';
     for (auto param: params) {

@@ -44,11 +44,29 @@ namespace ast {
         };
 
         class Pointer: public Type {
-            // TODO
+        public:
+            Pointer(Type *pointed_type);
+
+            koopa::Type *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+
+        private:
+            Type *pointed_type;
         };
 
+        class Expr;
         class Array: public Type {
-            // TODO
+        public:
+            Array(Type *element_type, Expr *length);
+
+            koopa::Type *to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+        
+        private:
+            Type *element_type;
+            Expr *length;
         };
 
     namespace op {

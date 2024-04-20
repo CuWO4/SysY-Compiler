@@ -19,17 +19,17 @@ namespace parser {
 
         class Array: public TypeManger {
         public:
-            Array(int, TypeManger);
+            Array(ast::Expr *size, TypeManger *element_type);
             ast::Type *to_ast_type(ast::Type *primitive_type) override;
 
         private:
-            int size;
+            ast::Expr *size;
             TypeManger *element_type;
         };
 
         class Pointer: public TypeManger {
         public:
-            Pointer(TypeManger);
+            Pointer(TypeManger *pointed_type);
             ast::Type *to_ast_type(ast::Type *primitive_type) override;
 
         private:
