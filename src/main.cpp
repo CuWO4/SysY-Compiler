@@ -64,7 +64,7 @@ int main(int argc, const char *argv[]) {
 
 		yyin = fopen(input.c_str(), "r");
 		if (yyin == nullptr) {
-			throw std::string("unable to open file `") + output + '`';
+			throw std::string("unable to open file `") + input + '`';
 		}
 
 		std::ofstream os;

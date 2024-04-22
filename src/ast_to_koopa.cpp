@@ -66,6 +66,10 @@ static koopa_trans::Blocks *build_short_circuit_evaluation(
      *      // last_val = result <---*
      */
 
+    // TODO  how to re-use `If`
+
+    assert(op == op::LOGIC_AND || op == op::LOGIC_OR);
+
     auto res = new koopa_trans::Blocks;
     auto lv_koopa = lv_stmts->get_last_val();
     auto rv_koopa = rv_stmts->get_last_val();
@@ -83,8 +87,8 @@ static koopa_trans::Blocks *build_short_circuit_evaluation(
     *blocks += new koopa::SymbolDef(res_addr, new koopa::MemoryDecl(new koopa::Int));
 
     koopa::Value *bool_lv;
-    if (lv_koopa->is_const) {
-        bool_lv = value_manager.new_const(lv_koopa->val != 0);
+    if (lv_koopa->is_const()) {
+        bool_lv = value_manager.new_const(lv_koopa->get_val() != 0);
     }
     else {
         bool_lv = value_manager.new_id(
@@ -120,8 +124,8 @@ static koopa_trans::Blocks *build_short_circuit_evaluation(
     }
 
     koopa::Value *bool_rv;
-    if (rv_koopa->is_const) {
-        bool_rv = value_manager.new_const(rv_koopa->val != 0);
+    if (rv_koopa->is_const()) {
+        bool_rv = value_manager.new_const(rv_koopa->get_val() != 0);
     }
     else {
         bool_rv = value_manager.new_id(
@@ -161,10 +165,11 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
     auto lv_koopa = lv_stmts->get_last_val();
     auto rv_koopa = rv_stmts->get_last_val();
 
-    if (lv_koopa->is_const && rv_koopa->is_const && op != op::ASSIGN) {
+    // refactor, split constant processing to a specific function
+    if (lv_koopa->is_const() && rv_koopa->is_const() && op != op::ASSIGN) {
         return new koopa_trans::Blocks(
             value_manager.new_const(
-                binary_op_func[op](lv_koopa->val, rv_koopa->val)
+                binary_op_func[op](lv_koopa->get_val(), rv_koopa->get_val())
             )
         );
     }
@@ -199,8 +204,8 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
 
     if (op == op::LOGIC_AND || op == op::LOGIC_OR) {
         if (!rv->has_side_effect()) {
-            if (!lv_koopa->is_const) *res += *lv_stmts;
-            if (!rv_koopa->is_const) *res += *rv_stmts;
+            if (!lv_koopa->is_const()) *res += *lv_stmts;
+            if (!rv_koopa->is_const()) *res += *rv_stmts;
 
             auto tmpa = generate(koopa::op::NE, lv_koopa, value_manager.new_const(0));
             auto tmpb = generate(koopa::op::NE, rv_koopa, value_manager.new_const(0));
@@ -216,14 +221,14 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
         }
 
         if (op == op::LOGIC_OR) {
-            if (lv_koopa->is_const && lv_koopa->val != 0) {
+            if (lv_koopa->is_const() && lv_koopa->get_val() != 0) {
                 return new koopa_trans::Blocks(
                     value_manager.new_const(1)
                 );
             }
             else if (
                 !lv->has_side_effect()
-                &&rv_koopa->is_const && rv_koopa->val != 0
+                &&rv_koopa->is_const() && rv_koopa->get_val() != 0
             ) {
                 return new koopa_trans::Blocks(
                     value_manager.new_const(1)
@@ -231,14 +236,14 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
             }
         }
         if (op == op::LOGIC_AND) {
-            if (lv_koopa->is_const && lv_koopa->val == 0) {
+            if (lv_koopa->is_const() && lv_koopa->get_val() == 0) {
                 return new koopa_trans::Blocks(
                     value_manager.new_const(0)
                 );
             }
             else if (
                 !lv->has_side_effect()
-                &&rv_koopa->is_const && rv_koopa->val == 0
+                &&rv_koopa->is_const() && rv_koopa->get_val() == 0
             ) {
                 return new koopa_trans::Blocks(
                     value_manager.new_const(0)
@@ -251,7 +256,7 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
 
     if (op == op::COMMA) { 
         if (lv->has_side_effect()) *res += *lv_stmts;
-        if (rv_stmts->get_last_val()->is_const) {
+        if (rv_stmts->get_last_val()->is_const()) {
             res->set_last_val( rv_stmts->get_last_val() );
         }
         else {
@@ -274,7 +279,7 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
         if (id_koopa == nullptr) {
             throw "undeclared identifier `" + id->lit + '`';
         }
-        if (id_koopa->is_const) {
+        if (id_koopa->is_const()) {
             throw "assigning to a const identifier `" + id->lit + '`';
         }
 
@@ -289,31 +294,31 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
     }
 
     if (op == op::ADD) {
-        if (lv_koopa->is_const && lv_koopa->val == 0) {
+        if (lv_koopa->is_const() && lv_koopa->get_val() == 0) {
             return rv_stmts;
         }
-        if (rv_koopa->is_const && rv_koopa->val == 0) {
+        if (rv_koopa->is_const() && rv_koopa->get_val() == 0) {
             return lv_stmts;
         }
     }
 
     if (op == op::MUL) {
-        if (lv_koopa->is_const && lv_koopa->val == 1) {
+        if (lv_koopa->is_const() && lv_koopa->get_val() == 1) {
             return rv_stmts;
         }
-        if (rv_koopa->is_const && rv_koopa->val == 1) {
+        if (rv_koopa->is_const() && rv_koopa->get_val() == 1) {
             return lv_stmts;
         }
     }
 
     if (op == op::SUB) {
-        if (rv_koopa->is_const && rv_koopa->val == 0) {
+        if (rv_koopa->is_const() && rv_koopa->get_val() == 0) {
             return lv_stmts;
         }
     }
 
     if (op == op::DIV) {
-        if (rv_koopa->is_const && rv_koopa->val == 1) {
+        if (rv_koopa->is_const() && rv_koopa->get_val() == 1) {
             return lv_stmts;
         }
     }
@@ -346,10 +351,10 @@ koopa_trans::Blocks *BinaryExpr::to_koopa() const {
 
 koopa_trans::Blocks *UnaryExpr::to_koopa() const {
     auto lv_stmts = lv->to_koopa();
-    if (lv_stmts->get_last_val()->is_const) {
+    if (lv_stmts->get_last_val()->is_const()) {
         return new koopa_trans::Blocks(
             value_manager.new_const(
-                unary_op_func[op](lv_stmts->get_last_val()->val)
+                unary_op_func[op](lv_stmts->get_last_val()->get_val())
             )
         );
     }
@@ -410,8 +415,8 @@ koopa_trans::Blocks *Id::to_koopa() const {
         throw "undeclared identifier `" + lit + '`';
     }
 
-    if (id_koopa->is_const) {
-        return new koopa_trans::Blocks(value_manager.new_const(id_koopa->val));
+    if (id_koopa->is_const()) {
+        return new koopa_trans::Blocks(value_manager.new_const(id_koopa->get_val()));
     }
     else {
 
@@ -488,6 +493,7 @@ koopa_trans::Blocks *FuncCall::to_koopa() const {
 }
 
 koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
+    // TODO  how to re-use `VarDef`
     if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
         throw '`' + id->lit + "` redefined";
     }
@@ -506,7 +512,7 @@ koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
 
         auto rval_koopa = init->to_koopa();
 
-        if (!rval_koopa->get_last_val()->is_const) {
+        if (!rval_koopa->get_last_val()->is_const()) {
             throw "initiating const variable `" + id->lit + "` with a non-const value";
         }
 
@@ -514,16 +520,15 @@ koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
             koopa::id_type::GlobalId,
             type->to_koopa(),
             '@' + id->lit,
-            id->nesting_info,
-            true,
-            rval_koopa->get_last_val()->val
+            rval_koopa->get_last_val()->get_val(),
+            id->nesting_info
         );
     }
     else { /* decl_type != decl_type::ConstDecl */
         if (has_init) {
             auto rval_koopa = init->to_koopa();
 
-            if (!rval_koopa->get_last_val()->is_const) {
+            if (!rval_koopa->get_last_val()->is_const()) {
                 throw "initiating global variable `" 
                     + id->lit + "` with a non-const value";
             }
@@ -539,7 +544,7 @@ koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
                 ),
                 new koopa::GlobalMemoryDecl(
                     type->to_koopa(),
-                    new koopa::ConstInitializer(rval_koopa->get_last_val()->val)
+                    new koopa::ConstInitializer(rval_koopa->get_last_val()->get_val())
                 )
             );
         }
@@ -593,7 +598,7 @@ koopa_trans::Blocks *VarDef::to_koopa() const {
 
         auto rval_koopa = init->to_koopa();
 
-        if (!rval_koopa->get_last_val()->is_const) {
+        if (!rval_koopa->get_last_val()->is_const()) {
             throw "initiating const variable `" 
                 + id->lit + "` with a non-const value";
         }
@@ -602,9 +607,8 @@ koopa_trans::Blocks *VarDef::to_koopa() const {
             koopa::id_type::LocalId,
             type->to_koopa(),
             '@' + id->lit,
-            id->nesting_info,
-            true,
-            rval_koopa->get_last_val()->val
+            rval_koopa->get_last_val()->get_val(),
+            id->nesting_info
         );
     }
     else { /* decl_type != decl_type::ConstDecl */
@@ -936,12 +940,12 @@ koopa::Type *Pointer::to_koopa() const {
 
 koopa::Type *Array::to_koopa() const {
     auto length_koopa = length->to_koopa();
-    if (!length_koopa->get_last_val()->is_const) {
+    if (!length_koopa->get_last_val()->is_const()) {
         throw "declaring array with a variant length `" + length->debug() + "`";
     }
     return new koopa::Array(
         element_type->to_koopa(), 
-        length_koopa->get_last_val()->val
+        length_koopa->get_last_val()->get_val()
     );
 }
 

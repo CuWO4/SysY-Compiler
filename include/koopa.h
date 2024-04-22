@@ -97,8 +97,8 @@ class Value: public Base {
 public:
     virtual riscv_trans::Register value_to_riscv(std::string &str) const = 0;
 
-    bool is_const;
-    int  val;
+    virtual bool is_const() = 0;
+    virtual int get_val() = 0;
 };
 
     namespace id_type {
@@ -116,13 +116,15 @@ public:
 
         riscv_trans::Register value_to_riscv(std::string &str) const override;
 
-        Id(
-            IdType id_type, 
-            Type *type, 
-            std::string lit, 
-            bool is_const = false, 
-            int val = 0
-        );
+        bool is_const() override;
+        int get_val() override;
+
+        Id(IdType id_type, Type *type, std::string lit);
+        Id(IdType id_type, Type *type, std::string lit, int val);
+
+    private:
+        bool is_const_bool;
+        int val;
     };
 
     class Const: public Value {
@@ -131,12 +133,20 @@ public:
 
         riscv_trans::Register value_to_riscv(std::string &str) const override;
 
+        bool is_const() override;
+        int get_val() override;
+
         Const(int val);
+    private:
+        int val;
     };
 
     class Undef: public Value {
 
         std::string to_string() const override;
+
+        bool is_const() override;
+        int get_val() override;
     };
 
 class Initializer: public Base {
@@ -259,16 +269,13 @@ public:
                 Value  *lv;
                 Value  *rv;
 
-                bool is_const;
-                int  val;
-
                 std::string to_string() const override;
 
                 riscv_trans::Register rvalue_to_riscv(
                     std::string &str
                 ) const override;
 
-                Expr(Op op, Value *lv, Value *rv, bool is_const = false);
+                Expr(Op op, Value *lv, Value *rv);
             };
 
             class FuncCall: public Rvalue, public NotEndStmt {

@@ -15,18 +15,17 @@ FuncType::FuncType(std::vector<Type *> arg_types, Type *ret_type)
     assert(ret_type);
 }
 
-Id::Id(IdType id_type, Type *type, std::string lit, bool is_const, int val) 
-    : id_type(id_type), type(type), lit(lit) {
+Id::Id(IdType id_type, Type *type, std::string lit) 
+    : id_type(id_type), type(type), lit(lit), is_const_bool(false), val(0) {
     assert(type);
-        
-    this->val = val;
-    this->is_const = is_const;
 }
 
-Const::Const(int val)  {
-    this->val = val;
-    this->is_const = true;
+Id::Id(IdType id_type, Type *type, std::string lit, int val) 
+    : id_type(id_type), type(type), lit(lit), is_const_bool(true), val(val) {
+    assert(type);
 }
+
+Const::Const(int val): val(val) {}
 
 ConstInitializer::ConstInitializer(int val): val(val) {}
 
@@ -49,8 +48,8 @@ GetElemPtr::GetElemPtr(Id *base, Value *offset): base(base), offset(offset) {
     assert(base); assert(offset);
 }
 
-Expr::Expr(Op op, Value *lv, Value *rv, bool is_const) 
-    : op(op), lv(lv), rv(rv), is_const(is_const) {
+Expr::Expr(Op op, Value *lv, Value *rv) 
+    : op(op), lv(lv), rv(rv) {
     assert(lv); assert(rv);
 }
 

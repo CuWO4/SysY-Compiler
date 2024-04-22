@@ -82,18 +82,18 @@ riscv_trans::Register Expr::rvalue_to_riscv(std::string &str) const {
     std::string second_lit;
     bool is_i_type_inst = false;
     
-    /* due to constant folding, it's impossible that lv->is_const && rv->is_const */
-    if (lv->is_const && !rv->is_const && is_commutative(op) && has_i_type_inst(op)) {
+    /* due to constant folding, it's impossible that lv->is_const() && rv->is_const() */
+    if (lv->is_const() && !rv->is_const() && is_commutative(op) && has_i_type_inst(op)) {
 
         //! memory leak
         return exchanged_expr(this)->rvalue_to_riscv(str);
         
     }
-    else if (!lv->is_const && rv->is_const && has_i_type_inst(op)) {
+    else if (!lv->is_const() && rv->is_const() && has_i_type_inst(op)) {
         
         is_i_type_inst = true;
         first_reg = lv->value_to_riscv(str);
-        second_lit = std::to_string(rv->val);
+        second_lit = std::to_string(rv->get_val());
 
     }
     else {

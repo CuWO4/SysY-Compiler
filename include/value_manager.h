@@ -19,8 +19,12 @@ class ValueManager {
 public:
     koopa::Id *new_id(
         koopa::IdType id_type, koopa::Type *type, std::string lit, 
-        NestingInfo *nesting_info = new NestingInfo(), 
-        bool is_const = false, int val = 0
+        NestingInfo *nesting_info = new NestingInfo()
+    );
+
+    koopa::Id *new_id(
+        koopa::IdType id_type, koopa::Type *type, std::string lit, 
+        int val, NestingInfo *nesting_info = new NestingInfo()
     );
 
     bool is_id_declared(std::string lit, NestingInfo *nesting_info);

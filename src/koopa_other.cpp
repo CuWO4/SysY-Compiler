@@ -59,4 +59,30 @@ bool Label::operator==(Type &other) {
     return other.get_type_id() == type::Label;
 }
 
+bool Id::is_const() {
+    return is_const_bool;
+}
+
+bool Const::is_const() {
+    return true;
+}
+
+bool Undef::is_const() {
+    return false;
+}
+
+int Id::get_val() {
+    assert(is_const());
+    return val;
+}
+
+int Const::get_val() {
+    return val;
+}
+
+int Undef::get_val() {
+    assert(is_const());
+    return 0;
+}
+
 }
