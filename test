@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+
+class UnknownArgument(Exception):
+    def __init__(self, argument):
+        self.argument = argument
+        
+    def __str__(self):
+        return f"unknown argument `{self.argument}`"
+
+def call_make(stage, target_lang, debug_flag):
+    if target_lang == "":
+        call_make(stage, "koopa", debug_flag)
+        call_make(stage, "riscv", debug_flag)
+        return
+    
+    if stage == "hello":
+        target_lang_ext = "koopa" if target_lang == "koopa" else "S"
+        debug_flag_string = " ".join(debug_flag)
+
+        command = f"./build/compiler -{target_lang} ./testcases/hello/hello.c -o ./testcases/hello/hello.{target_lang_ext} {debug_flag_string}"
+    else:
+        stage_string = f"-s {stage}" if stage else ""
+        command = f"autotest -{target_lang} {stage_string} /root/compiler"
+        
+    print(command)
+    os.system(command)
+        
+def parse_arguments(args):
+    stage = ""
+    target_lang = ""
+    debug_flag = []
+    
+    for arg in args:
+        if arg.startswith("lv") or arg == "perf" or arg == "hello" or arg == "all":
+            stage = arg
+        elif arg == "koopa" or arg == "riscv":
+            target_lang = arg
+        elif arg == "-dbg-k" or arg == "-dbg-r":
+            debug_flag.append(arg)
+        else:
+            raise UnknownArgument(arg)
+    
+    return stage, target_lang, debug_flag
+
+if __name__ == "__main__":
+    try:
+        stage, target_lang, debug_flag = parse_arguments(sys.argv[1:])
+        call_make(stage, target_lang, debug_flag)
+    except UnknownArgument as e:
+        print(e)
+    
+    
