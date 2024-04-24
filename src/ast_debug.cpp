@@ -4,28 +4,82 @@
 
 namespace ast {
 
-static const char *binary_op_name[] = {
-    "||", "&&", "==", "!=", "<", ">", "<=", ">=", 
-    "+", "-", "*", "/", "%", ",", "="
-};
-
-static const char *unary_op_name[] = { "-", "+", "!" };
-
 std::string build_indent(int indent) {
     std::string res = "";
     for (int i = 0; i < indent; i++) res += "  ";
     return res;
 }
 
-std::string BinaryExpr::debug(int indent) const {
-    return '(' + lv->debug() + ") " 
-        + binary_op_name[op] 
-        + " (" + rv->debug() + ')';
+std::string LogicOr::debug(int indent) const {
+    return '(' + lv->debug() + ") || (" + rv->debug() + ')';
 }
 
-std::string UnaryExpr::debug(int indent) const {
-    return std::string(unary_op_name[op]) 
-        + '(' + lv->debug() + ')';
+std::string LogicAnd::debug(int indent) const {
+    return '(' + lv->debug() + ") && (" + rv->debug() + ')';
+}
+
+std::string Eq::debug(int indent) const {
+    return '(' + lv->debug() + ") == (" + rv->debug() + ')';
+}
+
+std::string Neq::debug(int indent) const {
+    return '(' + lv->debug() + ") != (" + rv->debug() + ')';
+}
+
+std::string Lt::debug(int indent) const {
+    return '(' + lv->debug() + ") < (" + rv->debug() + ')';
+}
+
+std::string Gt::debug(int indent) const {
+    return '(' + lv->debug() + ") > (" + rv->debug() + ')';
+}
+
+std::string Leq::debug(int indent) const {
+    return '(' + lv->debug() + ") <= (" + rv->debug() + ')';
+}
+
+std::string Geq::debug(int indent) const {
+    return '(' + lv->debug() + ") >= (" + rv->debug() + ')';
+}
+
+std::string Add::debug(int indent) const {
+    return '(' + lv->debug() + ") + (" + rv->debug() + ')';
+}
+
+std::string Sub::debug(int indent) const {
+    return '(' + lv->debug() + ") - (" + rv->debug() + ')';
+}
+
+std::string Mul::debug(int indent) const {
+    return '(' + lv->debug() + ") * (" + rv->debug() + ')';
+}
+
+std::string Div::debug(int indent) const {
+    return '(' + lv->debug() + ") / (" + rv->debug() + ')';
+}
+
+std::string Mod::debug(int indent) const {
+    return '(' + lv->debug() + ") % (" + rv->debug() + ')';
+}
+
+std::string Comma::debug(int indent) const {
+    return '(' + lv->debug() + ") , (" + rv->debug() + ')';
+}
+
+std::string Assign::debug(int indent) const {
+    return '(' + lv->debug() + ") = (" + rv->debug() + ')';
+}
+
+std::string Neg::debug(int indent) const {
+    return "-(" + lv->debug() + ')';
+}
+
+std::string Pos::debug(int indent) const {
+    return "+(" + lv->debug() + ')';
+}
+
+std::string Not::debug(int indent) const {
+    return "!(" + lv->debug() + ')';
 }
 
 std::string Id::debug(int indent) const {

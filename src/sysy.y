@@ -352,62 +352,62 @@ empty_stmt
 expr
     : no_comma_expr
     | no_comma_expr ',' no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::COMMA, $1, $3);
+		$$ = new ast::Comma($1, $3);
 	}
 ;
 
 no_comma_expr
     : '(' no_comma_expr ')' { $$ = $2; }
     | no_comma_expr TK_LOGIC_OR no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::LOGIC_OR, $1, $3);
+		$$ = new ast::LogicOr($1, $3);
 	}
     | no_comma_expr TK_LOGIC_AND no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::LOGIC_AND, $1, $3);
+		$$ = new ast::LogicAnd($1, $3);
 	}
     | no_comma_expr TK_EQ no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::EQ, $1, $3);
+		$$ = new ast::Eq($1, $3);
 	}
     | no_comma_expr TK_NEQ no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::NEQ, $1, $3);
+		$$ = new ast::Neq($1, $3);
 	}
     | no_comma_expr '<' no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::LT, $1, $3);
+        $$ = new ast::Lt($1, $3);
 	}
     | no_comma_expr '>' no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::GT, $1, $3);
+		$$ = new ast::Gt($1, $3);
 	}
     | no_comma_expr TK_LEQ no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::LEQ, $1, $3);
+		$$ = new ast::Leq($1, $3);
 	}
     | no_comma_expr TK_GEQ no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::GEQ, $1, $3);
+		$$ = new ast::Geq($1, $3);
 	}
     | no_comma_expr '+' no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::ADD, $1, $3);
+		$$ = new ast::Add($1, $3);
 	}
     | no_comma_expr '-' no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::SUB, $1, $3);
+		$$ = new ast::Sub($1, $3);
 	}
     | no_comma_expr '*' no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::MUL, $1, $3);
+		$$ = new ast::Mul($1, $3);
 	}
     | no_comma_expr '/' no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::DIV, $1, $3);
+		$$ = new ast::Div($1, $3);
 	}
     | no_comma_expr '%' no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::MOD, $1, $3);
+		$$ = new ast::Mod($1, $3);
 	}
     | no_comma_expr '=' no_comma_expr {
-		$$ = new ast::BinaryExpr(ast::op::ASSIGN, $1, $3);
+		$$ = new ast::Assign($1, $3);
 	}
     | '-' no_comma_expr %prec PREC_UNARY_OP  {
-		$$ = new ast::UnaryExpr(ast::op::NEG, $2);
+		$$ = new ast::Neg($2);
 	}
     | '+' no_comma_expr %prec PREC_UNARY_OP  {
-		$$ = new ast::UnaryExpr(ast::op::POS, $2);
+		$$ = new ast::Pos($2);
 	}
     | '!' no_comma_expr %prec PREC_UNARY_OP  {
-		$$ = new ast::UnaryExpr(ast::op::NOT, $2);
+		$$ = new ast::Not($2);
 	}
     | func_call
     | id { $$ = $1; }

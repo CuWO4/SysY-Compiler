@@ -2,15 +2,35 @@
 
 namespace ast {
 
-BinaryExpr::BinaryExpr(BinaryOp op, Expr *lv, Expr* rv)
-    : op(op), lv(lv), rv(rv) {
+BinaryExpr::BinaryExpr(Expr *lv, Expr* rv)
+    : lv(lv), rv(rv) {
     assert(lv); assert(rv);
 }
 
-UnaryExpr::UnaryExpr(UnaryOp op, Expr *lv)
-    : op(op), lv(lv) {
+LogicOr::LogicOr(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+LogicAnd::LogicAnd(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Eq::Eq(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Neq::Neq(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Lt::Lt(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Gt::Gt(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Leq::Leq(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Geq::Geq(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Add::Add(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Sub::Sub(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Mul::Mul(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Div::Div(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Mod::Mod(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Comma::Comma(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+Assign::Assign(Expr *lv, Expr *rv): BinaryExpr(lv, rv) {}
+
+UnaryExpr::UnaryExpr(Expr *lv)
+    : lv(lv) {
     assert(lv);
 }
+
+Neg::Neg(Expr *lv): UnaryExpr(lv) {}
+Pos::Pos(Expr *lv): UnaryExpr(lv) {}
+Not::Not(Expr *lv): UnaryExpr(lv) {}
 
 Pointer::Pointer(Type *pointed_type): pointed_type(pointed_type) {}
 

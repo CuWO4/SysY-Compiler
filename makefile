@@ -87,8 +87,9 @@ once: $(FB_SRCS) | $(BUILD_DIR)
 clean:
 	-rm -rf $(BUILD_DIR)
 
+MODE ?= koopa 
 lldb: $(BUILD_DIR)/$(TARGET_EXEC)
-	lldb $(BUILD_DIR)/$(TARGET_EXEC) -- -test ./testcases/hello/hello.c -o ./testcases/hello/hello.koopa
+	lldb $(BUILD_DIR)/$(TARGET_EXEC) -- -$(MODE) ./testcases/hello/hello.c -o ./testcases/hello/hello.koopa
 
 docker :
 	docker run -it --rm -v ${CURDIR}:/root/compiler  maxxing/compiler-dev bash 

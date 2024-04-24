@@ -69,19 +69,6 @@ namespace ast {
             Expr *length;
         };
 
-    namespace op {
-        enum BinaryOp {
-            LOGIC_OR, LOGIC_AND, EQ, NEQ, LT, GT, LEQ, GEQ,
-            ADD, SUB, MUL, DIV, MOD, COMMA, ASSIGN
-        };
-
-        enum UnaryOp {
-            NEG, POS, NOT,
-        };
-    }
-    using BinaryOp = op::BinaryOp;
-    using UnaryOp = op::UnaryOp;
-
     class Stmt: public Base {
     public:
         virtual koopa_trans::Blocks *to_koopa() const = 0;
@@ -93,33 +80,188 @@ namespace ast {
         };
 
             class BinaryExpr: public Expr {
+            protected:
+                BinaryExpr(Expr *lv, Expr *rv);
+
+                Expr *lv;
+                Expr *rv;
+
             public:
-                BinaryOp    op;
-                Expr       *lv;
-                Expr       *rv;
-
-                BinaryExpr(BinaryOp op, Expr *lv, Expr* rv);
-
-                koopa_trans::Blocks *to_koopa() const override;
-
-                bool has_side_effect() const override;
-
-                std::string debug(int indent = 0) const override;
+                bool has_side_effect() const;
             };
+
+                class LogicOr: public BinaryExpr {
+                public:
+                    LogicOr(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+                    
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class LogicAnd: public BinaryExpr {
+                public:
+                    LogicAnd(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Eq: public BinaryExpr {
+                public:
+                    Eq(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Neq: public BinaryExpr {
+                public:
+                    Neq(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Lt: public BinaryExpr {
+                public:
+                    Lt(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Gt: public BinaryExpr {
+                public:
+                    Gt(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Leq: public BinaryExpr {
+                public:
+                    Leq(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Geq: public BinaryExpr {
+                public:
+                    Geq(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Add: public BinaryExpr {
+                public:
+                    Add(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Sub: public BinaryExpr {
+                public:
+                    Sub(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Mul: public BinaryExpr {
+                public:
+                    Mul(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Div: public BinaryExpr {
+                public:
+                    Div(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Mod: public BinaryExpr {
+                public:
+                    Mod(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Comma: public BinaryExpr {
+                public:
+                    Comma(Expr *lv, Expr *rv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Assign: public BinaryExpr {
+                public:
+                    Assign(Expr *lv, Expr *rv);
+
+                    bool has_side_effect() const override;
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
 
             class UnaryExpr: public Expr {
+            protected:
+                UnaryExpr(Expr *lv);
+                Expr *lv;
+
             public:
-                UnaryOp     op;
-                Expr       *lv;
-
-                UnaryExpr(UnaryOp op, Expr *lv);
-
-                koopa_trans::Blocks *to_koopa() const override;
-
                 bool has_side_effect() const override;
-
-                std::string debug(int indent = 0) const override;
             };
+
+                class Neg: public UnaryExpr {
+                public:
+                    Neg(Expr *lv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Pos: public UnaryExpr {
+                public:
+                    Pos(Expr *lv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
+
+                class Not: public UnaryExpr {
+                public:
+                    Not(Expr *lv);
+
+                    koopa_trans::Blocks *to_koopa() const override;
+
+                    std::string debug(int indent = 0) const override;
+                };
 
             class Id: public Expr {
             public:

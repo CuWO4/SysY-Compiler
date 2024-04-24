@@ -11,32 +11,54 @@
 
 namespace ast {
 
-static std::function<int(int, int)> binary_op_func[] = {
-    [] (int a, int b) { return a || b; },
-    [] (int a, int b) { return a && b; },
-    [] (int a, int b) { return a == b; },
-    [] (int a, int b) { return a != b; },
-    [] (int a, int b) { return a < b; },
-    [] (int a, int b) { return a > b; },
-    [] (int a, int b) { return a <= b; },
-    [] (int a, int b) { return a >= b; },
-    [] (int a, int b) { return a + b; },
-    [] (int a, int b) { return a - b; },
-    [] (int a, int b) { return a * b; },
-    [] (int a, int b) { return a / b; },
-    [] (int a, int b) { return a % b; },
-    [] (int a, int b) { return b; },
-    [] (int a, int b) { return b; },
+/**
+ * generate `new_id`, which is defined as `new_id = lv_koopa op rv_koopa`
+ * push `new_id = lv_koopa op rv_koopa` to res
+ * @return new_id
+ */
+static koopa::Value *generate_binary_expr(
+    koopa::Op op, 
+    koopa_trans::Blocks *dest,
+    koopa::Value *lv_koopa, 
+    koopa::Value *rv_koopa
+) {
+
+    auto new_id = value_manager.new_id(
+        koopa::id_type::LocalId,
+        new koopa::Int,
+        new_id_name(),
+        new NestingInfo()
+    );
+
+    *dest += new koopa::SymbolDef(
+        new_id,
+        new koopa::Expr(
+            op, lv_koopa, rv_koopa
+        )
+    );
+
+    return new_id;
 };
 
-static std::function<int(int)> unary_op_func[] = {
-    [] (int a) { return -a; },
-    [] (int a) { return a; },
-    [] (int a) { return !a; }
-};
+static bool is_compile_time_constand(
+    koopa_trans::Blocks *lv_stmts, koopa_trans::Blocks *rv_stmts
+) {
+    return lv_stmts->get_last_val()->is_const() && rv_stmts->get_last_val()->is_const();
+}
+
+static koopa_trans::Blocks *build_compile_time_constant(
+    koopa_trans::Blocks *lv_stmts, koopa_trans::Blocks *rv_stmts,
+    std::function<int(int, int)> func
+) {
+    return new koopa_trans::Blocks(value_manager.new_const(
+        func(lv_stmts->get_last_val()->get_val(), rv_stmts->get_last_val()->get_val())
+    ));
+}
+
+enum ShortCircuitBinaryOp { LOGIC_AND, LOGIC_OR };
 
 static koopa_trans::Blocks *build_short_circuit_evaluation(
-    ast::op::BinaryOp op,
+    ShortCircuitBinaryOp op,
     koopa_trans::Blocks *lv_stmts,
     koopa_trans::Blocks *rv_stmts
 ) {
@@ -67,8 +89,6 @@ static koopa_trans::Blocks *build_short_circuit_evaluation(
      */
 
     // TODO  how to re-use `If`
-
-    assert(op == op::LOGIC_AND || op == op::LOGIC_OR);
 
     auto res = new koopa_trans::Blocks;
     auto lv_koopa = lv_stmts->get_last_val();
@@ -108,14 +128,14 @@ static koopa_trans::Blocks *build_short_circuit_evaluation(
     }
     *blocks += new koopa::StoreValue(bool_lv, res_addr);
 
-    if (op == op::LOGIC_AND) {
+    if (op == LOGIC_AND) {
         *blocks += new koopa::Branch(
             bool_lv, 
             then_block->get_begin_block_id(), 
             end_block->get_begin_block_id()
         );
     }
-    else if (op == op::LOGIC_OR) {
+    else if (op == LOGIC_OR) {
         *blocks += new koopa::Branch(
             bool_lv, 
             end_block->get_begin_block_id(), 
@@ -158,248 +178,339 @@ static koopa_trans::Blocks *build_short_circuit_evaluation(
     return res;
 }
 
-koopa_trans::Blocks *BinaryExpr::to_koopa() const {
-    auto res = new koopa_trans::Blocks;
+koopa_trans::Blocks *LogicOr::to_koopa() const {
     auto lv_stmts = lv->to_koopa();
     auto rv_stmts = rv->to_koopa();
-    auto lv_koopa = lv_stmts->get_last_val();
-    auto rv_koopa = rv_stmts->get_last_val();
 
-    // refactor, split constant processing to a specific function
-    if (lv_koopa->is_const() && rv_koopa->is_const() && op != op::ASSIGN) {
-        return new koopa_trans::Blocks(
-            value_manager.new_const(
-                binary_op_func[op](lv_koopa->get_val(), rv_koopa->get_val())
-            )
+    if (is_compile_time_constand(lv_stmts, rv_stmts)) {
+        return build_compile_time_constant(
+            lv_stmts, rv_stmts, 
+            [](int a, int b) { return a || b; }
         );
     }
 
-    /**
-     * generate `new_id`, which is defined as `new_id = lv_koopa op rv_koopa`
-     * push `new_id = lv_koopa op rv_koopa` to res
-     * @return new_id
-     */
-    auto generate = [&] (
-        koopa::Op op, 
-        koopa::Value *lv_koopa, 
-        koopa::Value *rv_koopa
-    ) -> koopa::Value * {
-
-        auto new_id = value_manager.new_id(
-            koopa::id_type::LocalId,
-            new koopa::Int,
-            new_id_name(),
-            new NestingInfo()
-        );
-
-        *res += new koopa::SymbolDef(
-            new_id,
-            new koopa::Expr(
-                op, lv_koopa, rv_koopa
-            )
-        );
-
-        return new_id;
-    };
-
-    if (op == op::LOGIC_AND || op == op::LOGIC_OR) {
-        if (!rv->has_side_effect()) {
-            if (!lv_koopa->is_const()) *res += *lv_stmts;
-            if (!rv_koopa->is_const()) *res += *rv_stmts;
-
-            auto tmpa = generate(koopa::op::NE, lv_koopa, value_manager.new_const(0));
-            auto tmpb = generate(koopa::op::NE, rv_koopa, value_manager.new_const(0));
-            res->set_last_val(
-                        generate(
-                    op == op::LOGIC_AND
-                        ? koopa::op::AND
-                        : koopa::op::OR, 
-                    tmpa, tmpb
-                )
-            );
-            return res;
-        }
-
-        if (op == op::LOGIC_OR) {
-            if (lv_koopa->is_const() && lv_koopa->get_val() != 0) {
-                return new koopa_trans::Blocks(
-                    value_manager.new_const(1)
-                );
-            }
-            else if (
-                !lv->has_side_effect()
-                &&rv_koopa->is_const() && rv_koopa->get_val() != 0
-            ) {
-                return new koopa_trans::Blocks(
-                    value_manager.new_const(1)
-                );
-            }
-        }
-        if (op == op::LOGIC_AND) {
-            if (lv_koopa->is_const() && lv_koopa->get_val() == 0) {
-                return new koopa_trans::Blocks(
-                    value_manager.new_const(0)
-                );
-            }
-            else if (
-                !lv->has_side_effect()
-                &&rv_koopa->is_const() && rv_koopa->get_val() == 0
-            ) {
-                return new koopa_trans::Blocks(
-                    value_manager.new_const(0)
-                );
-            }
-        }
-
-        return build_short_circuit_evaluation(op, lv_stmts, rv_stmts);
-    };
-
-    if (op == op::COMMA) { 
-        if (lv->has_side_effect()) *res += *lv_stmts;
-        if (rv_stmts->get_last_val()->is_const()) {
-            res->set_last_val( rv_stmts->get_last_val() );
-        }
-        else {
-            *res += *rv_stmts;
-            res->set_last_val( rv_stmts->get_last_val() );
-        }
-        return res;
+    if (
+        (
+            lv_stmts->get_last_val()->is_const()
+            && lv_stmts->get_last_val()->get_val() == 1
+        )
+        || (
+            !lv->has_side_effect()
+            && rv_stmts->get_last_val()->is_const()
+            && rv_stmts->get_last_val()->get_val() == 1
+        )
+    ) {
+        return new koopa_trans::Blocks(value_manager.new_const(1));
     }
 
-    if (op == op::ASSIGN) {
-        if (typeid(*lv) != typeid(ast::Id)) {
-            throw "try to declare a non-id";
-        }
-
-        auto id = static_cast<ast::Id *>(lv);
+    if (!rv->has_side_effect()) {
+        auto res = new koopa_trans::Blocks;
+        *res += *lv_stmts;
         *res += *rv_stmts;
 
-        auto id_koopa = value_manager.get_id('@' + id->lit, id->nesting_info);
-
-        if (id_koopa == nullptr) {
-            throw "undeclared identifier `" + id->lit + '`';
-        }
-        if (id_koopa->is_const()) {
-            throw "assigning to a const identifier `" + id->lit + '`';
-        }
-
-        *res += new koopa::StoreValue(
-            res->get_last_val(),
-            value_manager.get_id('@' + id->lit, id->nesting_info)
+        auto tmpa = generate_binary_expr(
+            koopa::op::NE, 
+            res,
+            lv_stmts->get_last_val(), 
+            value_manager.new_const(0)
         );
-
-        res->set_last_val( id_koopa );
-
+        auto tmpb = generate_binary_expr(
+            koopa::op::NE, 
+            res,
+            rv_stmts->get_last_val(), 
+            value_manager.new_const(0)
+        );
+        res->set_last_val(
+            generate_binary_expr(koopa::op::OR, res, tmpa, tmpb)
+        );
         return res;
     }
 
-    if (op == op::ADD) {
-        if (lv_koopa->is_const() && lv_koopa->get_val() == 0) {
-            return rv_stmts;
-        }
-        if (rv_koopa->is_const() && rv_koopa->get_val() == 0) {
-            return lv_stmts;
-        }
+    return build_short_circuit_evaluation(LOGIC_OR, lv_stmts, rv_stmts);
+}
+
+koopa_trans::Blocks *LogicAnd::to_koopa() const {
+    auto lv_stmts = lv->to_koopa();
+    auto rv_stmts = rv->to_koopa();
+
+    if (is_compile_time_constand(lv_stmts, rv_stmts)) {
+        return build_compile_time_constant(
+            lv_stmts, rv_stmts, 
+            [](int a, int b) { return a && b; }
+        );
     }
 
-    if (op == op::MUL) {
-        if (lv_koopa->is_const() && lv_koopa->get_val() == 1) {
-            return rv_stmts;
-        }
-        if (rv_koopa->is_const() && rv_koopa->get_val() == 1) {
-            return lv_stmts;
-        }
+    if (
+        (
+            lv_stmts->get_last_val()->is_const()
+            && lv_stmts->get_last_val()->get_val() == 0
+        )
+        || (
+            !lv->has_side_effect()
+            && rv_stmts->get_last_val()->is_const()
+            && rv_stmts->get_last_val()->get_val() == 0
+        )
+    ) {
+        return new koopa_trans::Blocks(value_manager.new_const(0));
     }
 
-    if (op == op::SUB) {
-        if (rv_koopa->is_const() && rv_koopa->get_val() == 0) {
-            return lv_stmts;
-        }
+    if (!rv->has_side_effect()) {
+        auto res = new koopa_trans::Blocks;
+        if (!lv_stmts->get_last_val()->is_const()) *res += *lv_stmts;
+        if (!rv_stmts->get_last_val()->is_const()) *res += *rv_stmts;
+
+        auto tmpa = generate_binary_expr(
+            koopa::op::NE, 
+            res,
+            lv_stmts->get_last_val(), 
+            value_manager.new_const(0)
+        );
+        auto tmpb = generate_binary_expr(
+            koopa::op::NE, 
+            res,
+            rv_stmts->get_last_val(), 
+            value_manager.new_const(0)
+        );
+        res->set_last_val(
+            generate_binary_expr(koopa::op::AND, res, tmpa, tmpb)
+        );
+        return res;
     }
 
-    if (op == op::DIV) {
-        if (rv_koopa->is_const() && rv_koopa->get_val() == 1) {
-            return lv_stmts;
-        }
+    return build_short_circuit_evaluation(LOGIC_AND, lv_stmts, rv_stmts);
+}
+
+koopa_trans::Blocks *Assign::to_koopa() const {
+    if (typeid(*lv) != typeid(ast::Id)) {
+        throw "try to declare a non-id";
     }
 
-    koopa::Op op_koopa;
-    if (op == op::EQ) { op_koopa = koopa::op::EQ; }
-    else if (op == op::NEQ) { op_koopa = koopa::op::NE; }
-    else if (op == op::LT) { op_koopa = koopa::op::LT; }
-    else if (op == op::GT) { op_koopa = koopa::op::GT; }
-    else if (op == op::LEQ) { op_koopa = koopa::op::LE; }
-    else if (op == op::GEQ) { op_koopa = koopa::op::GE; }
-    else if (op == op::ADD) { op_koopa = koopa::op::ADD; }
-    else if (op == op::SUB) { op_koopa = koopa::op::SUB; }
-    else if (op == op::MUL) { op_koopa = koopa::op::MUL; }
-    else if (op == op::DIV) { op_koopa = koopa::op::DIV; }
-    else if (op == op::MOD) { op_koopa = koopa::op::MOD; }
-    else { assert(0); }
 
-    *res += *lv_stmts;
+    auto res = new koopa_trans::Blocks;
+    auto rv_stmts = rv->to_koopa();
+    auto id = static_cast<ast::Id *>(lv);
+
     *res += *rv_stmts;
 
-    res->set_last_val(
-        generate(
-            op_koopa, lv_stmts->get_last_val(), rv_stmts->get_last_val()
-        )
+    auto id_koopa = value_manager.get_id('@' + id->lit, id->nesting_info);
+
+    if (id_koopa == nullptr) {
+        throw "undeclared identifier `" + id->lit + '`';
+    }
+    if (id_koopa->is_const()) {
+        throw "assigning to a const identifier `" + id->lit + '`';
+    }
+
+    *res += new koopa::StoreValue(
+        res->get_last_val(),
+        value_manager.get_id('@' + id->lit, id->nesting_info)
     );
+
+    res->set_last_val( id_koopa );
 
     return res;
 }
 
-koopa_trans::Blocks *UnaryExpr::to_koopa() const {
+koopa_trans::Blocks *Comma::to_koopa() const {
     auto lv_stmts = lv->to_koopa();
-    if (lv_stmts->get_last_val()->is_const()) {
-        return new koopa_trans::Blocks(
-            value_manager.new_const(
-                unary_op_func[op](lv_stmts->get_last_val()->get_val())
-            )
+    auto rv_stmts = rv->to_koopa();
+
+    if (is_compile_time_constand(lv_stmts, rv_stmts)) {
+        return build_compile_time_constant(
+            lv_stmts, rv_stmts, 
+            [](int a, int b) { return b; }
         );
-    }
-    if (op == op::POS) {
-        return lv_stmts;
     }
 
     auto res = new koopa_trans::Blocks;
-
-    /**
-     * generate `new_id`, which is defined as `new_id = 0 op lv_koopa`
-     * push `new_id = 0 op lv_koopa` to res
-     * @return new_id
-     */
-    auto generate = [&](koopa::Op op) -> koopa::Value * {
-        koopa::Id *new_id;
-
-        new_id = value_manager.new_id(
-            koopa::id_type::LocalId,
-            new koopa::Int,
-            new_id_name(),
-            new NestingInfo()
-        );
-
-        *res += new koopa::SymbolDef(
-            new_id,
-            new koopa::Expr(
-                op,
-                value_manager.new_const(0),
-                lv_stmts->get_last_val()
-            )
-        );
-
-        return new_id;
-    };
-
-    koopa::Op op_koopa;
-    if (op == op::POS) { op_koopa = koopa::op::ADD; }
-    else if (op == op::NOT) { op_koopa = koopa::op::EQ; }
-    else /* op == op::NEG */ { op_koopa = koopa::op::SUB; }
-
-    *res += *lv_stmts;
-    res->set_last_val(generate(op_koopa));
-
+    
+    if (lv->has_side_effect()) *res += *lv_stmts;
+    if (rv_stmts->get_last_val()->is_const()) {
+        res->set_last_val( rv_stmts->get_last_val() );
+    }
+    else {
+        *res += *rv_stmts;
+        res->set_last_val( rv_stmts->get_last_val() );
+    }
     return res;
+}
+
+static koopa_trans::Blocks *build_ordinary_binary_blocks(
+    koopa_trans::Blocks *lv_stmts, koopa_trans::Blocks *rv_stmts,
+    koopa::op::Op op, std::function<int(int, int)> func
+) {
+    if (is_compile_time_constand(lv_stmts, rv_stmts)) {
+        return build_compile_time_constant(lv_stmts, rv_stmts, func);
+    }
+
+    auto res = new koopa_trans::Blocks;
+    *res += *lv_stmts;
+    *res += *rv_stmts;
+    res->set_last_val(
+        generate_binary_expr(op, res, lv_stmts->get_last_val(), rv_stmts->get_last_val())
+    );
+    return res;
+}
+
+koopa_trans::Blocks *Eq::to_koopa() const {
+    return build_ordinary_binary_blocks(
+        lv->to_koopa(), rv->to_koopa(), 
+        koopa::op::EQ, [](int a, int b) { return a == b; }
+    );
+}
+
+koopa_trans::Blocks *Neq::to_koopa() const {
+    return build_ordinary_binary_blocks(
+		lv->to_koopa(), rv->to_koopa(),
+		koopa::op::NE, [](int a, int b) { return a != b; }
+	);
+}
+
+koopa_trans::Blocks *Lt::to_koopa() const {
+    return build_ordinary_binary_blocks(
+		lv->to_koopa(), rv->to_koopa(),
+		koopa::op::LT, [](int a, int b) { return a < b; }
+	);
+}
+
+koopa_trans::Blocks *Gt::to_koopa() const {
+    return build_ordinary_binary_blocks(
+		lv->to_koopa(), rv->to_koopa(),
+		koopa::op::GT, [](int a, int b) { return a > b; }
+	);
+}
+
+koopa_trans::Blocks *Leq::to_koopa() const {
+    return build_ordinary_binary_blocks(
+		lv->to_koopa(), rv->to_koopa(),
+		koopa::op::LE, [](int a, int b) { return a <= b; }
+	);
+}
+
+koopa_trans::Blocks *Geq::to_koopa() const {
+    return build_ordinary_binary_blocks(
+		lv->to_koopa(), rv->to_koopa(),
+		koopa::op::GE, [](int a, int b) { return a >= b; }
+	);
+}
+
+koopa_trans::Blocks *Add::to_koopa() const {
+    auto lv_stmts = lv->to_koopa();
+    auto rv_stmts = rv->to_koopa();
+    
+    for (auto [stmts1, stmts2]: {
+            std::make_tuple(lv_stmts, rv_stmts),
+            std::make_tuple(rv_stmts, lv_stmts)
+    }) {
+        if (stmts1->get_last_val()->is_const() && stmts1->get_last_val()->get_val() == 0) {
+            return stmts2;
+        }
+    }
+
+    return build_ordinary_binary_blocks(
+		lv_stmts, rv_stmts,
+		koopa::op::ADD, [](int a, int b) { return a + b; }
+	);
+}
+
+koopa_trans::Blocks *Sub::to_koopa() const {
+    auto lv_stmts = lv->to_koopa();
+    auto rv_stmts = rv->to_koopa();
+    
+    if (rv_stmts->get_last_val()->is_const() && rv_stmts->get_last_val()->get_val() == 0) {
+        return lv_stmts;
+    }
+    
+    return build_ordinary_binary_blocks(
+		lv_stmts, rv_stmts,
+		koopa::op::SUB, [](int a, int b) { return a - b; }
+	);
+}
+
+koopa_trans::Blocks *Mul::to_koopa() const {
+    auto lv_stmts = lv->to_koopa();
+    auto rv_stmts = rv->to_koopa();
+    
+    for (auto [stmts1, stmts2]: {
+            std::make_tuple(lv_stmts, rv_stmts),
+            std::make_tuple(rv_stmts, lv_stmts)
+    }) {
+        if (stmts1->get_last_val()->is_const() && stmts1->get_last_val()->get_val() == 1) {
+            return stmts2;
+        }
+    }
+    
+    return build_ordinary_binary_blocks(
+		lv_stmts, rv_stmts,
+		koopa::op::MUL, [](int a, int b) { return a * b; }
+	);
+}
+
+koopa_trans::Blocks *Div::to_koopa() const {
+    auto lv_stmts = lv->to_koopa();
+    auto rv_stmts = rv->to_koopa();
+    
+    if (rv_stmts->get_last_val()->is_const() && rv_stmts->get_last_val()->get_val() == 1) {
+        return lv_stmts;
+    }
+
+    return build_ordinary_binary_blocks(
+		lv->to_koopa(), rv->to_koopa(),
+		koopa::op::DIV, [](int a, int b) { return a / b; }
+	);
+}
+
+koopa_trans::Blocks *Mod::to_koopa() const {
+    return build_ordinary_binary_blocks(
+		lv->to_koopa(), rv->to_koopa(),
+		koopa::op::MOD, [](int a, int b) { return a % b; }
+	);
+}
+
+koopa_trans::Blocks *Pos::to_koopa() const {
+    return lv->to_koopa();
+}
+
+static koopa_trans::Blocks *build_ordinary_unary_blocks(
+    koopa_trans::Blocks *lv_stmts, koopa::op::Op op, std::function<int(int)> func
+) {
+    if (lv_stmts->get_last_val()->is_const()) {
+        return new koopa_trans::Blocks(
+            value_manager.new_const(func(lv_stmts->get_last_val()->get_val()))
+        );
+    }
+
+    auto new_id = value_manager.new_id(
+        koopa::id_type::LocalId,
+        new koopa::Int,
+        new_id_name(),
+        new NestingInfo()
+    );
+
+    *lv_stmts += new koopa::SymbolDef(
+        new_id,
+        new koopa::Expr(
+            op,
+            value_manager.new_const(0),
+            lv_stmts->get_last_val()
+        )
+    );
+
+    lv_stmts->set_last_val(new_id);
+
+    return lv_stmts;
+}
+
+koopa_trans::Blocks *Neg::to_koopa() const {
+    return build_ordinary_unary_blocks(
+        lv->to_koopa(), koopa::op::SUB, [](int a){ return -a; }
+    );
+}
+
+koopa_trans::Blocks *Not::to_koopa() const {
+    return build_ordinary_unary_blocks(
+        lv->to_koopa(), koopa::op::EQ, [](int a){ return !a; }
+    );
 }
 
 koopa_trans::Blocks *Number::to_koopa() const {
