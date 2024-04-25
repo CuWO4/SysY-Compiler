@@ -255,28 +255,166 @@ public:
                 GetElemPtr(Id *base, Value *offset);
             };
 
-            namespace op {
-                enum Op {
-                    NE, EQ, GT, LT, GE, LE, ADD, SUB, MUL,
-                    DIV, MOD, AND, OR, XOR, SHL, SHR, SAR,
-                };  
-            }
-            using Op = op::Op;
-
             class Expr: public Rvalue {
-            public:
-                Op      op;
+            protected:
                 Value  *lv;
                 Value  *rv;
 
-                std::string to_string() const override;
-
-                riscv_trans::Register rvalue_to_riscv(
-                    std::string &str
-                ) const override;
-
-                Expr(Op op, Value *lv, Value *rv);
+                Expr(Value *lv, Value *rv);
             };
+
+                class Eq: public Expr {
+                public:
+                    Eq(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+                
+                class Ne: public Expr {
+                public:
+                    Ne(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Gt: public Expr {
+                public:
+                    Gt(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Lt: public Expr {
+                public:
+                    Lt(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Ge: public Expr {
+                public:
+                    Ge(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Le: public Expr {
+                public:
+                    Le(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Add: public Expr {
+                public:
+                    Add(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Sub: public Expr {
+                public:
+                    Sub(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Mul: public Expr {
+                public:
+                    Mul(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Div: public Expr {
+                public:
+                    Div(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Mod: public Expr {
+                public:
+                    Mod(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class And: public Expr {
+                public:
+                    And(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Or: public Expr {
+                public:
+                    Or(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Xor: public Expr {
+                public:
+                    Xor(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Shl: public Expr {
+                public:
+                    Shl(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Shr: public Expr {
+                public:
+                    Shr(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
+
+                class Sar: public Expr {
+                public:
+                    Sar(Value *lv, Value *rv);
+
+                    std::string to_string() const override;
+
+                    riscv_trans::Register rvalue_to_riscv(std::string &str) const override;
+                };
 
             class FuncCall: public Rvalue, public NotEndStmt {
             public:

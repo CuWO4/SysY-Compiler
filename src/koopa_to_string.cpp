@@ -108,10 +108,23 @@ static std::string BINARY_OP_NAME[] = {
     "div", "mod", "and", "or", "xor", "shl", "shr", "sar",
 };
 
-std::string Expr::to_string() const {
-    return BINARY_OP_NAME[op] + ' ' + lv->to_string() 
-        + ", " + rv->to_string();
-}
+std::string Eq::to_string() const { return "eq " + lv->to_string() + ", " + rv->to_string(); }
+std::string Ne::to_string() const { return "ne " + lv->to_string() + ", " + rv->to_string(); }
+std::string Gt::to_string() const { return "gt " + lv->to_string() + ", " + rv->to_string(); }
+std::string Lt::to_string() const { return "lt " + lv->to_string() + ", " + rv->to_string(); }
+std::string Ge::to_string() const { return "ge " + lv->to_string() + ", " + rv->to_string(); }
+std::string Le::to_string() const { return "le " + lv->to_string() + ", " + rv->to_string(); }
+std::string Add::to_string() const { return "add " + lv->to_string() + ", " + rv->to_string(); }
+std::string Sub::to_string() const { return "sub " + lv->to_string() + ", " + rv->to_string(); }
+std::string Mul::to_string() const { return "mul " + lv->to_string() + ", " + rv->to_string(); }
+std::string Div::to_string() const { return "div " + lv->to_string() + ", " + rv->to_string(); }
+std::string Mod::to_string() const { return "mod " + lv->to_string() + ", " + rv->to_string(); }
+std::string And::to_string() const { return "and " + lv->to_string() + ", " + rv->to_string(); }
+std::string Or::to_string() const { return "or " + lv->to_string() + ", " + rv->to_string(); }
+std::string Xor::to_string() const { return "xor " + lv->to_string() + ", " + rv->to_string(); }
+std::string Shl::to_string() const { return "shl " + lv->to_string() + ", " + rv->to_string(); }
+std::string Shr::to_string() const { return "shr " + lv->to_string() + ", " + rv->to_string(); }
+std::string Sar::to_string() const { return "sar " + lv->to_string() + ", " + rv->to_string(); }
 
 std::string FuncCall::to_string() const {
     auto res = std::string("");

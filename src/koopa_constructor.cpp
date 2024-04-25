@@ -48,10 +48,27 @@ GetElemPtr::GetElemPtr(Id *base, Value *offset): base(base), offset(offset) {
     assert(base); assert(offset);
 }
 
-Expr::Expr(Op op, Value *lv, Value *rv) 
-    : op(op), lv(lv), rv(rv) {
+Expr::Expr(Value *lv, Value *rv): lv(lv), rv(rv) {
     assert(lv); assert(rv);
 }
+
+Eq::Eq(Value *lv, Value *rv): Expr(lv, rv) {}
+Ne::Ne(Value *lv, Value *rv): Expr(lv, rv) {}
+Gt::Gt(Value *lv, Value *rv): Expr(lv, rv) {}
+Lt::Lt(Value *lv, Value *rv): Expr(lv, rv) {}
+Ge::Ge(Value *lv, Value *rv): Expr(lv, rv) {}
+Le::Le(Value *lv, Value *rv): Expr(lv, rv) {}
+Add::Add(Value *lv, Value *rv): Expr(lv, rv) {}
+Sub::Sub(Value *lv, Value *rv): Expr(lv, rv) {}
+Mul::Mul(Value *lv, Value *rv): Expr(lv, rv) {}
+Div::Div(Value *lv, Value *rv): Expr(lv, rv) {}
+Mod::Mod(Value *lv, Value *rv): Expr(lv, rv) {}
+And::And(Value *lv, Value *rv): Expr(lv, rv) {}
+Or::Or(Value *lv, Value *rv): Expr(lv, rv) {}
+Xor::Xor(Value *lv, Value *rv): Expr(lv, rv) {}
+Shl::Shl(Value *lv, Value *rv): Expr(lv, rv) {}
+Shr::Shr(Value *lv, Value *rv): Expr(lv, rv) {}
+Sar::Sar(Value *lv, Value *rv): Expr(lv, rv) {}
 
 FuncCall::FuncCall(Id *id, std::vector<Value *> args): id(id), args(args) {
     assert(id);
