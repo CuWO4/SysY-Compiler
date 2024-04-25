@@ -28,6 +28,13 @@ namespace ast {
 
         // TODO
         // virtual bool operator==(Type &other) = 0;
+
+        /**
+         * @return type dimension
+         * @example int => 0 
+         * @example int[][2].get_dim() const => 2 
+         */
+        virtual int get_dim() const = 0;
     };
 
         class Int: public Type {
@@ -35,12 +42,16 @@ namespace ast {
             koopa::Type* to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
+
+            int get_dim() const override;
         };
 
         class Void :public Type {
             koopa::Type *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
+
+            int get_dim() const override;
         };
 
         class Pointer: public Type {
@@ -50,6 +61,8 @@ namespace ast {
             koopa::Type *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
+
+            int get_dim() const override;
 
         private:
             Type *pointed_type;
@@ -63,6 +76,8 @@ namespace ast {
             koopa::Type *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
+
+            int get_dim() const override;
         
         private:
             Type *element_type;
@@ -302,6 +317,61 @@ namespace ast {
                 bool has_side_effect() const override;
 
                 std::string debug(int indent = 0) const override;
+            };
+
+        class Initializer: public Base {
+        public:
+            /**
+             * @return dimension of initializer
+             * @example 1.get_dim() => 0
+             * @example { 1, {2, 3} }.get_dim() => 2
+             */
+            virtual int get_dim() const = 0;
+        
+            virtual koopa::Initializer *initializer_to_koopa() const = 0;
+
+            /**
+             * only work for `Initializer` with 0 dimension 
+             * (in other word, `ConstInitializer`)
+             * 
+             * crash when calling expr_to_koopa() of an Initializer 
+             * with non-zero dimensions
+             */
+            virtual koopa_trans::Blocks *expr_to_koopa() const = 0;
+        };
+
+            class ConstInitializer: public Initializer {
+            public:
+                ConstInitializer(Expr *val);
+
+                int get_dim() const override;
+
+                /**
+                 * val must be compile-time computable, otherwise
+                 * @throw <std::string>
+                 */
+                koopa::Initializer *initializer_to_koopa() const override;
+
+                koopa_trans::Blocks *expr_to_koopa() const override;
+                
+            private:
+                Expr *val;
+            };
+
+            class Aggregate: public Initializer {
+            public:
+                Aggregate(std::vector<Initializer *> initializers);
+
+                int get_dim() const override;
+
+                // align to boundaries
+                koopa::Initializer *initializer_to_koopa() const override;
+
+                // crash
+                koopa_trans::Blocks *expr_to_koopa() const override;
+                
+            private:
+                std::vector<Initializer *> initializers;
             };
 
         namespace decl_type {

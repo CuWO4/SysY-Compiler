@@ -512,6 +512,28 @@ koopa_trans::Blocks *Number::to_koopa() const {
     return new koopa_trans::Blocks(value_manager.new_const(val));
 }
 
+koopa::Initializer *ConstInitializer::initializer_to_koopa() const {
+    auto val_koopa = val->to_koopa()->get_last_val();
+    if (!val_koopa->is_const()) {
+        throw "using expression `" + val->debug() + "` in an initialization list that is not compile-time evaluable";
+    }
+    return new koopa::ConstInitializer(val_koopa->get_val());
+}
+
+koopa::Initializer *Aggregate::initializer_to_koopa() const {
+    // TODO
+    return nullptr;
+}
+
+koopa_trans::Blocks *ConstInitializer::expr_to_koopa() const {
+    return val->to_koopa();
+}
+
+koopa_trans::Blocks *Aggregate::expr_to_koopa() const {
+    assert(this->get_dim() == 0); // always fail
+    return nullptr;
+}
+
 koopa_trans::Blocks *Id::to_koopa() const {
     auto res = new koopa_trans::Blocks;
 

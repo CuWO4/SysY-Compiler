@@ -37,6 +37,11 @@ Pointer::Pointer(Type *pointed_type): pointed_type(pointed_type) {}
 Array::Array(Type *elem_type, Expr *length)
     : element_type(elem_type), length(length) {}
 
+ConstInitializer::ConstInitializer(Expr *val): val(val) {}
+
+Aggregate::Aggregate(std::vector<Initializer *> initializers)
+    : initializers(initializers) {}
+
 Id::Id(std::string lit, NestingInfo *nesting_info)
     : lit(lit), nesting_info(nesting_info) {
     assert(nesting_info);
