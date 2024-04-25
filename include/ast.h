@@ -374,29 +374,36 @@ namespace ast {
                 std::vector<Initializer *> initializers;
             };
 
-        namespace decl_type {
-            enum DeclType { VolatileDecl, ConstDecl };
-        }
-        using DeclType = decl_type::DeclType;
-
         class VarDef: public Stmt {
-        public:
-            DeclType    decl_type;
+        protected:
             Type       *type;
             Id         *id;
             bool        has_init;
             Expr       *init;
 
-            VarDef(Type *, Id *, DeclType = decl_type::VolatileDecl);
-            VarDef(
-                Type *, Id *, Expr *, 
-                DeclType = decl_type::VolatileDecl
-            );
-
-            koopa_trans::Blocks *to_koopa() const override;
-
-            std::string debug(int indent = 0) const override;
+            VarDef(Type *type, Id *id);
+            VarDef(Type *type, Id *id, Expr *init);
         };
+
+            class VolatileVarDef: public VarDef {
+            public:
+                VolatileVarDef(Type *type, Id *id);
+                VolatileVarDef(Type *type, Id *id, Expr *init);
+
+                koopa_trans::Blocks *to_koopa() const override;
+
+                std::string debug(int indent = 0) const override;
+            };
+
+            class ConstVarDef: public VarDef {
+            public:
+                ConstVarDef(Type *type, Id *id);
+                ConstVarDef(Type *type, Id *id, Expr *init);
+
+                koopa_trans::Blocks *to_koopa() const override;
+
+                std::string debug(int indent = 0) const override;
+            };
 
         class VarDecl: public Stmt {
         public:
@@ -416,15 +423,16 @@ namespace ast {
 
         class Return: public Stmt {
         public:
-            ReturnType  return_type;
-            Expr       *ret_val;
-
             Return();
             Return(Expr *ret_val);
 
             koopa_trans::Blocks *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
+
+        private:
+            ReturnType  return_type;
+            Expr       *ret_val;
         };
 
         class Block: public Stmt {
@@ -519,28 +527,38 @@ namespace ast {
             std::string debug(int indent = 0) const override;
         };
 
-        // TODO
         class GlobalVarDef: public GlobalStmt {
-        public:
-            DeclType    decl_type;
+        protected:
             Type       *type;
             Id         *id;
             bool        has_init;
             Expr       *init;
 
-            GlobalVarDef(Type *, Id *, DeclType = decl_type::VolatileDecl);
+            GlobalVarDef(Type *type, Id *id);
 
-            GlobalVarDef(
-                Type *, Id *, Expr *, 
-                DeclType = decl_type::VolatileDecl
-            );
-            koopa_trans::GlobalStmts *to_koopa() const override;
-
-            std::string debug(int indent = 0) const override;
+            GlobalVarDef(Type *type, Id *id, Expr *init);
         };
 
+            class VolatileGlobalVarDef: public GlobalVarDef {
+            public:
+                VolatileGlobalVarDef(Type *type, Id *id);
+                VolatileGlobalVarDef(Type *type, Id *id, Expr *init);
 
-        // TODO
+                koopa_trans::GlobalStmts *to_koopa() const override;
+
+                std::string debug(int indent = 0) const override;
+            };
+
+            class ConstGlobalVarDef: public GlobalVarDef {
+            public:
+                ConstGlobalVarDef(Type *type, Id *id);
+                ConstGlobalVarDef(Type *type, Id *id, Expr *init);
+
+                koopa_trans::GlobalStmts *to_koopa() const override;
+
+                std::string debug(int indent = 0) const override;
+            };
+
         class GlobalVarDecl: public GlobalStmt {
         public:
             std::vector<GlobalVarDef *> var_defs;

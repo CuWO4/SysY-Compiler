@@ -519,9 +519,6 @@ public:
 
         class Return: public EndStmt {
         public:
-            ReturnType  return_type;
-            Value      *val;
-
             std::string to_string() const override;
 
             void stmt_to_riscv(
@@ -531,6 +528,10 @@ public:
 
             Return();
             Return(Value *val);
+        
+        private:
+            ReturnType  return_type;
+            Value      *val;
         };
 
     class GlobalStmt: public Stmt {

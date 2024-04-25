@@ -54,16 +54,22 @@ FuncCall::FuncCall(Id *func_id, std::vector<Expr *> actual_params)
 
 Number::Number(int val): val(val) {}
 
-VarDef::VarDef(Type *type, Id *id, DeclType decl_type)
-    : decl_type(decl_type), type(type), id(id), has_init(false), init(nullptr) {
+VarDef::VarDef(Type *type, Id *id)
+    : type(type), id(id), has_init(false), init(nullptr) {
     assert(type); assert(id);
 }
-
-VarDef::VarDef(
-    Type *type, Id *id, Expr *init, DeclType decl_type
-) : decl_type(decl_type), type(type), id(id), has_init(true), init(init) {
+VarDef::VarDef(Type *type, Id *id, Expr *init)
+    : type(type), id(id), has_init(true), init(init) {
     assert(type); assert(id); assert(init);
 }
+
+VolatileVarDef::VolatileVarDef(Type *type, Id *id): VarDef(type, id) {}
+VolatileVarDef::VolatileVarDef(Type *type, Id *id, Expr *init)
+    : VarDef(type, id, init) {}
+
+ConstVarDef::ConstVarDef(Type *type, Id *id): VarDef(type, id) {}
+ConstVarDef::ConstVarDef(Type *type, Id *id, Expr *init)
+    : VarDef(type, id, init) {}
 
 VarDecl::VarDecl(std::vector<VarDef *> var_defs) : var_defs(var_defs) {}
 
@@ -93,16 +99,23 @@ For::For (Stmt * init_stmt, Expr *cond, Stmt * iter_stmt, Stmt *body)
     assert(init_stmt); assert(cond); assert(iter_stmt); assert(body);
 }
 
-GlobalVarDef::GlobalVarDef(Type *type, Id *id, DeclType decl_type)
-    : decl_type(decl_type), type(type), id(id), has_init(false), init(nullptr) {
+GlobalVarDef::GlobalVarDef(Type *type, Id *id)
+    : type(type), id(id), has_init(false), init(nullptr) {
     assert(type); assert(id);
 }
 
-GlobalVarDef::GlobalVarDef(
-    Type *type, Id *id, Expr *init, DeclType decl_type
-) : decl_type(decl_type), type(type), id(id), has_init(true), init(init) {
+GlobalVarDef::GlobalVarDef(Type *type, Id *id, Expr *init) 
+    : type(type), id(id), has_init(true), init(init) {
     assert(type); assert(id); assert(init);
 }
+
+VolatileGlobalVarDef::VolatileGlobalVarDef(Type *type, Id *id): GlobalVarDef(type, id) {}
+VolatileGlobalVarDef::VolatileGlobalVarDef(Type *type, Id *id, Expr *init)
+    : GlobalVarDef(type, id, init) {}
+
+ConstGlobalVarDef::ConstGlobalVarDef(Type *type, Id *id): GlobalVarDef(type, id) {}
+ConstGlobalVarDef::ConstGlobalVarDef(Type *type, Id *id, Expr *init)
+    : GlobalVarDef(type, id, init) {}
 
 GlobalVarDecl::GlobalVarDecl(std::vector<GlobalVarDef *> var_defs) : var_defs(var_defs) {}
 

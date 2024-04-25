@@ -108,10 +108,18 @@ std::string Number::debug(int indent) const {
     return std::to_string(val);
 }
 
-std::string VarDef::debug(int indent) const {
+std::string VolatileVarDef::debug(int indent) const {
     return 
         build_indent(indent)
-        + (decl_type == decl_type::ConstDecl ? "const " : "")
+        + type->debug() + ' '
+        + id->debug()
+        + (has_init ? " = " + init->debug() : "");
+}
+
+std::string ConstVarDef::debug(int indent) const {
+    return 
+        build_indent(indent)
+        + "const "
         + type->debug() + ' '
         + id->debug()
         + (has_init ? " = " + init->debug() : "");
@@ -212,10 +220,18 @@ std::string FuncDef::debug(int indent) const {
     return res;
 }
 
-std::string GlobalVarDef::debug(int indent) const {
+std::string VolatileGlobalVarDef::debug(int indent) const {
     return 
         build_indent(indent)
-        + (decl_type == decl_type::ConstDecl ? "const " : "")
+        + type->debug() + ' '
+        + id->debug()
+        + (has_init ? " = " + init->debug() : "");
+}
+
+std::string ConstGlobalVarDef::debug(int indent) const {
+    return 
+        build_indent(indent)
+        + "const "
         + type->debug() + ' '
         + id->debug()
         + (has_init ? " = " + init->debug() : "");

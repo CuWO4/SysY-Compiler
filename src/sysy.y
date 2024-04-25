@@ -6,7 +6,7 @@
 
     #include "../include/ast.h"
     #include "../include/nesting_info.h"
-    #include "../include/parser.h"
+    #include "../include/parser.hpp"
 
     int yylex();
     void yyerror(ast::CompUnit *&ast, const char *s);
@@ -107,7 +107,7 @@ global_var_decl
 
         for (auto manager: *$2) {
             var_defs.push_back(
-                manager->to_ast_global_var_def($1, ast::decl_type::VolatileDecl)
+                manager->to_ast_var_def<ast::VolatileGlobalVarDef>($1)
             );
         }
 
@@ -118,7 +118,7 @@ global_var_decl
 
         for (auto manager: *$3) {
             var_defs.push_back(
-                manager->to_ast_global_var_def($2, ast::decl_type::ConstDecl)
+                manager->to_ast_var_def<ast::ConstGlobalVarDef>($2)
             );
         }
 
@@ -249,7 +249,7 @@ decl_stmt
 
         for (auto manager: *$2) {
             var_defs.push_back(
-                manager->to_ast_var_def($1, ast::decl_type::VolatileDecl)
+                manager->to_ast_var_def<ast::VolatileVarDef>($1)
             );
         }
 
@@ -260,7 +260,7 @@ decl_stmt
 
         for (auto manager: *$3) {
             var_defs.push_back(
-                manager->to_ast_var_def($2, ast::decl_type::ConstDecl)
+                manager->to_ast_var_def<ast::ConstVarDef>($2)
             );
         }
 

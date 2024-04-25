@@ -620,8 +620,8 @@ koopa_trans::Blocks *FuncCall::to_koopa() const {
     return res;
 }
 
-koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
-    // TODO  how to re-use `VarDef`
+koopa_trans::GlobalStmts *VolatileGlobalVarDef::to_koopa() const {
+    //? how to re-use `VarDef`
     if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
         throw '`' + id->lit + "` redefined";
     }
@@ -633,66 +633,78 @@ koopa_trans::GlobalStmts *GlobalVarDef::to_koopa() const {
 
     auto stmts = new koopa_trans::GlobalStmts();
     
-    if (decl_type == decl_type::ConstDecl) {
-        if (!has_init) {
-            throw "no initiator for const variable `" + id->lit + '`';
-        }
-
+    if (has_init) {
         auto rval_koopa = init->to_koopa();
 
         if (!rval_koopa->get_last_val()->is_const()) {
-            throw "initiating const variable `" + id->lit + "` with a non-const value";
+            throw "initiating global variable `" 
+                + id->lit + "` with a non-const value";
         }
 
-        value_manager.new_id(
-            koopa::id_type::GlobalId,
-            type->to_koopa(),
-            '@' + id->lit,
-            rval_koopa->get_last_val()->get_val(),
-            id->nesting_info
+        *stmts += new koopa::GlobalSymbolDef(
+            value_manager.new_id(
+                koopa::id_type::GlobalId,
+                new koopa::Pointer(
+                    type->to_koopa()
+                ),
+                '@' + id->lit,
+                id->nesting_info
+            ),
+            new koopa::GlobalMemoryDecl(
+                type->to_koopa(),
+                new koopa::ConstInitializer(rval_koopa->get_last_val()->get_val())
+            )
         );
     }
-    else { /* decl_type != decl_type::ConstDecl */
-        if (has_init) {
-            auto rval_koopa = init->to_koopa();
-
-            if (!rval_koopa->get_last_val()->is_const()) {
-                throw "initiating global variable `" 
-                    + id->lit + "` with a non-const value";
-            }
-
-            *stmts += new koopa::GlobalSymbolDef(
-                value_manager.new_id(
-                    koopa::id_type::GlobalId,
-                    new koopa::Pointer(
-                        type->to_koopa()
-                    ),
-                    '@' + id->lit,
-                    id->nesting_info
+    else { /* !has_init */
+        *stmts += new koopa::GlobalSymbolDef(
+            value_manager.new_id(
+                koopa::id_type::GlobalId,
+                new koopa::Pointer(
+                    type->to_koopa()
                 ),
-                new koopa::GlobalMemoryDecl(
-                    type->to_koopa(),
-                    new koopa::ConstInitializer(rval_koopa->get_last_val()->get_val())
-                )
-            );
-        }
-        else { /* !has_init */
-            *stmts += new koopa::GlobalSymbolDef(
-                value_manager.new_id(
-                    koopa::id_type::GlobalId,
-                    new koopa::Pointer(
-                        type->to_koopa()
-                    ),
-                    '@' + id->lit,
-                    id->nesting_info
-                ),
-                new koopa::GlobalMemoryDecl(
-                    type->to_koopa(),
-                    new koopa::ConstInitializer(0)
-                )
-            );
-        }
-    } /* decl_type ?= decl_type::ConstDecl */
+                '@' + id->lit,
+                id->nesting_info
+            ),
+            new koopa::GlobalMemoryDecl(
+                type->to_koopa(),
+                new koopa::ConstInitializer(0)
+            )
+        );
+    }
+
+    return stmts;
+}
+
+koopa_trans::GlobalStmts *ConstGlobalVarDef::to_koopa() const {
+    if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
+        throw '`' + id->lit + "` redefined";
+    }
+
+    if (type->to_koopa()->get_type_id() != koopa::type::Int) {
+        // TODO
+        return nullptr;
+    }
+
+    auto stmts = new koopa_trans::GlobalStmts();
+    
+    if (!has_init) {
+        throw "no initiator for const variable `" + id->lit + '`';
+    }
+
+    auto rval_koopa = init->to_koopa();
+
+    if (!rval_koopa->get_last_val()->is_const()) {
+        throw "initiating const variable `" + id->lit + "` with a non-const value";
+    }
+
+    value_manager.new_id(
+        koopa::id_type::GlobalId,
+        type->to_koopa(),
+        '@' + id->lit,
+        rval_koopa->get_last_val()->get_val(),
+        id->nesting_info
+    );
 
     return stmts;
 }
@@ -707,7 +719,7 @@ koopa_trans::GlobalStmts *GlobalVarDecl::to_koopa() const {
     return stmts;
 }
 
-koopa_trans::Blocks *VarDef::to_koopa() const {
+koopa_trans::Blocks *VolatileVarDef::to_koopa() const {
     if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
         throw '`' + id->lit + "` redefined";
     }
@@ -719,48 +731,60 @@ koopa_trans::Blocks *VarDef::to_koopa() const {
     
     auto stmts = new koopa_trans::Blocks();
     
-    if (decl_type == decl_type::ConstDecl) {
-        if (!has_init) {
-            throw "no initiator for const variable `" + id->lit + '`';
-        }
-
-        auto rval_koopa = init->to_koopa();
-
-        if (!rval_koopa->get_last_val()->is_const()) {
-            throw "initiating const variable `" 
-                + id->lit + "` with a non-const value";
-        }
-
+    *stmts += new koopa::SymbolDef(
         value_manager.new_id(
             koopa::id_type::LocalId,
-            type->to_koopa(),
-            '@' + id->lit,
-            rval_koopa->get_last_val()->get_val(),
-            id->nesting_info
-        );
-    }
-    else { /* decl_type != decl_type::ConstDecl */
-        *stmts += new koopa::SymbolDef(
-            value_manager.new_id(
-                koopa::id_type::LocalId,
-                new koopa::Pointer(
-                    type->to_koopa()
-                ),
-                '@' + id->lit,
-                id->nesting_info
+            new koopa::Pointer(
+                type->to_koopa()
             ),
-            new koopa::MemoryDecl(type->to_koopa())
-        );
+            '@' + id->lit,
+            id->nesting_info
+        ),
+        new koopa::MemoryDecl(type->to_koopa())
+    );
 
-        if (has_init) {
-            auto rval_koopa = init->to_koopa();
-            *stmts += *rval_koopa;
-            *stmts += new koopa::StoreValue(
-                rval_koopa->get_last_val(),
-                value_manager.get_id('@' + id->lit, id->nesting_info)
-            );
-        }
+    if (has_init) {
+        auto rval_koopa = init->to_koopa();
+        *stmts += *rval_koopa;
+        *stmts += new koopa::StoreValue(
+            rval_koopa->get_last_val(),
+            value_manager.get_id('@' + id->lit, id->nesting_info)
+        );
     }
+
+    return stmts;
+}
+
+koopa_trans::Blocks *ConstVarDef::to_koopa() const {
+    if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
+        throw '`' + id->lit + "` redefined";
+    }
+
+    if (type->to_koopa()->get_type_id() != koopa::type::Int) {
+        // TODO
+        return nullptr;
+    }
+    
+    auto stmts = new koopa_trans::Blocks();
+    
+    if (!has_init) {
+        throw "no initiator for const variable `" + id->lit + '`';
+    }
+
+    auto rval_koopa = init->to_koopa();
+
+    if (!rval_koopa->get_last_val()->is_const()) {
+        throw "initiating const variable `" 
+            + id->lit + "` with a non-const value";
+    }
+
+    value_manager.new_id(
+        koopa::id_type::LocalId,
+        type->to_koopa(),
+        '@' + id->lit,
+        rval_koopa->get_last_val()->get_val(),
+        id->nesting_info
+    );
 
     return stmts;
 }
@@ -777,15 +801,11 @@ koopa_trans::Blocks *VarDecl::to_koopa() const {
 
 koopa_trans::Blocks *Return::to_koopa() const {
     if (return_type == return_type::NotHasRetVal) {
-        auto res = new koopa_trans::Blocks();
-        *res += new koopa::Return();
-        return res;
+        return new koopa_trans::Blocks({new koopa::Return()});
     }
 
     auto res = ret_val->to_koopa();
-
     *res += new koopa::Return( res->get_last_val() );
-
     return res;
 }
 
