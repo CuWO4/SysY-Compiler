@@ -38,7 +38,7 @@ def parse_arguments(args):
     for arg in args:
         if arg.startswith("lv") or arg == "perf" or arg == "hello" or arg == "all":
             stage = arg
-        elif arg == "koopa" or arg == "riscv":
+        elif arg == "koopa" or arg == "riscv" or arg == "test":
             target_lang = arg
         elif arg == "-dbg-k" or arg == "-dbg-r":
             debug_flag.append(arg)
