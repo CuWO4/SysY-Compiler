@@ -29,6 +29,8 @@ public:
     virtual TypeId get_type_id() = 0;
     virtual bool operator==(Type &other) = 0;
     bool operator!=(Type &other);
+
+    virtual unsigned get_byte_size() const;
 };
 
     class Int: public Type {
@@ -37,6 +39,8 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
+
+        unsigned get_byte_size() const override;
     };
 
     class Array: public Type {
@@ -50,6 +54,8 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
+
+        unsigned get_byte_size() const override;
     };
 
     class Pointer: public Type {
@@ -62,6 +68,8 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
+
+        unsigned get_byte_size() const override;
     };
 
     class FuncType: public Type {
@@ -151,7 +159,7 @@ public:
 
 class Initializer: public Base {
     public:
-    virtual void initializer_to_riscv(std::string &str) const = 0;
+    virtual void initializer_to_riscv(std::string &str, unsigned type_byte_size) const = 0;
 };
 
     class ConstInitializer: public Initializer {
@@ -160,7 +168,7 @@ class Initializer: public Base {
 
         std::string to_string() const override;
 
-        void initializer_to_riscv(std::string &str) const override;
+        void initializer_to_riscv(std::string &str, unsigned type_byte_size) const override;
 
         ConstInitializer(int val);
     };
@@ -175,8 +183,9 @@ class Initializer: public Base {
     };
 
     class Zeroinit: public Initializer {
-
         std::string to_string() const override;
+
+        void initializer_to_riscv(std::string &str, unsigned type_byte_size) const override;
     };
 
     class UndefInitializer: public Initializer {

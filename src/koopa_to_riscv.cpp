@@ -35,8 +35,16 @@ riscv_trans::Register Const::value_to_riscv(std::string &str) const {
     return target_reg;
 }
 
-void ConstInitializer::initializer_to_riscv(std::string &str) const {
+void ConstInitializer::initializer_to_riscv(
+    std::string &str, unsigned type_byte_size
+) const {
     str += "\t.word " + std::to_string(val) + '\n';
+}
+
+void Zeroinit::initializer_to_riscv(
+    std::string &str, unsigned type_byte_size
+) const {
+    str += "\t.zero " + std::to_string(4 * type_byte_size) + '\n';
 }
 
 riscv_trans::Register MemoryDecl::rvalue_to_riscv(std::string &str) const {
@@ -377,7 +385,7 @@ void GlobalSymbolDef::stmt_to_riscv(std::string &str, riscv_trans::TransMode tra
 }
 
 void GlobalMemoryDecl::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {
-    initializer->initializer_to_riscv(str);
+    initializer->initializer_to_riscv(str, type->get_byte_size());
 }
 
 void FuncDecl::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {

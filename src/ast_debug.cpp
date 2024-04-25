@@ -108,6 +108,20 @@ std::string Number::debug(int indent) const {
     return std::to_string(val);
 }
 
+std::string ConstInitializer::debug(int indent) const {
+    return val->debug(indent);
+}
+
+std::string Aggregate::debug(int indent) const {
+    auto res = build_indent(indent);
+    res += "{ ";
+    for (auto initializer: initializers) {
+        res += initializer->debug() + ' ';
+    }
+    res += "}";
+    return res;
+}
+
 std::string VolatileVarDef::debug(int indent) const {
     return 
         build_indent(indent)

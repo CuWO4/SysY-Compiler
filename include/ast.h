@@ -34,7 +34,7 @@ namespace ast {
          * @example int => 0 
          * @example int[][2].get_dim() const => 2 
          */
-        virtual int get_dim() const = 0;
+        virtual unsigned get_dim() const = 0;
     };
 
         class Int: public Type {
@@ -43,7 +43,7 @@ namespace ast {
 
             std::string debug(int indent = 0) const override;
 
-            int get_dim() const override;
+            unsigned get_dim() const override;
         };
 
         class Void :public Type {
@@ -51,7 +51,7 @@ namespace ast {
 
             std::string debug(int indent = 0) const override;
 
-            int get_dim() const override;
+            unsigned get_dim() const override;
         };
 
         class Pointer: public Type {
@@ -62,7 +62,7 @@ namespace ast {
 
             std::string debug(int indent = 0) const override;
 
-            int get_dim() const override;
+            unsigned get_dim() const override;
 
         private:
             Type *pointed_type;
@@ -77,7 +77,7 @@ namespace ast {
 
             std::string debug(int indent = 0) const override;
 
-            int get_dim() const override;
+            unsigned get_dim() const override;
         
         private:
             Type *element_type;
@@ -326,7 +326,7 @@ namespace ast {
              * @example 1.get_dim() => 0
              * @example { 1, {2, 3} }.get_dim() => 2
              */
-            virtual int get_dim() const = 0;
+            virtual unsigned get_dim() const = 0;
         
             virtual koopa::Initializer *initializer_to_koopa() const = 0;
 
@@ -344,7 +344,7 @@ namespace ast {
             public:
                 ConstInitializer(Expr *val);
 
-                int get_dim() const override;
+                unsigned get_dim() const override;
 
                 /**
                  * val must be compile-time computable, otherwise
@@ -353,6 +353,8 @@ namespace ast {
                 koopa::Initializer *initializer_to_koopa() const override;
 
                 koopa_trans::Blocks *expr_to_koopa() const override;
+
+                std::string debug(int indent = 0) const override;
                 
             private:
                 Expr *val;
@@ -362,13 +364,15 @@ namespace ast {
             public:
                 Aggregate(std::vector<Initializer *> initializers);
 
-                int get_dim() const override;
+                unsigned get_dim() const override;
 
                 // align to boundaries
                 koopa::Initializer *initializer_to_koopa() const override;
 
                 // crash
                 koopa_trans::Blocks *expr_to_koopa() const override;
+
+                std::string debug(int indent = 0) const override;
                 
             private:
                 std::vector<Initializer *> initializers;
@@ -376,19 +380,19 @@ namespace ast {
 
         class VarDef: public Stmt {
         protected:
-            Type       *type;
-            Id         *id;
-            bool        has_init;
-            Expr       *init;
+            Type           *type;
+            Id             *id;
+            bool            has_init;
+            Initializer    *init;
 
             VarDef(Type *type, Id *id);
-            VarDef(Type *type, Id *id, Expr *init);
+            VarDef(Type *type, Id *id, Initializer *init);
         };
 
             class VolatileVarDef: public VarDef {
             public:
                 VolatileVarDef(Type *type, Id *id);
-                VolatileVarDef(Type *type, Id *id, Expr *init);
+                VolatileVarDef(Type *type, Id *id, Initializer *init);
 
                 koopa_trans::Blocks *to_koopa() const override;
 
@@ -398,7 +402,7 @@ namespace ast {
             class ConstVarDef: public VarDef {
             public:
                 ConstVarDef(Type *type, Id *id);
-                ConstVarDef(Type *type, Id *id, Expr *init);
+                ConstVarDef(Type *type, Id *id, Initializer *init);
 
                 koopa_trans::Blocks *to_koopa() const override;
 
@@ -529,20 +533,20 @@ namespace ast {
 
         class GlobalVarDef: public GlobalStmt {
         protected:
-            Type       *type;
-            Id         *id;
-            bool        has_init;
-            Expr       *init;
+            Type           *type;
+            Id             *id;
+            bool            has_init;
+            Initializer    *init;
 
             GlobalVarDef(Type *type, Id *id);
 
-            GlobalVarDef(Type *type, Id *id, Expr *init);
+            GlobalVarDef(Type *type, Id *id, Initializer *init);
         };
 
             class VolatileGlobalVarDef: public GlobalVarDef {
             public:
                 VolatileGlobalVarDef(Type *type, Id *id);
-                VolatileGlobalVarDef(Type *type, Id *id, Expr *init);
+                VolatileGlobalVarDef(Type *type, Id *id, Initializer *init);
 
                 koopa_trans::GlobalStmts *to_koopa() const override;
 
@@ -552,7 +556,7 @@ namespace ast {
             class ConstGlobalVarDef: public GlobalVarDef {
             public:
                 ConstGlobalVarDef(Type *type, Id *id);
-                ConstGlobalVarDef(Type *type, Id *id, Expr *init);
+                ConstGlobalVarDef(Type *type, Id *id, Initializer *init);
 
                 koopa_trans::GlobalStmts *to_koopa() const override;
 

@@ -35,7 +35,9 @@
     ast::Stmt      *ast_stmt_val;
     ast::GlobalStmt    *ast_global_stmt_val;
     ast::Expr      *ast_expr_val;
+    ast::Initializer   *ast_initializer_val;
     std::vector<ast::Expr *>               *ast_expr_vec_val;
+    std::vector<ast::Initializer *>        *ast_initializer_vec_val;
     std::vector<ast::Stmt *>               *ast_stmt_vec_val;
     std::vector<ast::GlobalStmt *>         *ast_global_stmt_vec_val;
     std::tuple<ast::Type *, ast::Id *>     *ast_func_param_val;
@@ -54,6 +56,8 @@
 %type   <ast_stmt_val> clause if_clause while_clause for_clause
 %type   <ast_stmt_val> stmt decl_stmt return_stmt continue_stmt break_stmt block_stmt empty_stmt for_init_stmt for_iter_stmt
 %type	<ast_expr_val> expr no_comma_expr func_call for_cond_expr
+%type   <ast_initializer_val> initializer
+%type   <ast_initializer_vec_val> initializers
 %type   <parser_var_def_manager_val> var_def
 %type	<parser_var_def_manager_vec_val> var_defs
 %type   <ast_global_stmt_vec_val> comp_unit_items
@@ -242,6 +246,31 @@ stmt
     | empty_stmt
 ;
 
+initializer
+    : '{' '}' {
+        $$ = new ast::Aggregate({});
+    }
+    | '{' initializers '}' {
+        $$ = new ast::Aggregate(*$2);
+    }
+    | '{' initializers ',' '}' {
+        $$ = new ast::Aggregate(*$2);
+    }
+    | no_comma_expr {
+        $$ = new ast::ConstInitializer($1);
+    }
+;
+
+initializers
+    : initializers ',' initializer {
+        $1->push_back($3);
+        $$ = $1;
+    }
+    | initializer {
+        $$ = new std::vector<ast::Initializer *>{ $1 };
+    }
+;
+
 decl_stmt
     : type var_defs {
         auto var_defs = std::vector<ast::VarDef *>();
@@ -298,7 +327,7 @@ var_def_trace
 ;
 
 var_def
-    : id var_def_trace '=' no_comma_expr {
+    : id var_def_trace '=' initializer {
         auto res = new parser::VarDefManager(new parser::Primitive, $1, $4);
         for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
             if (*dim == nullptr) {

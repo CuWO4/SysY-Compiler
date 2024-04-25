@@ -57,7 +57,7 @@ namespace parser {
     class VarDefManager {
     public:
         VarDefManager(TypeManger *, ast::Id *);
-        VarDefManager(TypeManger *, ast::Id *, ast::Expr *init);
+        VarDefManager(TypeManger *, ast::Id *, ast::Initializer *init);
 
         template <typename AstDef>
         AstDef *to_ast_var_def(ast::Type *primitive_type );
@@ -71,10 +71,10 @@ namespace parser {
         void wrap_array(ast::Expr *length);
 
     private:
-        TypeManger *type_manager;
-        ast::Id    *id;
-        bool        has_init;
-        ast::Expr  *init;
+        TypeManger         *type_manager;
+        ast::Id            *id;
+        bool                has_init;
+        ast::Initializer   *init;
     };
 
 

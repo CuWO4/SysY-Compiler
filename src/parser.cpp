@@ -27,7 +27,7 @@ namespace parser {
     VarDefManager::VarDefManager(TypeManger *type_manager, ast::Id *id)
         : type_manager(type_manager), id(id), has_init(false), init(nullptr) {}
 
-    VarDefManager::VarDefManager(TypeManger *type_manager, ast::Id *id, ast::Expr *init)
+    VarDefManager::VarDefManager(TypeManger *type_manager, ast::Id *id, ast::Initializer *init)
         : type_manager(type_manager), id(id), has_init(true), init(init) {}
 
     void VarDefManager::wrap_pointer() {

@@ -1,5 +1,7 @@
 #include "../include/koopa.h"
 
+#include <iostream>
+
 namespace koopa {
 
 void operator+=(Block &self, Stmt *stmt) {
@@ -84,5 +86,19 @@ int Undef::get_val() {
     assert(is_const());
     return 0;
 }
+
+unsigned Type::get_byte_size() const {
+    std::cerr << "try to get byte size of an unproper type" << std::endl;
+    assert(0);
+    return 0;
+}
+
+unsigned Int::get_byte_size() const { return 1; }
+
+unsigned Array::get_byte_size() const {
+    return length * elem_type->get_byte_size();
+}
+
+unsigned Pointer::get_byte_size() const { return 1; }
 
 }

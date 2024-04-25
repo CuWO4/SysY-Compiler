@@ -58,17 +58,17 @@ VarDef::VarDef(Type *type, Id *id)
     : type(type), id(id), has_init(false), init(nullptr) {
     assert(type); assert(id);
 }
-VarDef::VarDef(Type *type, Id *id, Expr *init)
+VarDef::VarDef(Type *type, Id *id, Initializer *init)
     : type(type), id(id), has_init(true), init(init) {
     assert(type); assert(id); assert(init);
 }
 
 VolatileVarDef::VolatileVarDef(Type *type, Id *id): VarDef(type, id) {}
-VolatileVarDef::VolatileVarDef(Type *type, Id *id, Expr *init)
+VolatileVarDef::VolatileVarDef(Type *type, Id *id, Initializer *init)
     : VarDef(type, id, init) {}
 
 ConstVarDef::ConstVarDef(Type *type, Id *id): VarDef(type, id) {}
-ConstVarDef::ConstVarDef(Type *type, Id *id, Expr *init)
+ConstVarDef::ConstVarDef(Type *type, Id *id, Initializer *init)
     : VarDef(type, id, init) {}
 
 VarDecl::VarDecl(std::vector<VarDef *> var_defs) : var_defs(var_defs) {}
@@ -104,17 +104,17 @@ GlobalVarDef::GlobalVarDef(Type *type, Id *id)
     assert(type); assert(id);
 }
 
-GlobalVarDef::GlobalVarDef(Type *type, Id *id, Expr *init) 
+GlobalVarDef::GlobalVarDef(Type *type, Id *id, Initializer *init) 
     : type(type), id(id), has_init(true), init(init) {
     assert(type); assert(id); assert(init);
 }
 
 VolatileGlobalVarDef::VolatileGlobalVarDef(Type *type, Id *id): GlobalVarDef(type, id) {}
-VolatileGlobalVarDef::VolatileGlobalVarDef(Type *type, Id *id, Expr *init)
+VolatileGlobalVarDef::VolatileGlobalVarDef(Type *type, Id *id, Initializer *init)
     : GlobalVarDef(type, id, init) {}
 
 ConstGlobalVarDef::ConstGlobalVarDef(Type *type, Id *id): GlobalVarDef(type, id) {}
-ConstGlobalVarDef::ConstGlobalVarDef(Type *type, Id *id, Expr *init)
+ConstGlobalVarDef::ConstGlobalVarDef(Type *type, Id *id, Initializer *init)
     : GlobalVarDef(type, id, init) {}
 
 GlobalVarDecl::GlobalVarDecl(std::vector<GlobalVarDef *> var_defs) : var_defs(var_defs) {}
