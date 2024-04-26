@@ -422,17 +422,23 @@ koopa_trans::Blocks *Number::to_koopa() const {
     return new koopa_trans::Blocks(value_manager.new_const(val));
 }
 
-koopa::Initializer *ConstInitializer::initializer_to_koopa() const {
+koopa::Initializer *ConstInitializer::initializer_to_koopa(
+    std::vector<int> dimensions
+) const {
     auto val_koopa = val->to_koopa()->get_last_val();
     if (!val_koopa->is_const()) {
-        throw "using expression `" + val->debug() + "` in an initialization list that is not compile-time evaluable";
+        throw "using expression `" + val->debug() 
+            + "` in an initialization list "
+            "that is not compile-time evaluable";
     }
     return new koopa::ConstInitializer(val_koopa->get_val());
 }
 
-koopa::Initializer *Aggregate::initializer_to_koopa() const {
+koopa::Initializer *Aggregate::initializer_to_koopa(
+    std::vector<int> dimensions
+) const {
     // TODO
-    return nullptr;
+    return new koopa::Zeroinit;
 }
 
 koopa_trans::Blocks *ConstInitializer::expr_to_koopa() const {
@@ -536,8 +542,9 @@ koopa_trans::GlobalStmts *VolatileGlobalVarDef::to_koopa() const {
     }
 
     auto stmts = new koopa_trans::GlobalStmts();
+    auto type_koopa = type->to_koopa();
 
-    if (type->get_dim() == 0) {
+    if (type_koopa->get_dim().size() == 0) {
         koopa::Initializer *init_koopa;
         
         if (has_init) {
@@ -555,7 +562,7 @@ koopa_trans::GlobalStmts *VolatileGlobalVarDef::to_koopa() const {
 
             init_koopa = new koopa::ConstInitializer(rval_koopa->get_last_val()->get_val());
         }
-        else { /* !has_init */
+        else /* !has_init */ { 
             init_koopa = new koopa::Zeroinit;
         }
 
@@ -563,19 +570,46 @@ koopa_trans::GlobalStmts *VolatileGlobalVarDef::to_koopa() const {
             value_manager.new_id(
                 koopa::id_type::GlobalId,
                 new koopa::Pointer(
-                    type->to_koopa()
+                    type_koopa
                 ),
                 '@' + id->lit,
                 id->nesting_info
             ),
             new koopa::GlobalMemoryDecl(
-                type->to_koopa(),
+                type_koopa,
                 init_koopa
             )
         );
     }
-    else { /* type->get_dim() > 0 */
-        // TODO
+    else /* type->get_dim() > 0 */ { 
+        koopa::Initializer *init_koopa;
+        
+        if (has_init) {
+            if (init->get_dim() == 0) {
+                throw "initialize array object `" + id->debug() 
+                        + "` with value`" + init->debug() + '`';
+            }
+
+            init_koopa = init->initializer_to_koopa(type_koopa->get_dim());
+        }
+        else /* !has_init */ { 
+            init_koopa = new koopa::Zeroinit;
+        }
+
+        *stmts += new koopa::GlobalSymbolDef(
+            value_manager.new_id(
+                koopa::id_type::GlobalId,
+                new koopa::Pointer(
+                    type_koopa
+                ),
+                '@' + id->lit,
+                id->nesting_info
+            ),
+            new koopa::GlobalMemoryDecl(
+                type_koopa,
+                init_koopa
+            )
+        );
     }
 
     return stmts;
@@ -590,7 +624,9 @@ koopa_trans::GlobalStmts *ConstGlobalVarDef::to_koopa() const {
         throw "no initiator for const variable `" + id->lit + '`';
     }
     
-    if (type->get_dim() == 0) {
+    auto type_koopa = type->to_koopa();
+
+    if (type_koopa->get_dim().size() == 0) {
         if (init->get_dim() > 0) {
             throw "initialize non-array object `" + id->debug() 
                 + "` with aggregate`" + init->debug() + '`';
@@ -605,7 +641,7 @@ koopa_trans::GlobalStmts *ConstGlobalVarDef::to_koopa() const {
 
         value_manager.new_id(
             koopa::id_type::GlobalId,
-            type->to_koopa(),
+            type_koopa,
             '@' + id->lit,
             rval_koopa->get_last_val()->get_val(),
             id->nesting_info
@@ -613,7 +649,7 @@ koopa_trans::GlobalStmts *ConstGlobalVarDef::to_koopa() const {
 
         return stmts;
     }
-    else { /* type->get_dim() > 0 */
+    else /* type->get_dim() > 0 */ { 
         return VolatileGlobalVarDef(type, id, init).to_koopa();
     }
 }
@@ -634,18 +670,19 @@ koopa_trans::Blocks *VolatileVarDef::to_koopa() const {
     }
 
     auto stmts = new koopa_trans::Blocks();
+    auto type_koopa = type->to_koopa();
 
-    if (type->get_dim() == 0) {
+    if (type_koopa->get_dim().size() == 0) {
         *stmts += new koopa::SymbolDef(
             value_manager.new_id(
                 koopa::id_type::LocalId,
                 new koopa::Pointer(
-                    type->to_koopa()
+                    type_koopa
                 ),
                 '@' + id->lit,
                 id->nesting_info
             ),
-            new koopa::MemoryDecl(type->to_koopa())
+            new koopa::MemoryDecl(type_koopa)
         );
 
         if (has_init) {
@@ -662,8 +699,30 @@ koopa_trans::Blocks *VolatileVarDef::to_koopa() const {
             );
         }
     }
-    else { /* type->get_dim() > 0 */
-        // TODO
+    else /* type->get_dim() > 0 */ { 
+        *stmts += new koopa::SymbolDef(
+            value_manager.new_id(
+                koopa::id_type::LocalId,
+                new koopa::Pointer(
+                    type_koopa
+                ),
+                '@' + id->lit,
+                id->nesting_info
+            ),
+            new koopa::MemoryDecl(type_koopa)
+        );
+
+        if (has_init) {
+            if (init->get_dim() == 0) {
+                throw "initialize array object `" + id->debug() 
+                    + "` with primitive value`" + init->debug() + '`';
+            }
+
+            *stmts += new koopa::StoreInitializer(
+                init->initializer_to_koopa(type_koopa->get_dim()),
+                value_manager.get_id('@' + id->lit, id->nesting_info)
+            );
+        }
     }
 
     return stmts;
@@ -679,8 +738,9 @@ koopa_trans::Blocks *ConstVarDef::to_koopa() const {
     }
 
     auto stmts = new koopa_trans::Blocks();
+    auto type_koopa = type->to_koopa();
 
-    if (type->get_dim() == 0) {
+    if (type_koopa->get_dim().size() == 0) {
         if (init->get_dim() > 0) {
             throw "initialize non-array object `" + id->debug() 
                 + "` with aggregate`" + init->debug() + '`';
@@ -695,13 +755,13 @@ koopa_trans::Blocks *ConstVarDef::to_koopa() const {
 
         value_manager.new_id(
             koopa::id_type::LocalId,
-            type->to_koopa(),
+            type_koopa,
             '@' + id->lit,
             rval_koopa->get_last_val()->get_val(),
             id->nesting_info
         );
     }
-    else { /* type->get_dim() > 0 */
+    else /* type->get_dim() > 0 */ { 
         return VolatileVarDef(type, id, init).to_koopa();
     }
 

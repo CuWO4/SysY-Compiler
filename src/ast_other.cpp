@@ -26,14 +26,6 @@ bool Number::has_side_effect() const {
     return false;
 }
 
-unsigned Int::get_dim() const { return 0; }
-
-unsigned Void::get_dim() const { return 0; }
-
-unsigned Pointer::get_dim() const { return pointed_type->get_dim() + 1; }
-
-unsigned Array::get_dim() const { return element_type->get_dim() + 1; }
-
 unsigned ConstInitializer::get_dim() const { return 0; }
 
 unsigned Aggregate::get_dim() const {

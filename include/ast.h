@@ -25,13 +25,6 @@ namespace ast {
     class Type: public Base {
     public:
         virtual koopa::Type* to_koopa() const = 0;
-
-        /**
-         * @return type dimension
-         * @example int => 0 
-         * @example int[][2].get_dim() const => 2 
-         */
-        virtual unsigned get_dim() const = 0;
     };
 
         class Int: public Type {
@@ -39,16 +32,12 @@ namespace ast {
             koopa::Type* to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            unsigned get_dim() const override;
         };
 
         class Void :public Type {
             koopa::Type *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            unsigned get_dim() const override;
         };
 
         class Pointer: public Type {
@@ -58,8 +47,6 @@ namespace ast {
             koopa::Type *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            unsigned get_dim() const override;
 
         private:
             Type *pointed_type;
@@ -73,8 +60,6 @@ namespace ast {
             koopa::Type *to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
-
-            unsigned get_dim() const override;
         
         private:
             Type *element_type;
@@ -325,7 +310,7 @@ namespace ast {
              */
             virtual unsigned get_dim() const = 0;
         
-            virtual koopa::Initializer *initializer_to_koopa() const = 0;
+            virtual koopa::Initializer *initializer_to_koopa(std::vector<int> dimensions) const = 0;
 
             /**
              * only work for `Initializer` with 0 dimension 
@@ -347,7 +332,7 @@ namespace ast {
                  * val must be compile-time computable, otherwise
                  * @throw <std::string>
                  */
-                koopa::Initializer *initializer_to_koopa() const override;
+                koopa::Initializer *initializer_to_koopa(std::vector<int> dimensions) const override;
 
                 koopa_trans::Blocks *expr_to_koopa() const override;
 
@@ -364,7 +349,7 @@ namespace ast {
                 unsigned get_dim() const override;
 
                 // align to boundaries
-                koopa::Initializer *initializer_to_koopa() const override;
+                koopa::Initializer *initializer_to_koopa(std::vector<int> dimensions) const override;
 
                 // crash
                 koopa_trans::Blocks *expr_to_koopa() const override;

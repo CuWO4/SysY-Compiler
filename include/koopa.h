@@ -30,6 +30,14 @@ public:
     virtual bool operator==(Type &other) = 0;
     bool operator!=(Type &other);
 
+
+    /**
+     * @return type dimensions, use -1 to represent pointer
+     * @example int => {}
+     * @example int[][2].get_dim() => { -1, 2 } 
+     */
+    virtual std::vector<int> get_dim() const;
+
     virtual unsigned get_byte_size() const;
 };
 
@@ -39,6 +47,8 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
+
+        std::vector<int> get_dim() const override;
 
         unsigned get_byte_size() const override;
     };
@@ -55,6 +65,8 @@ public:
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
 
+        std::vector<int> get_dim() const override;
+
         unsigned get_byte_size() const override;
     };
 
@@ -68,6 +80,8 @@ public:
 
         TypeId get_type_id() override;
         bool operator==(Type &other) override;
+
+        std::vector<int> get_dim() const override;
 
         unsigned get_byte_size() const override;
     };
@@ -158,7 +172,7 @@ public:
     };
 
 class Initializer: public Base {
-    public:
+public:
     virtual void initializer_to_riscv(std::string &str, unsigned type_byte_size) const = 0;
 };
 
@@ -484,6 +498,11 @@ public:
 
                 std::string to_string() const override;
 
+                void stmt_to_riscv(
+                    std::string &str, 
+                    riscv_trans::TransMode trans_mode
+                ) const override;
+
                 StoreInitializer(Initializer *initializer, Id *addr);
             };
 
@@ -574,7 +593,7 @@ public:
 
             std::string to_string() const override;
 
-void stmt_to_riscv(
+            void stmt_to_riscv(
                 std::string &str, 
                 riscv_trans::TransMode trans_mode
             ) const override;
@@ -592,7 +611,7 @@ void stmt_to_riscv(
 
             std::string to_string() const override;
 
-void stmt_to_riscv(
+            void stmt_to_riscv(
                 std::string &str, 
                 riscv_trans::TransMode trans_mode
             ) const override;
@@ -607,7 +626,7 @@ void stmt_to_riscv(
 
             std::string to_string() const override;
 
-void stmt_to_riscv(
+            void stmt_to_riscv(
                 std::string &str, 
                 riscv_trans::TransMode trans_mode
             ) const override;
@@ -622,7 +641,7 @@ void stmt_to_riscv(
 
             std::string to_string() const override;
 
-void stmt_to_riscv(
+            void stmt_to_riscv(
                 std::string &str, 
                 riscv_trans::TransMode trans_mode
             ) const override;

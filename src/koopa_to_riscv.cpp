@@ -215,7 +215,6 @@ riscv_trans::Register Sar::rvalue_to_riscv(std::string &str) const {
 }
 
 void StoreValue::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {
-
     str += build_comment(this);
 
     auto val_reg = value->value_to_riscv(str);
@@ -223,6 +222,10 @@ void StoreValue::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mo
     str += riscv_trans::id_storage_map.get_storage(addr)->save(val_reg);
 
     riscv_trans::temp_reg_manager.refresh_reg(val_reg);
+}
+
+void StoreInitializer::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {
+    // TODO
 }
 
 void SymbolDef::stmt_to_riscv(std::string &str, riscv_trans::TransMode trans_mode) const {

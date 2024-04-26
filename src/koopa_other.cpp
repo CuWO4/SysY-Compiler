@@ -101,4 +101,25 @@ unsigned Array::get_byte_size() const {
 
 unsigned Pointer::get_byte_size() const { return 1; }
 
+std::vector<int> Type::get_dim() const {
+    assert(0);
+    return {};
+}
+
+std::vector<int> Int::get_dim() const {
+    return {};
+}
+
+std::vector<int> Array::get_dim() const {
+    auto res = elem_type->get_dim();
+    res.insert(res.begin(), length);
+    return res;
+}
+
+std::vector<int> Pointer::get_dim() const {
+    auto res = pointed_type->get_dim();
+    res.insert(res.begin(), -1);
+    return res;
+}
+
 }
