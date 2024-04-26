@@ -278,8 +278,6 @@ ValueManager::ValueManager()
     consts({}),
     undef(nullptr)
 {
-    //TODO
-    // undef = new koopa::Undef;
 }
 
 ValueManager::~ValueManager() { 

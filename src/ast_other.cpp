@@ -19,7 +19,6 @@ bool Id::has_side_effect() const {
 }
 
 bool FuncCall::has_side_effect() const {
-    // TODO  can be handled better
     return true;
 }
 

@@ -121,7 +121,6 @@ void riscv_trans::allocate_ids_storage_location(const koopa::FuncDef *func_def) 
     /*
      * naive strategy: allocate all identifiers to stack frame
      */
-    // TODO  optimize and make nice
 
     current_has_called_func = has_called_func(func_def);
 

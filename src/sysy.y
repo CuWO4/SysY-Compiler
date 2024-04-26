@@ -149,7 +149,6 @@ func_def_params
     }
 ;
 
-// TODO  change to var_def
 func_def_param
     : type id {
         $$ = new std::tuple<ast::Type *, ast::Id *>($1, $2);

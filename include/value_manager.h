@@ -72,7 +72,7 @@ private:
 
     std::unordered_set<koopa::Const *> consts;
 
-    // singleton
+    // TODO  singleton
     koopa::Undef *undef;
     
     void insert_id(std::string key, koopa::Id *new_id);

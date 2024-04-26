@@ -26,9 +26,6 @@ namespace ast {
     public:
         virtual koopa::Type* to_koopa() const = 0;
 
-        // TODO
-        // virtual bool operator==(Type &other) = 0;
-
         /**
          * @return type dimension
          * @example int => 0 

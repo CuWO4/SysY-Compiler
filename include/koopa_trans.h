@@ -60,8 +60,6 @@ namespace koopa_trans {
      *
      */
     class Blocks {
-    // refactor. merge `Blocks` & `GlobalStmts` (they are same thing from the very beginning) 
-    //      as a template class `Stmts`
     public:
         Blocks(koopa::Value *last_val);
         Blocks(std::vector<koopa::Stmt *> stmts = {});
