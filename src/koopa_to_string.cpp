@@ -73,8 +73,12 @@ std::string Aggregate::to_string() const {
     for (auto initializer: initializers) {
         res += initializer->to_string() + ", ";
     }
-    if (initializers.size() > 0) res.pop_back();
+    if (initializers.size() > 0) {
+        res.pop_back(); // ' '
+        res.pop_back(); // ','
+    }
     res += '}';
+
 
     return res;
 }

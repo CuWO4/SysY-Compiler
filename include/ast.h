@@ -301,6 +301,7 @@ namespace ast {
                 std::string debug(int indent = 0) const override;
             };
 
+        class AggregateAgent;
         class Initializer: public Base {
         public:
             /**
@@ -310,7 +311,9 @@ namespace ast {
              */
             virtual unsigned get_dim() const = 0;
         
-            virtual koopa::Initializer *initializer_to_koopa(std::vector<int> dimensions) const = 0;
+            virtual koopa::Initializer *initializer_to_koopa(
+                std::vector<int> dimensions
+            ) const = 0;
 
             /**
              * only work for `Initializer` with 0 dimension 
@@ -320,6 +323,10 @@ namespace ast {
              * with non-zero dimensions
              */
             virtual koopa_trans::Blocks *expr_to_koopa() const = 0;
+
+            virtual void initializer_to_koopa_agent(
+                AggregateAgent &agent
+            ) const = 0;
         };
 
             class ConstInitializer: public Initializer {
@@ -332,7 +339,13 @@ namespace ast {
                  * val must be compile-time computable, otherwise
                  * @throw <std::string>
                  */
-                koopa::Initializer *initializer_to_koopa(std::vector<int> dimensions) const override;
+                koopa::Initializer *initializer_to_koopa(
+                    std::vector<int> dimensions
+                ) const override;
+
+                void initializer_to_koopa_agent(
+                    AggregateAgent &agent
+                ) const override;
 
                 koopa_trans::Blocks *expr_to_koopa() const override;
 
@@ -348,8 +361,13 @@ namespace ast {
 
                 unsigned get_dim() const override;
 
-                // align to boundaries
-                koopa::Initializer *initializer_to_koopa(std::vector<int> dimensions) const override;
+                koopa::Initializer *initializer_to_koopa(
+                    std::vector<int> dimensions
+                ) const override;
+
+                void initializer_to_koopa_agent(
+                    AggregateAgent &agent
+                ) const override;
 
                 // crash
                 koopa_trans::Blocks *expr_to_koopa() const override;

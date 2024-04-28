@@ -5,6 +5,7 @@
 #include "../include/value_manager.h"
 #include "../include/name.h"
 #include "../include/loop_tag.h"
+#include "../include/aggregate_agent.h"
 
 #include <string>
 #include <functional>
@@ -422,6 +423,33 @@ koopa_trans::Blocks *Number::to_koopa() const {
     return new koopa_trans::Blocks(value_manager.new_const(val));
 }
 
+void ConstInitializer::initializer_to_koopa_agent(
+    AggregateAgent &agent
+) const {
+    auto val_koopa = val->to_koopa()->get_last_val();
+    if (!val_koopa->is_const()) {
+        throw "using expression `" + val->debug() 
+            + "` in an initialization list "
+            "that is not compile-time evaluable";
+    }
+    agent.fill(val_koopa->get_val());
+}
+
+void Aggregate::initializer_to_koopa_agent(
+    AggregateAgent &agent
+) const {
+    agent.enter_aggregate();
+
+    if (initializers.size() == 0) {
+        agent.fill(0);
+    }
+    for (auto initializer: initializers) {
+        initializer->initializer_to_koopa_agent(agent);
+    }
+
+    agent.leave_aggregate();
+}
+
 koopa::Initializer *ConstInitializer::initializer_to_koopa(
     std::vector<int> dimensions
 ) const {
@@ -437,8 +465,9 @@ koopa::Initializer *ConstInitializer::initializer_to_koopa(
 koopa::Initializer *Aggregate::initializer_to_koopa(
     std::vector<int> dimensions
 ) const {
-    // TODO
-    return new koopa::Zeroinit;
+    auto agent = AggregateAgent(dimensions); 
+    initializer_to_koopa_agent(agent);
+    return agent.to_aggregate();
 }
 
 koopa_trans::Blocks *ConstInitializer::expr_to_koopa() const {
@@ -466,7 +495,8 @@ koopa_trans::Blocks *Id::to_koopa() const {
 
         auto new_id = value_manager.new_id(
             koopa::id_type::LocalId,
-            static_cast<koopa::Pointer *>(id_koopa->type)->pointed_type, //!? re-free bug
+            //!? re-free bug
+            static_cast<koopa::Pointer *>(id_koopa->type)->pointed_type, 
             new_id_name(),
             new NestingInfo()
         );

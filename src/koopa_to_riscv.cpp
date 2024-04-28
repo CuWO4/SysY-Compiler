@@ -41,6 +41,12 @@ void ConstInitializer::initializer_to_riscv(
     str += "\t.word " + std::to_string(val) + '\n';
 }
 
+void Aggregate::initializer_to_riscv(
+    std::string &str, unsigned type_byte_size
+) const {
+    // TODO
+}
+
 void Zeroinit::initializer_to_riscv(
     std::string &str, unsigned type_byte_size
 ) const {

@@ -193,6 +193,8 @@ public:
 
         std::string to_string() const override;
 
+        void initializer_to_riscv(std::string &str, unsigned type_byte_size) const override;
+
         Aggregate(std::vector<Initializer *> initializers);
     };
 
