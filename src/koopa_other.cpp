@@ -122,4 +122,17 @@ std::vector<int> Pointer::get_dim() const {
     return res;
 }
 
+koopa::Type* Type::unwrap() const {
+    assert(0);
+    return nullptr;
+}
+
+koopa::Type* Array::unwrap() const {
+    return elem_type;
+}
+
+koopa::Type* Pointer::unwrap() const {
+    return pointed_type;
+}
+
 }

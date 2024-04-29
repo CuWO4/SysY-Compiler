@@ -30,7 +30,6 @@ public:
     virtual bool operator==(Type& other) = 0;
     bool operator!=(Type& other);
 
-
     /**
      * @return type dimensions, use -1 to represent pointer
      * @example int => {}
@@ -39,6 +38,12 @@ public:
     virtual std::vector<int> get_dim() const;
 
     virtual unsigned get_byte_size() const;
+
+    /**
+     * @example int[2][3].unwrap() => int[3]
+     * crash when unwrapping not unwrappable type
+     */
+    virtual Type* unwrap() const;
 };
 
     class Int: public Type {
@@ -68,6 +73,8 @@ public:
         std::vector<int> get_dim() const override;
 
         unsigned get_byte_size() const override;
+
+        Type* unwrap() const override;
     };
 
     class Pointer: public Type {
@@ -84,6 +91,8 @@ public:
         std::vector<int> get_dim() const override;
 
         unsigned get_byte_size() const override;
+
+        Type* unwrap() const override;
     };
 
     class FuncType: public Type {
@@ -275,9 +284,13 @@ public:
                 Id* base;
                 Value* offset;
 
+                GetElemPtr(Id* base, Value* offset);
+
                 std::string to_string() const override;
 
-                GetElemPtr(Id* base, Value* offset);
+                riscv_trans::Register rvalue_to_riscv(
+                    std::string& str
+                ) const override;
             };
 
             class Expr: public Rvalue {

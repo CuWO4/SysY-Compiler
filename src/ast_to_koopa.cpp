@@ -396,8 +396,57 @@ koopa_trans::Blocks* Not::to_koopa() const {
 }
 
 koopa_trans::Blocks* Indexing::to_koopa() const {
-    // TODO
-    return nullptr;
+    auto id_koopa = value_manager.get_id('@' + id->lit, id->nesting_info);
+
+    if (id_koopa == nullptr) {
+        throw "undeclared identifier `" + id->lit + '`';
+    }
+
+    // -1 since all identifiers defined is wrapped by pointer
+    if (id_koopa->type->get_dim().size() - 1 != indexes.size()) {
+        throw "invalid indexing";
+    }
+
+    auto res = new koopa_trans::Blocks;
+
+    auto pointer = id_koopa;
+
+    for (auto index: indexes) {
+
+        auto index_stmts = index->to_koopa();
+        *res += *index_stmts;
+
+        auto new_pointer = value_manager.new_id(
+            koopa::id_type::LocalId,
+            pointer->type->unwrap(),
+            new_id_name(),
+            new NestingInfo
+        );
+
+        *res += new koopa::SymbolDef(
+            new_pointer,
+            new koopa::GetElemPtr(
+                pointer, index_stmts->get_last_val()
+            )
+        );
+
+        pointer = new_pointer;
+    }
+
+    auto res_value = value_manager.new_id(
+        koopa::id_type::LocalId,
+        pointer->type->unwrap(),
+        new_id_name(),
+        new NestingInfo
+    );
+
+    *res += new koopa::SymbolDef(
+        res_value,
+        new koopa::Load(pointer)
+    );
+    res->set_last_val(res_value);
+    
+    return res;
 }
 
 koopa_trans::Blocks* Number::to_koopa() const {
@@ -477,7 +526,7 @@ koopa_trans::Blocks* Id::to_koopa() const {
         auto new_id = value_manager.new_id(
             koopa::id_type::LocalId,
             //!? re-free bug
-            static_cast<koopa::Pointer*>(id_koopa->type)->pointed_type, 
+            id_koopa->type->unwrap(), 
             new_id_name(),
             new NestingInfo
         );
@@ -511,10 +560,12 @@ koopa_trans::Blocks* FuncCall::to_koopa() const {
         throw "call of function `" + func_id->lit + "` undeclared";
     }
 
-    if (!is_consistent(
+    if (
+        !is_consistent(
             dynamic_cast<koopa::FuncType*>(func_id_koopa->type), 
             actual_params
-        )) {
+        )
+    ) {
         throw "calling function `" + func_id->lit + "` with mismatched actual arguments";
     }
 
