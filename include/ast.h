@@ -86,7 +86,7 @@ namespace ast {
              *          not assignable: 1 + 2
              */
             virtual bool is_assignable() const;
-            virtual koopa_trans::Blocks* assign(const Expr* rval) const;
+            virtual koopa_trans::Blocks* assign(const Expr* rv) const;
         };
 
             class BinaryExpr: public Expr {
@@ -280,8 +280,8 @@ namespace ast {
 
                 bool has_side_effect() const override;
 
-                // bool is_assignable() const override;
-                // void assign(const Expr* rval) const override;
+                bool is_assignable() const override;
+                koopa_trans::Blocks* assign(const Expr* rv) const override;
 
                 koopa_trans::Blocks* to_koopa() const override;
 
@@ -290,6 +290,8 @@ namespace ast {
             private:
                 Id *id;
                 std::vector<Expr*> indexes;
+
+                koopa_trans::Blocks* get_pointer() const;
             };
 
             class Id: public Expr {
@@ -302,7 +304,7 @@ namespace ast {
                 koopa_trans::Blocks* to_koopa() const override;
 
                 bool is_assignable() const override;
-                koopa_trans::Blocks* assign(const Expr* rval) const override;
+                koopa_trans::Blocks* assign(const Expr* rv) const override;
 
                 std::string debug(int indent = 0) const override;
             };

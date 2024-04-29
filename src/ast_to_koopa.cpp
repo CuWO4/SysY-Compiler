@@ -395,7 +395,7 @@ koopa_trans::Blocks* Not::to_koopa() const {
     );
 }
 
-koopa_trans::Blocks* Indexing::to_koopa() const {
+koopa_trans::Blocks* Indexing::get_pointer() const {
     auto id_koopa = value_manager.get_id('@' + id->lit, id->nesting_info);
 
     if (id_koopa == nullptr) {
@@ -433,13 +433,22 @@ koopa_trans::Blocks* Indexing::to_koopa() const {
         pointer = new_pointer;
     }
 
+    res->set_last_val(pointer);
+
+    return res;
+}
+
+koopa_trans::Blocks* Indexing::to_koopa() const {
+    auto res = get_pointer();
+    auto pointer = static_cast<koopa::Id*>(res->get_last_val());
+
     auto res_value = value_manager.new_id(
         koopa::id_type::LocalId,
         pointer->type->unwrap(),
         new_id_name(),
         new NestingInfo
     );
-
+    
     *res += new koopa::SymbolDef(
         res_value,
         new koopa::Load(pointer)
