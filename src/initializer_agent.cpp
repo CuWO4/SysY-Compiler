@@ -7,7 +7,7 @@ namespace ast {
         std::vector<int> element_count;
         int total_element_count = 1;
         for (auto it = dimensions.rbegin(); it != dimensions.rend(); it++) {
-            total_element_count *=* it;
+            total_element_count *= *it;
             element_count.push_back(total_element_count);
         }
         this->element_count = std::vector<int>(

@@ -31,7 +31,7 @@ static koopa::Value* generate_binary_expr(
         new NestingInfo
     );
 
-* dest += new koopa::SymbolDef(
+    *dest += new koopa::SymbolDef(
         new_id,
         new KoopaExpr(
             lv_koopa, rv_koopa
@@ -66,8 +66,8 @@ static koopa_trans::Blocks* build_ordinary_binary_blocks(
     }
 
     auto res = new koopa_trans::Blocks;
-* res +=* lv_stmts;
-* res +=* rv_stmts;
+    *res += *lv_stmts;
+    *res += *rv_stmts;
     res->set_last_val(
         generate_binary_expr<KoopaExpr>(res, lv_stmts->get_last_val(), rv_stmts->get_last_val())
     );
@@ -116,29 +116,29 @@ static koopa_trans::Blocks* build_short_circuit_evaluation(
     auto then_block = new koopa_trans::Blocks;
     auto end_block = new koopa_trans::Blocks;
 
-* res += new koopa::SymbolDef(res_addr, new koopa::MemoryDecl(new koopa::Int));
+    *res += new koopa::SymbolDef(res_addr, new koopa::MemoryDecl(new koopa::Int));
 
     auto init_bool_val = [&](
         ast::Expr* val,
         koopa_trans::Blocks* dest
     ) -> koopa::Value * {
         auto stmts = ast::Neq(val, new ast::Number(0)).to_koopa();
-* dest +=* stmts;
+        *dest += *stmts;
         return stmts->get_last_val();
     };
 
     koopa::Value* bool_lv = init_bool_val(lv, res);
-* res += new koopa::StoreValue(bool_lv, res_addr);
+    *res += new koopa::StoreValue(bool_lv, res_addr);
 
     if (op == LOGIC_AND) {
-* res += new koopa::Branch(
+        *res += new koopa::Branch(
             bool_lv, 
             then_block->get_begin_block_id(), 
             end_block->get_begin_block_id()
         );
     }
     else /* op == LOGIC_OR */ {
-* res += new koopa::Branch(
+        *res += new koopa::Branch(
             bool_lv, 
             end_block->get_begin_block_id(), 
             then_block->get_begin_block_id()
@@ -146,14 +146,14 @@ static koopa_trans::Blocks* build_short_circuit_evaluation(
     }
 
     koopa::Value* bool_rv = init_bool_val(rv, then_block);
-* then_block += new koopa::StoreValue(bool_rv, res_addr);
-* then_block += new koopa::Jump(end_block->get_begin_block_id());
+    *then_block += new koopa::StoreValue(bool_rv, res_addr);
+    *then_block += new koopa::Jump(end_block->get_begin_block_id());
 
-* res += then_block->to_raw_blocks();
-* res += end_block->to_raw_blocks();
+    *res += then_block->to_raw_blocks();
+    *res += end_block->to_raw_blocks();
 
     auto res_id = value_manager.new_id(koopa::id_type::LocalId, new koopa::Int, new_id_name());
-* res += new koopa::SymbolDef(res_id, new koopa::Load(res_addr));
+    *res += new koopa::SymbolDef(res_id, new koopa::Load(res_addr));
     
     res->set_last_val(res_id);
     return res;
@@ -200,34 +200,10 @@ koopa_trans::Blocks* LogicAnd::to_koopa() const {
 }
 
 koopa_trans::Blocks* Assign::to_koopa() const {
-    if (typeid(* lv) != typeid(ast::Id)) {
-        throw "try to declare a non-id";
+    if (!lv->is_assignable()) {
+        throw "`" + lv->debug() + "` is not assignable";
     }
-
-
-    auto res = new koopa_trans::Blocks;
-    auto rv_stmts = rv->to_koopa();
-    auto id = static_cast<ast::Id*>(lv);
-
-* res +=* rv_stmts;
-
-    auto id_koopa = value_manager.get_id('@' + id->lit, id->nesting_info);
-
-    if (id_koopa == nullptr) {
-        throw "undeclared identifier `" + id->lit + '`';
-    }
-    if (id_koopa->is_const()) {
-        throw "assigning to a const identifier `" + id->lit + '`';
-    }
-
-* res += new koopa::StoreValue(
-        res->get_last_val(),
-        value_manager.get_id('@' + id->lit, id->nesting_info)
-    );
-
-    res->set_last_val( id_koopa );
-
-    return res;
+    return lv->assign(rv);
 }
 
 koopa_trans::Blocks* Comma::to_koopa() const {
@@ -243,12 +219,12 @@ koopa_trans::Blocks* Comma::to_koopa() const {
 
     auto res = new koopa_trans::Blocks;
     
-    if (lv->has_side_effect())* res +=* lv_stmts;
+    if (lv->has_side_effect())*res += *lv_stmts;
     if (rv_stmts->get_last_val()->is_const()) {
         res->set_last_val( rv_stmts->get_last_val() );
     }
     else {
-* res +=* rv_stmts;
+        *res += *rv_stmts;
         res->set_last_val( rv_stmts->get_last_val() );
     }
     return res;
@@ -263,37 +239,37 @@ koopa_trans::Blocks* Eq::to_koopa() const {
 
 koopa_trans::Blocks* Neq::to_koopa() const {
     return build_ordinary_binary_blocks<koopa::Ne>(
-		lv->to_koopa(), rv->to_koopa(),
-		[](int a, int b) { return a != b; }
-	);
+        lv->to_koopa(), rv->to_koopa(),
+        [](int a, int b) { return a != b; }
+    );
 }
 
 koopa_trans::Blocks* Lt::to_koopa() const {
     return build_ordinary_binary_blocks<koopa::Lt>(
-		lv->to_koopa(), rv->to_koopa(),
-		[](int a, int b) { return a < b; }
-	);
+        lv->to_koopa(), rv->to_koopa(),
+        [](int a, int b) { return a < b; }
+    );
 }
 
 koopa_trans::Blocks* Gt::to_koopa() const {
     return build_ordinary_binary_blocks<koopa::Gt>(
-		lv->to_koopa(), rv->to_koopa(),
-		[](int a, int b) { return a > b; }
-	);
+        lv->to_koopa(), rv->to_koopa(),
+        [](int a, int b) { return a > b; }
+    );
 }
 
 koopa_trans::Blocks* Leq::to_koopa() const {
     return build_ordinary_binary_blocks<koopa::Le>(
-		lv->to_koopa(), rv->to_koopa(),
-		[](int a, int b) { return a <= b; }
-	);
+        lv->to_koopa(), rv->to_koopa(),
+        [](int a, int b) { return a <= b; }
+    );
 }
 
 koopa_trans::Blocks* Geq::to_koopa() const {
     return build_ordinary_binary_blocks<koopa::Ge>(
-		lv->to_koopa(), rv->to_koopa(),
-		[](int a, int b) { return a >= b; }
-	);
+        lv->to_koopa(), rv->to_koopa(),
+        [](int a, int b) { return a >= b; }
+    );
 }
 
 koopa_trans::Blocks* Add::to_koopa() const {
@@ -312,9 +288,9 @@ koopa_trans::Blocks* Add::to_koopa() const {
     }
 
     return build_ordinary_binary_blocks<koopa::Add>(
-		lv_stmts, rv_stmts,
-		[](int a, int b) { return a + b; }
-	);
+        lv_stmts, rv_stmts,
+        [](int a, int b) { return a + b; }
+    );
 }
 
 koopa_trans::Blocks* Sub::to_koopa() const {
@@ -326,9 +302,9 @@ koopa_trans::Blocks* Sub::to_koopa() const {
     }
     
     return build_ordinary_binary_blocks<koopa::Sub>(
-		lv_stmts, rv_stmts,
-		[](int a, int b) { return a - b; }
-	);
+        lv_stmts, rv_stmts,
+        [](int a, int b) { return a - b; }
+    );
 }
 
 koopa_trans::Blocks* Mul::to_koopa() const {
@@ -347,9 +323,9 @@ koopa_trans::Blocks* Mul::to_koopa() const {
     }
     
     return build_ordinary_binary_blocks<koopa::Mul>(
-		lv_stmts, rv_stmts,
-		[](int a, int b) { return a * b; }
-	);
+        lv_stmts, rv_stmts,
+        [](int a, int b) { return a * b; }
+    );
 }
 
 koopa_trans::Blocks* Div::to_koopa() const {
@@ -361,16 +337,16 @@ koopa_trans::Blocks* Div::to_koopa() const {
     }
 
     return build_ordinary_binary_blocks<koopa::Div>(
-		lv->to_koopa(), rv->to_koopa(),
-		[](int a, int b) { return a / b; }
-	);
+        lv->to_koopa(), rv->to_koopa(),
+        [](int a, int b) { return a / b; }
+    );
 }
 
 koopa_trans::Blocks* Mod::to_koopa() const {
     return build_ordinary_binary_blocks<koopa::Mod>(
-		lv->to_koopa(), rv->to_koopa(),
-		[](int a, int b) { return a % b; }
-	);
+        lv->to_koopa(), rv->to_koopa(),
+        [](int a, int b) { return a % b; }
+    );
 }
 
 koopa_trans::Blocks* Pos::to_koopa() const {
@@ -394,7 +370,7 @@ static koopa_trans::Blocks* build_ordinary_unary_blocks(
         new NestingInfo
     );
 
-* lv_stmts += new koopa::SymbolDef(
+    *lv_stmts += new koopa::SymbolDef(
         new_id,
         new KoopaExpr(
             value_manager.new_const(0),
@@ -485,13 +461,13 @@ koopa_trans::Blocks* Aggregate::expr_to_koopa() const {
 }
 
 koopa_trans::Blocks* Id::to_koopa() const {
-    auto res = new koopa_trans::Blocks;
-
     auto id_koopa = value_manager.get_id('@' + lit, nesting_info);
 
     if (id_koopa == nullptr) {
         throw "undeclared identifier `" + lit + '`';
     }
+
+    auto res = new koopa_trans::Blocks;
 
     if (id_koopa->is_const()) {
         return new koopa_trans::Blocks(value_manager.new_const(id_koopa->get_val()));
@@ -506,7 +482,7 @@ koopa_trans::Blocks* Id::to_koopa() const {
             new NestingInfo
         );
 
-* res += new koopa::SymbolDef(
+        *res += new koopa::SymbolDef(
             new_id,
             new koopa::Load(id_koopa)
         );
@@ -546,13 +522,13 @@ koopa_trans::Blocks* FuncCall::to_koopa() const {
     actual_params_koopa.reserve(actual_params.size());
     for (auto actual_param: actual_params) {
         auto actual_param_koopa = actual_param->to_koopa();
-* res +=* actual_param_koopa;
+        *res += *actual_param_koopa;
         actual_params_koopa.push_back(actual_param_koopa->get_last_val());
     }
 
     auto ret_type_koopa = dynamic_cast<koopa::FuncType*>(func_id_koopa->type)->ret_type;
     if (ret_type_koopa->get_type_id() == koopa::type::Void) {
-* res += new koopa::FuncCall(func_id_koopa, actual_params_koopa);
+        *res += new koopa::FuncCall(func_id_koopa, actual_params_koopa);
         res->throw_last_val();
     }
     else {
@@ -561,7 +537,7 @@ koopa_trans::Blocks* FuncCall::to_koopa() const {
             ret_type_koopa,
             new_id_name()
         );
-* res += new koopa::SymbolDef(
+        *res += new koopa::SymbolDef(
             res_id,
             new koopa::FuncCall(func_id_koopa, actual_params_koopa)
         );
@@ -601,7 +577,7 @@ koopa_trans::GlobalStmts* VolatileGlobalVarDef::to_koopa() const {
             init_koopa = new koopa::Zeroinit;
         }
 
-* stmts += new koopa::GlobalSymbolDef(
+        *stmts += new koopa::GlobalSymbolDef(
             value_manager.new_id(
                 koopa::id_type::GlobalId,
                 new koopa::Pointer(
@@ -631,7 +607,7 @@ koopa_trans::GlobalStmts* VolatileGlobalVarDef::to_koopa() const {
             init_koopa = new koopa::Zeroinit;
         }
 
-* stmts += new koopa::GlobalSymbolDef(
+        *stmts += new koopa::GlobalSymbolDef(
             value_manager.new_id(
                 koopa::id_type::GlobalId,
                 new koopa::Pointer(
@@ -693,7 +669,7 @@ koopa_trans::GlobalStmts* GlobalVarDecl::to_koopa() const {
     auto stmts = new koopa_trans::GlobalStmts;
 
     for (auto var_def: var_defs) {
-* stmts +=* var_def->to_koopa();
+        *stmts += *var_def->to_koopa();
     }
 
     return stmts;
@@ -708,7 +684,7 @@ koopa_trans::Blocks* VolatileVarDef::to_koopa() const {
     auto type_koopa = type->to_koopa();
 
     if (type_koopa->get_dim().size() == 0) {
-* stmts += new koopa::SymbolDef(
+        *stmts += new koopa::SymbolDef(
             value_manager.new_id(
                 koopa::id_type::LocalId,
                 new koopa::Pointer(
@@ -727,15 +703,15 @@ koopa_trans::Blocks* VolatileVarDef::to_koopa() const {
             }
 
             auto rval_koopa = init->expr_to_koopa();
-* stmts +=* rval_koopa;
-* stmts += new koopa::StoreValue(
+            *stmts += *rval_koopa;
+            *stmts += new koopa::StoreValue(
                 rval_koopa->get_last_val(),
                 value_manager.get_id('@' + id->lit, id->nesting_info)
             );
         }
     }
     else /* type->get_dim() > 0 */ { 
-* stmts += new koopa::SymbolDef(
+        *stmts += new koopa::SymbolDef(
             value_manager.new_id(
                 koopa::id_type::LocalId,
                 new koopa::Pointer(
@@ -753,7 +729,7 @@ koopa_trans::Blocks* VolatileVarDef::to_koopa() const {
                     + "` with primitive value`" + init->debug() + '`';
             }
 
-* stmts += new koopa::StoreInitializer(
+            *stmts += new koopa::StoreInitializer(
                 init->initializer_to_koopa(type_koopa->get_dim()),
                 value_manager.get_id('@' + id->lit, id->nesting_info)
             );
@@ -807,7 +783,7 @@ koopa_trans::Blocks* VarDecl::to_koopa() const {
     auto stmts = new koopa_trans::Blocks;
 
     for (auto var_def: var_defs) {
-* stmts +=* var_def->to_koopa();
+        *stmts += *var_def->to_koopa();
     }
 
     return stmts;
@@ -819,7 +795,7 @@ koopa_trans::Blocks* Return::to_koopa() const {
     }
 
     auto res = ret_val->to_koopa();
-* res += new koopa::Return( res->get_last_val() );
+    *res += new koopa::Return(res->get_last_val());
     return res;
 }
 
@@ -850,7 +826,7 @@ koopa_trans::Blocks* If::to_koopa() const {
     auto res = new koopa_trans::Blocks;
 
     if (has_else_stmt) {
-* res +=* cond->to_koopa();
+        *res += *cond->to_koopa();
 
         auto cond_koopa = res->get_last_val();
 
@@ -866,21 +842,21 @@ koopa_trans::Blocks* If::to_koopa() const {
             {}
         );
 
-* res += new koopa::Branch(
+        *res += new koopa::Branch(
             cond_koopa,
             then_blocks.front()->id,
             else_blocks.front()->id
         );
 
-* then_blocks.back() += new koopa::Jump(end_block->id);
-* else_blocks.back() += new koopa::Jump(end_block->id);
+    *then_blocks.back() += new koopa::Jump(end_block->id);
+    *else_blocks.back() += new koopa::Jump(end_block->id);
 
-* res += then_blocks;
-* res += else_blocks;
-* res += end_block;
+    *res += then_blocks;
+    *res += else_blocks;
+    *res += end_block;
     }
     else {  /* !has_else_stmt */
-* res +=* cond->to_koopa();
+        *res += *cond->to_koopa();
 
         auto cond_koopa = res->get_last_val();
 
@@ -895,16 +871,16 @@ koopa_trans::Blocks* If::to_koopa() const {
             {}
         );
 
-* res += new koopa::Branch(
+        *res += new koopa::Branch(
             cond_koopa,
             then_blocks.front()->id,
             end_block->id
         );
 
-* then_blocks.back() += new koopa::Jump(end_block->id);
+        *then_blocks.back() += new koopa::Jump(end_block->id);
 
-* res += then_blocks;
-* res += end_block;
+        *res += then_blocks;
+        *res += end_block;
     }
 
     return res;
@@ -935,23 +911,23 @@ koopa_trans::Blocks* While::to_koopa() const {
         )
     );
 
-* res += new koopa::Jump(while_entry->get_begin_block_id());
+    *res += new koopa::Jump(while_entry->get_begin_block_id());
 
     auto cond_koopa = cond->to_koopa();
-* while_entry +=* cond_koopa;
-* while_entry += new koopa::Branch(
+    *while_entry += *cond_koopa;
+    *while_entry += new koopa::Branch(
         cond_koopa->get_last_val(), 
         while_body->get_begin_block_id(), 
         while_end->get_begin_block_id()
     );
 
     auto body_koopa = body->to_koopa();
-* while_body +=* body_koopa;
-* while_body += new koopa::Jump(while_entry->get_begin_block_id());
+    *while_body += *body_koopa;
+    *while_body += new koopa::Jump(while_entry->get_begin_block_id());
 
-* res += while_entry->to_raw_blocks();
-* res += while_body->to_raw_blocks();
-* res += while_end->to_raw_blocks();
+    *res += while_entry->to_raw_blocks();
+    *res += while_body->to_raw_blocks();
+    *res += while_end->to_raw_blocks();
 
     loop_tag_manager.pop();
 
@@ -988,29 +964,29 @@ koopa_trans::Blocks* For::to_koopa() const {
         )
     );
 
-* res +=* init_stmt->to_koopa();
-* res += new koopa::Jump(for_entry->get_begin_block_id());
+    *res += *init_stmt->to_koopa();
+    *res += new koopa::Jump(for_entry->get_begin_block_id());
 
     auto cond_koopa = cond->to_koopa();
-* for_entry +=* cond_koopa;
-* for_entry += new koopa::Branch(
+    *for_entry += *cond_koopa;
+    *for_entry += new koopa::Branch(
         cond_koopa->get_last_val(), 
         for_body->get_begin_block_id(), 
         for_end->get_begin_block_id()
     );
 
     auto body_koopa = body->to_koopa();
-* for_body +=* body_koopa;
-* for_body += new koopa::Jump(for_iter->get_begin_block_id());
+    *for_body += *body_koopa;
+    *for_body += new koopa::Jump(for_iter->get_begin_block_id());
 
     auto iter_koopa = iter_stmt->to_koopa();
-* for_iter +=* iter_koopa;
-* for_iter += new koopa::Jump(for_entry->get_begin_block_id());
+    *for_iter += *iter_koopa;
+    *for_iter += new koopa::Jump(for_entry->get_begin_block_id());
 
-* res += for_entry->to_raw_blocks();
-* res += for_body->to_raw_blocks();
-* res += for_iter->to_raw_blocks();
-* res += for_end->to_raw_blocks();
+    *res += for_entry->to_raw_blocks();
+    *res += for_body->to_raw_blocks();
+    *res += for_iter->to_raw_blocks();
+    *res += for_end->to_raw_blocks();
 
     loop_tag_manager.pop();
 
@@ -1082,7 +1058,7 @@ koopa_trans::Blocks* Block::to_koopa() const {
     auto res = new koopa_trans::Blocks;
 
     for (auto stmt: stmts) {
-* res +=* stmt->to_koopa();
+        *res += *stmt->to_koopa();
     }
 
     return res;
@@ -1161,16 +1137,16 @@ koopa_trans::GlobalStmts* FuncDef::to_koopa() const {
             '%' + std::get<1>(* params[i])->lit,
             std::get<1>(* params[i])->nesting_info
         );
-* block_koopa += new koopa::SymbolDef(
+        *block_koopa += new koopa::SymbolDef(
             pointer_style_param_id,
             new koopa::MemoryDecl(param_types[i])
         );
-* block_koopa += new koopa::StoreValue(
+        *block_koopa += new koopa::StoreValue(
             param_ids[i],
             pointer_style_param_id
         );
     }
-* block_koopa +=* block->to_koopa();
+    *block_koopa += *block->to_koopa();
     trim_redundant_stmts_after_end_stmt(block_koopa, ret_type->to_koopa());
     add_pred_succ(block_koopa);
 
@@ -1288,7 +1264,7 @@ koopa::Program* CompUnit::to_koopa() const {
     push_lib_func_decls(global_stmts_koopa->to_raw_vector());
 
     for (auto global_stmt: global_stmts) {
-* global_stmts_koopa +=* global_stmt->to_koopa();
+        *global_stmts_koopa += *global_stmt->to_koopa();
     }
     
     return new koopa::Program(

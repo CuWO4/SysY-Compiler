@@ -94,7 +94,7 @@ void operator+=(koopa_trans::Blocks& self, koopa_trans::Blocks& other) {
         self.blocks = other.blocks;
     }
     else {
-* self.blocks.back() += other.active_stmts;
+    *self.blocks.back() += other.active_stmts;
 
         self.blocks.reserve(self.blocks.size() + other.blocks.size());
         self.blocks.insert(self.blocks.end(), other.blocks.begin(), other.blocks.end());
@@ -116,7 +116,7 @@ void operator+=(koopa_trans::Blocks& self, std::vector<koopa::Stmt*>& stmts) {
         self.active_stmts.insert(self.active_stmts.end(), stmts.begin(), stmts.end());
     }
     else {
-* self.blocks.back() += stmts;
+    *self.blocks.back() += stmts;
     }
 }
 
@@ -125,7 +125,7 @@ void operator+=(koopa_trans::Blocks& self, koopa::Stmt* stmt) {
         self.active_stmts.push_back(stmt);
     }
     else {
-* self.blocks.back() += stmt;
+    *self.blocks.back() += stmt;
     }
 }
 

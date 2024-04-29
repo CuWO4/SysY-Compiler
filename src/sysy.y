@@ -364,7 +364,7 @@ var_def
     : id var_def_trace '=' initializer {
         auto res = new parser::VarDefManager(new parser::Primitive, $1, $4);
         for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
-            if (* dim == nullptr) {
+            if (*dim == nullptr) {
                 res->wrap_pointer();
             }
             else {
@@ -376,7 +376,7 @@ var_def
     | id var_def_trace {
         auto res = new parser::VarDefManager(new parser::Primitive, $1);
         for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
-            if (* dim == nullptr) {
+            if (*dim == nullptr) {
                 res->wrap_pointer();
             }
             else {

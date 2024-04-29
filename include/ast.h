@@ -73,7 +73,20 @@ namespace ast {
 
         class Expr: public Stmt {
         public:
-            virtual bool has_side_effect() const = 0;
+            /**
+             * default implementation: has no side effect
+             */
+            virtual bool has_side_effect() const;
+
+            /**
+             * default implementation: not assignable, 
+             * crash when assigning a not assignable Expr
+             *
+             * @example assignable: foo, arr[2][3]
+             *          not assignable: 1 + 2
+             */
+            virtual bool is_assignable() const;
+            virtual koopa_trans::Blocks* assign(const Expr* rval) const;
         };
 
             class BinaryExpr: public Expr {
@@ -84,7 +97,7 @@ namespace ast {
                 Expr* rv;
 
             public:
-                bool has_side_effect() const;
+                virtual bool has_side_effect() const;
             };
 
                 class LogicOr: public BinaryExpr {
@@ -267,6 +280,9 @@ namespace ast {
 
                 bool has_side_effect() const override;
 
+                // bool is_assignable() const override;
+                // void assign(const Expr* rval) const override;
+
                 koopa_trans::Blocks* to_koopa() const override;
 
                 std::string debug(int indent = 0) const override;
@@ -285,7 +301,8 @@ namespace ast {
 
                 koopa_trans::Blocks* to_koopa() const override;
 
-                bool has_side_effect() const override;
+                bool is_assignable() const override;
+                koopa_trans::Blocks* assign(const Expr* rval) const override;
 
                 std::string debug(int indent = 0) const override;
             };
@@ -311,8 +328,6 @@ namespace ast {
                 Number(int val);
 
                 koopa_trans::Blocks* to_koopa() const override;
-
-                bool has_side_effect() const override;
 
                 std::string debug(int indent = 0) const override;
             };
