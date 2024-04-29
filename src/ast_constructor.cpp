@@ -32,6 +32,9 @@ Neg::Neg(Expr* lv): UnaryExpr(lv) {}
 Pos::Pos(Expr* lv): UnaryExpr(lv) {}
 Not::Not(Expr* lv): UnaryExpr(lv) {}
 
+Indexing::Indexing(Id* id, std::vector<Expr*> indexes)
+    : id(id), indexes(indexes) {}
+
 Pointer::Pointer(Type* pointed_type): pointed_type(pointed_type) {}
 
 Array::Array(Type* elem_type, Expr* length)

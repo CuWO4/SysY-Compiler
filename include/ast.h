@@ -260,6 +260,22 @@ namespace ast {
                     std::string debug(int indent = 0) const override;
                 };
 
+            class Id;
+            class Indexing: public Expr {
+            public:
+                Indexing(Id* id, std::vector<Expr*> indexes);
+
+                bool has_side_effect() const override;
+
+                koopa_trans::Blocks* to_koopa() const override;
+
+                std::string debug(int indent = 0) const override;
+
+            private:
+                Id *id;
+                std::vector<Expr*> indexes;
+            };
+
             class Id: public Expr {
             public:
                 std::string lit;

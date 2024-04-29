@@ -24,8 +24,6 @@
 
 %union {
     int Int;
-    std::vector<int>* IntVector;
-
     std::string* String;
 
     parser::VarDefManager* ParserVarDefManager;
@@ -96,6 +94,8 @@
 %type   <AstExpr> func_call
 %type   <AstExprVector> func_call_params
 
+%type   <AstExprVector> indexing_trace
+
 %type   <Int> number
 %type   <AstId> id
 %type	<AstType> type
@@ -114,6 +114,7 @@
 %left '+' '-'
 %left '*' '/' '%'
 %right PREC_UNARY_OP
+%left '['
 
 %%
 
@@ -471,11 +472,24 @@ no_comma_expr
     | '!' no_comma_expr %prec PREC_UNARY_OP  {
 		$$ = new ast::Not($2);
 	}
+    | id indexing_trace {
+        $$ = new ast::Indexing($1, *$2);
+    }
     | func_call
     | id { $$ = $1; }
     | number                        {
 		$$ = new ast::Number($1);
 	}
+;
+
+indexing_trace
+    : indexing_trace '[' expr ']' {
+        $1->push_back($3);
+        $$ = $1;
+    }
+    | '[' expr ']' {
+        $$ = new std::vector<ast::Expr*> { $2 };
+    }
 ;
 
 func_call

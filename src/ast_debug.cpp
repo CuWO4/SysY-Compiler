@@ -67,7 +67,7 @@ std::string Comma::debug(int indent) const {
 }
 
 std::string Assign::debug(int indent) const {
-    return '(' + lv->debug() + ") = (" + rv->debug() + ')';
+    return build_indent(indent) + '(' + lv->debug() + ") = (" + rv->debug() + ')';
 }
 
 std::string Neg::debug(int indent) const {
@@ -80,6 +80,17 @@ std::string Pos::debug(int indent) const {
 
 std::string Not::debug(int indent) const {
     return "!(" + lv->debug() + ')';
+}
+
+std::string Indexing::debug(int indent) const {
+    std::string res = "";
+
+    res += id->debug();
+    for (auto index: indexes) {
+        res += '[' + index->debug() + ']';
+    }
+
+    return res;
 }
 
 std::string Id::debug(int indent) const {

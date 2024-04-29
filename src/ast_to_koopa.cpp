@@ -419,6 +419,11 @@ koopa_trans::Blocks* Not::to_koopa() const {
     );
 }
 
+koopa_trans::Blocks* Indexing::to_koopa() const {
+    // TODO
+    return nullptr;
+}
+
 koopa_trans::Blocks* Number::to_koopa() const {
     return new koopa_trans::Blocks(value_manager.new_const(val));
 }
