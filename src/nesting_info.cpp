@@ -7,7 +7,7 @@ NestingInfo::NestingInfo()
 NestingInfo::NestingInfo(
     int nesting_level, 
     int nesting_count,
-    NestingInfo *pa
+    NestingInfo* pa
 ) : need_suffix(true),
     nesting_level(nesting_level), 
     nesting_count(nesting_count),

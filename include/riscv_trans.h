@@ -70,7 +70,7 @@ namespace riscv_trans {
      * same register and have the same number)
      */
     constexpr int REG_COUNT = 33;
-    extern const char *abi_name[REG_COUNT];
+    extern const char* abi_name[REG_COUNT];
     class Register: public RiscvStorage {
     public:
         Register();
@@ -144,15 +144,15 @@ namespace riscv_trans {
     class IdStorageMap {
     public:
         IdStorageMap();
-        bool does_id_exist(const koopa::Id *id);
+        bool does_id_exist(const koopa::Id* id);
         /**
-         * @throw  <const char *> if id is not registered
+         * @throw  <const char*> if id is not registered
          */
-        RiscvStorage *get_storage(const koopa::Id *id);
-        void register_id(const koopa::Id *id, RiscvStorage *storage);
+        RiscvStorage* get_storage(const koopa::Id* id);
+        void register_id(const koopa::Id* id, RiscvStorage* storage);
 
     private:
-        std::unordered_map<const koopa::Id *, RiscvStorage *> map;
+        std::unordered_map<const koopa::Id *, RiscvStorage*> map;
     };
     
     extern IdStorageMap id_storage_map;
@@ -174,7 +174,7 @@ namespace riscv_trans {
      * implemented in `allocate.cpp`, an interface reserved for future 
      * register allocation algorithms
      */
-    void allocate_ids_storage_location(const koopa::FuncDef *func_def);
+    void allocate_ids_storage_location(const koopa::FuncDef* func_def);
 
     /*
      * indicate which stage the riscv translation is currently in

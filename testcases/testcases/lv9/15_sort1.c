@@ -9,7 +9,7 @@ int bubblesort(int arr[])
         j = 0;
         while(j < n-i-1){
             if (arr[j] > arr[j+1]) {
-                // swap(&arr[j], &arr[j+1]); 
+                // swap(& arr[j],& arr[j+1]); 
                 int tmp;
                 tmp = arr[j+1];
                 arr[j+1] = arr[j];

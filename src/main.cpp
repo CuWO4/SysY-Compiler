@@ -10,16 +10,16 @@
  
 #include <string.h>
 
-extern FILE *yyin;
-extern int yyparse(ast::CompUnit *&ast);
+extern FILE* yyin;
+extern int yyparse(ast::CompUnit*& ast);
 
 void test() {
-	ast::CompUnit *ast;
+	ast::CompUnit* ast;
 	yyparse(ast);
 	std::cout << ast->debug() << std::endl;
 }
 
-void handle_args(int argc, const char *argv[], std::string &mode, std::string &input, std::string &output) {
+void handle_args(int argc, const char* argv[], std::string& mode, std::string& input, std::string& output) {
 	#ifndef DEBUG__
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "-koopa") 
@@ -57,7 +57,7 @@ void handle_args(int argc, const char *argv[], std::string &mode, std::string &i
 	#endif
 }
 
-int main(int argc, const char *argv[]) {
+int main(int argc, const char* argv[]) {
 	try {
 		std::string mode = {}, input = {}, output = {};
 		handle_args(argc, argv, mode, input, output);
@@ -75,7 +75,7 @@ int main(int argc, const char *argv[]) {
 			return 0;
 		}
 
-		ast::CompUnit *ast;
+		ast::CompUnit* ast;
 		yyparse(ast);
 
 		auto koopa = ast->to_koopa();
@@ -92,9 +92,9 @@ int main(int argc, const char *argv[]) {
 
 			os << riscv_string;
 		}
-	} catch (std::string &s) {
+	} catch (std::string& s) {
 		std::cerr << "error: " << s << std::endl;
-	} catch (char const *const &s) {
+	} catch (char const* const& s) {
 		std::cerr << "error: " << s << std::endl;
 	}
 

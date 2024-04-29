@@ -3,10 +3,10 @@
 
 class NestingInfo {
 public:
-    bool            need_suffix;
-    int             nesting_level;
-    int             nesting_count;
-    NestingInfo    *pa;
+    bool need_suffix;
+    int nesting_level;
+    int nesting_count;
+    NestingInfo* pa;
 
     // need suffix = false
     NestingInfo();
@@ -14,7 +14,7 @@ public:
     NestingInfo(
         int nesting_level, 
         int nesting_count, 
-        NestingInfo *pa
+        NestingInfo* pa
     );
 
 };

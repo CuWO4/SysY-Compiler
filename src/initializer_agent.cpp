@@ -4,10 +4,10 @@ namespace ast {
     AggregateAgent::AggregateAgent(std::vector<int> dimensions) 
         : dimension_at(-1), dimensions(dimensions) {
 
-        std::vector<int> element_count = {};
+        std::vector<int> element_count;
         int total_element_count = 1;
         for (auto it = dimensions.rbegin(); it != dimensions.rend(); it++) {
-            total_element_count *= *it;
+            total_element_count *=* it;
             element_count.push_back(total_element_count);
         }
         this->element_count = std::vector<int>(
@@ -43,15 +43,15 @@ namespace ast {
         enter_layer_stack.pop();
     }
 
-    koopa::Initializer *AggregateAgent::to_aggregate() {
+    koopa::Initializer* AggregateAgent::to_aggregate() {
         int element_idx = 0;
         return to_aggregate(0, element_idx);
     }
 
-    koopa::Initializer *AggregateAgent::to_aggregate(
-        int dimension_at, int &element_idx
+    koopa::Initializer* AggregateAgent::to_aggregate(
+        int dimension_at, int& element_idx
     ) {
-        std::vector<koopa::Initializer *> initializers;
+        std::vector<koopa::Initializer*> initializers;
 
         for (int i = 0; i < dimensions[dimension_at]; i++) {
             if (dimension_at == dimensions.size() - 1) {

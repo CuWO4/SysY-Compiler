@@ -9,7 +9,7 @@ int insertsort(int a[])
         temp=a[i]; 
         int j;
         j=i-1;
-        while(j>-1&&temp<a[j])
+        while(j>-1&& temp<a[j])
         {
             a[j+1]=a[j];  
             j = j - 1;

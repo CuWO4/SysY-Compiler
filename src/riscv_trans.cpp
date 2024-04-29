@@ -4,7 +4,7 @@
 
 namespace riscv_trans {
 
-    const char *abi_name[33] = {
+    const char* abi_name[33] = {
         "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "fp",
         "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", 
         "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11",
@@ -136,13 +136,13 @@ namespace riscv_trans {
         is_used[lit.at(1) - '0'] = false;
     }
 
-    IdStorageMap::IdStorageMap(): map({}) {}
+    IdStorageMap::IdStorageMap() {}
 
-    bool IdStorageMap::does_id_exist(const koopa::Id *id) {
+    bool IdStorageMap::does_id_exist(const koopa::Id* id) {
         return map.find(id) != map.end();
     }
 
-    RiscvStorage *IdStorageMap::get_storage(const koopa::Id *id) {
+    RiscvStorage* IdStorageMap::get_storage(const koopa::Id* id) {
         auto res = map.find(id);
 
         if (res == map.end()) {
@@ -152,9 +152,9 @@ namespace riscv_trans {
         return res->second;
     }
 
-    void IdStorageMap::register_id(const koopa::Id *id, RiscvStorage *storage) {
+    void IdStorageMap::register_id(const koopa::Id* id, RiscvStorage* storage) {
         map.insert(
-            std::pair<const koopa::Id *, RiscvStorage *>(id, storage)
+            std::pair<const koopa::Id *, RiscvStorage*>(id, storage)
         );
     }
 

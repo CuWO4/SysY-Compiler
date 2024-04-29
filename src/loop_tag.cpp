@@ -2,5 +2,5 @@
 
 std::stack<LoopTag> loop_tag_manager = {};
 
-LoopTag::LoopTag(koopa::Id *continue_target, koopa::Id *break_target) 
+LoopTag::LoopTag(koopa::Id* continue_target, koopa::Id* break_target) 
     : continue_target(continue_target), break_target(break_target) {}

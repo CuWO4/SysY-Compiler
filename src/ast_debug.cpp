@@ -220,8 +220,8 @@ std::string Array::debug(int indent) const {
 std::string FuncDef::debug(int indent) const {
     auto res = build_indent(indent) + ret_type->debug() + ' ' + id->lit + '(';
     for (auto param: params) {
-        res += std::get<0>(*param)->debug() + ' '
-            + std::get<1>(*param)->debug() + ", ";
+        res += std::get<0>(* param)->debug() + ' '
+            + std::get<1>(* param)->debug() + ", ";
     }
     if (params.size() > 0) {
         res.pop_back(); // `,`

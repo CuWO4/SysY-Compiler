@@ -17,22 +17,22 @@
 class ValueManager {
 // simulate, but not change the interface. add method `ids_of_func`, and return a iterable type
 public:
-    koopa::Id *new_id(
-        koopa::IdType id_type, koopa::Type *type, std::string lit, 
-        NestingInfo *nesting_info = new NestingInfo()
+    koopa::Id* new_id(
+        koopa::IdType id_type, koopa::Type* type, std::string lit, 
+        NestingInfo* nesting_info = new NestingInfo
     );
 
-    koopa::Id *new_id(
-        koopa::IdType id_type, koopa::Type *type, std::string lit, 
-        int val, NestingInfo *nesting_info = new NestingInfo()
+    koopa::Id* new_id(
+        koopa::IdType id_type, koopa::Type* type, std::string lit, 
+        int val, NestingInfo* nesting_info = new NestingInfo
     );
 
-    bool is_id_declared(std::string lit, NestingInfo *nesting_info);
+    bool is_id_declared(std::string lit, NestingInfo* nesting_info);
 
     /* return identifier if exist one; otherwise nullptr */
-    koopa::Id *get_id(std::string lit, NestingInfo *nesting_info);
+    koopa::Id* get_id(std::string lit, NestingInfo* nesting_info);
     /* find identifier with type `koopa::type::FuncType` */
-    koopa::Id *get_func_id(std::string lit, NestingInfo *nesting_info);
+    koopa::Id* get_func_id(std::string lit, NestingInfo* nesting_info);
 
     /*
      * enter/leave function, change the inner state
@@ -51,12 +51,12 @@ public:
      * @return  vector of ids defined in certain function
      * @throw   <std::string> if function does not exist
      */
-    std::vector<koopa::Id *> get_func_ids(std::string func_id_lit);
-    std::vector<koopa::Id *> get_global_ids();
+    std::vector<koopa::Id*> get_func_ids(std::string func_id_lit);
+    std::vector<koopa::Id*> get_global_ids();
 
-    koopa::Const *new_const(int val);
+    koopa::Const* new_const(int val);
 
-    koopa::Undef *new_undef();
+    koopa::Undef* new_undef();
 
     ValueManager();
     ~ValueManager();
@@ -66,18 +66,18 @@ private:
     bool formal_param_trans_state;
     std::string current_func_id_lit;
 
-    std::unordered_map<std::string, koopa::Id *> global_ids;
-    std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id *> *> ids;
-    std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id *> *> formal_params;
+    std::unordered_map<std::string, koopa::Id*> global_ids;
+    std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id*>*> ids;
+    std::unordered_map<std::string, std::unordered_map<std::string, koopa::Id*>*> formal_params;
 
-    std::unordered_set<koopa::Const *> consts;
+    std::unordered_set<koopa::Const*> consts;
 
     // TODO  singleton
-    koopa::Undef *undef;
+    koopa::Undef* undef;
     
-    void insert_id(std::string key, koopa::Id *new_id);
+    void insert_id(std::string key, koopa::Id* new_id);
 
-    void insert_const(koopa::Const *new_const);
+    void insert_const(koopa::Const* new_const);
 };
 
 extern ValueManager value_manager;

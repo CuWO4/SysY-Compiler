@@ -21,18 +21,18 @@ namespace ast {
         AggregateAgent(std::vector<int> dimensions);
 
         /**
-         * @throw <const char *>  if initializer exceed
+         * @throw <const char*>  if initializer exceed
          */
         void fill(int element);
 
         /**
          * try to find the first aligned boundary encountered aggregate, otherwise
-         * @throw <const char *>
+         * @throw <const char*>
          */
         void enter_aggregate();
         void leave_aggregate();
 
-        koopa::Initializer *to_aggregate();
+        koopa::Initializer* to_aggregate();
 
     private:
         int dimension_at;
@@ -48,7 +48,7 @@ namespace ast {
          */
         std::stack<int> enter_layer_stack;
 
-        koopa::Initializer *to_aggregate(int dimension_at, int &element_idx);
+        koopa::Initializer* to_aggregate(int dimension_at, int& element_idx);
     };
 }
 

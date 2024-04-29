@@ -14,32 +14,32 @@ namespace parser {
      */
     class TypeManger {
     public:
-        virtual ast::Type *to_ast_type(ast::Type *primitive_type) = 0;
+        virtual ast::Type* to_ast_type(ast::Type* primitive_type) = 0;
     };
 
         class Array: public TypeManger {
         public:
-            Array(ast::Expr *length, TypeManger *element_type);
-            ast::Type *to_ast_type(ast::Type *primitive_type) override;
+            Array(ast::Expr* length, TypeManger* element_type);
+            ast::Type* to_ast_type(ast::Type* primitive_type) override;
 
         private:
-            ast::Expr *length;
-            TypeManger *element_type;
+            ast::Expr* length;
+            TypeManger* element_type;
         };
 
         class Pointer: public TypeManger {
         public:
-            Pointer(TypeManger *pointed_type);
-            ast::Type *to_ast_type(ast::Type *primitive_type) override;
+            Pointer(TypeManger* pointed_type);
+            ast::Type* to_ast_type(ast::Type* primitive_type) override;
 
         private:
-            TypeManger *pointed_type;
+            TypeManger* pointed_type;
         };
 
         class Primitive: public TypeManger {
         public:
             Primitive();
-            ast::Type *to_ast_type(ast::Type *primitive_type) override;
+            ast::Type* to_ast_type(ast::Type* primitive_type) override;
         };
 
     /**
@@ -57,10 +57,10 @@ namespace parser {
     class VarDefManager {
     public:
         VarDefManager(TypeManger *, ast::Id *);
-        VarDefManager(TypeManger *, ast::Id *, ast::Initializer *init);
+        VarDefManager(TypeManger *, ast::Id *, ast::Initializer* init);
 
         template <typename AstDef>
-        AstDef *to_ast_var_def(ast::Type *primitive_type );
+        AstDef* to_ast_var_def(ast::Type* primitive_type );
 
         /**
          * wrap type with pointer/array
@@ -68,19 +68,19 @@ namespace parser {
          *      => { a, Pointer { Primitive } }
          */
         void wrap_pointer();
-        void wrap_array(ast::Expr *length);
+        void wrap_array(ast::Expr* length);
 
     private:
-        TypeManger         *type_manager;
-        ast::Id            *id;
-        bool                has_init;
-        ast::Initializer   *init;
+        TypeManger* type_manager;
+        ast::Id* id;
+        bool has_init;
+        ast::Initializer* init;
     };
 
 
 
     template <typename AstDef>
-    AstDef *VarDefManager::to_ast_var_def(ast::Type *primitive_type ) {
+    AstDef* VarDefManager::to_ast_var_def(ast::Type* primitive_type ) {
         if (has_init) {
             return new AstDef(
                 type_manager->to_ast_type(primitive_type),

@@ -201,7 +201,7 @@ std::string FuncDef::to_string() const {
 
     res += '\n';
 
-    auto ret_type = dynamic_cast<FuncType *>(id->type)->ret_type;
+    auto ret_type = dynamic_cast<FuncType*>(id->type)->ret_type;
 
     if (debug_mode_koopa_type) res += "//! type: " + id->type->to_string() + '\n';
 
@@ -240,8 +240,8 @@ std::string FuncDecl::to_string() const {
 
     res += id->to_string();
 
-    auto param_types = dynamic_cast<FuncType *>(id->type)->arg_types;
-    auto ret_type = dynamic_cast<FuncType *>(id->type)->ret_type;
+    auto param_types = dynamic_cast<FuncType*>(id->type)->arg_types;
+    auto ret_type = dynamic_cast<FuncType*>(id->type)->ret_type;
 
     res += '(';
     for (auto param_type: param_types) {

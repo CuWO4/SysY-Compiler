@@ -47,6 +47,6 @@ std::string build_mem(
 /**
  * @return  string form of the source koopa line if in `debug_mode_riscv` is true
  */
-std::string build_comment(const koopa::Base *obj);
+std::string build_comment(const koopa::Base* obj);
 
 #endif

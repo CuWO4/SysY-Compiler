@@ -61,32 +61,33 @@ namespace koopa_trans {
      */
     class Blocks {
     public:
-        Blocks(koopa::Value *last_val);
-        Blocks(std::vector<koopa::Stmt *> stmts = {});
-        Blocks(std::vector<koopa::Stmt *> stmts, koopa::Value *last_val);
+        Blocks();
+        Blocks(koopa::Value* last_val);
+        Blocks(std::vector<koopa::Stmt*> stmts);
+        Blocks(std::vector<koopa::Stmt*> stmts, koopa::Value* last_val);
 
-        koopa::Id *get_begin_block_id();
+        koopa::Id* get_begin_block_id();
 
         void throw_last_val();
-        void set_last_val(koopa::Value *new_last_val);
-        koopa::Value *get_last_val();
+        void set_last_val(koopa::Value* new_last_val);
+        koopa::Value* get_last_val();
 
-        std::vector<koopa::Stmt *> active_stmts;
-        std::vector<koopa::Block *> blocks;
+        std::vector<koopa::Stmt*> active_stmts;
+        std::vector<koopa::Block*> blocks;
 
-        std::vector<koopa::Block *> to_raw_blocks();
+        std::vector<koopa::Block*> to_raw_blocks();
 
-        friend void operator+=(Blocks &self, Blocks &other);
-        friend void operator+=(Blocks &self, std::vector<koopa::Block *> blocks);
-        friend void operator+=(Blocks &self, koopa::Block * block);
-        friend void operator+=(Blocks &self, std::vector<koopa::Stmt *> &stmts);
-        friend void operator+=(Blocks &self, koopa::Stmt *stmt);
+        friend void operator+=(Blocks& self, Blocks& other);
+        friend void operator+=(Blocks& self, std::vector<koopa::Block*> blocks);
+        friend void operator+=(Blocks& self, koopa::Block * block);
+        friend void operator+=(Blocks& self, std::vector<koopa::Stmt*>& stmts);
+        friend void operator+=(Blocks& self, koopa::Stmt* stmt);
 
     private:
         bool has_last_val;
-        koopa::Value *last_val;
+        koopa::Value* last_val;
 
-        koopa::Id *begin_block_id;
+        koopa::Id* begin_block_id;
 
         void init_begin_block_id();
     };
@@ -94,20 +95,20 @@ namespace koopa_trans {
     class GlobalStmts {
     public:
         GlobalStmts();
-        GlobalStmts(koopa::GlobalStmt *global_stmt);
-        GlobalStmts(std::vector<koopa::GlobalStmt *> global_stmts);
+        GlobalStmts(koopa::GlobalStmt* global_stmt);
+        GlobalStmts(std::vector<koopa::GlobalStmt*> global_stmts);
 
-        std::vector<koopa::GlobalStmt *> &to_raw_vector();
+        std::vector<koopa::GlobalStmt*>& to_raw_vector();
 
-        friend void operator+=(GlobalStmts &self, GlobalStmts &other);
+        friend void operator+=(GlobalStmts& self, GlobalStmts& other);
         friend void operator+=(
-            GlobalStmts &self, 
-            std::vector<koopa::GlobalStmt *> &global_stmts
+            GlobalStmts& self, 
+            std::vector<koopa::GlobalStmt*>& global_stmts
         );
-        friend void operator+=(GlobalStmts &self, koopa::GlobalStmt *global_stmt);
+        friend void operator+=(GlobalStmts& self, koopa::GlobalStmt* global_stmt);
 
     private:
-        std::vector<koopa::GlobalStmt *> global_stmts;
+        std::vector<koopa::GlobalStmt*> global_stmts;
     };
 
 }

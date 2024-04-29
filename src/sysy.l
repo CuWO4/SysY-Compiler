@@ -51,11 +51,11 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 "continue"      { return TK_CONTINUE; }
 "break"         { return TK_BREAK; }
 
-{Identifier}    { yylval.str_val = new std::string(yytext); return TK_IDENT; }
+{Identifier}    { yylval.String = new std::string(yytext); return TK_IDENT; }
 
-{Decimal}       { yylval.int_val = strtol(yytext, nullptr, 0); return TK_INT_CONST; }
-{Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); return TK_INT_CONST; }
-{Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); return TK_INT_CONST; }
+{Decimal}       { yylval.Int = strtol(yytext, nullptr, 0); return TK_INT_CONST; }
+{Octal}         { yylval.Int = strtol(yytext, nullptr, 0); return TK_INT_CONST; }
+{Hexadecimal}   { yylval.Int = strtol(yytext, nullptr, 0); return TK_INT_CONST; }
 
 .               { return yytext[0]; }
 

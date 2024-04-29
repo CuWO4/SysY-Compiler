@@ -9,7 +9,7 @@
     #include "../include/parser.hpp"
 
     int yylex();
-    void yyerror(ast::CompUnit *&ast, const char *s);
+    void yyerror(ast::CompUnit*& ast, const char* s);
 }
 
 %{
@@ -17,57 +17,91 @@
 
     int cur_nesting_level = 0;
     int cur_nesting_count[4096] = { 0 };
-    NestingInfo *cur_nesting_info = new NestingInfo();
+    NestingInfo* cur_nesting_info = new NestingInfo;
 %}
 
-%parse-param    { ast::CompUnit *&ast }
+%parse-param    { ast::CompUnit*& ast }
 
 %union {
-    std::string    *str_val;
-    int             int_val;
+    int Int;
+    std::vector<int>* IntVector;
 
-    parser::VarDefManager                  *parser_var_def_manager_val;
-    std::vector<parser::VarDefManager *>   *parser_var_def_manager_vec_val;
+    std::string* String;
 
-    ast::Id        *ast_id_val;
-    ast::Type      *ast_type_val;
-    ast::Block     *ast_block_val;
-    ast::Stmt      *ast_stmt_val;
-    ast::GlobalStmt    *ast_global_stmt_val;
-    ast::Expr      *ast_expr_val;
-    ast::Initializer   *ast_initializer_val;
-    std::vector<ast::Expr *>               *ast_expr_vec_val;
-    std::vector<ast::Initializer *>        *ast_initializer_vec_val;
-    std::vector<ast::Stmt *>               *ast_stmt_vec_val;
-    std::vector<ast::GlobalStmt *>         *ast_global_stmt_vec_val;
-    std::tuple<ast::Type *, ast::Id *>     *ast_func_param_val;
-    std::vector<std::tuple<ast::Type *, ast::Id *> *>  *ast_func_params_val;
-	}
+    parser::VarDefManager* ParserVarDefManager;
+    std::vector<parser::VarDefManager*>* ParserVarDefManagerVector;
+
+    ast::Id* AstId;
+    std::vector<ast::Expr*>* AstExprVector;
+
+    ast::Type* AstType;
+
+    ast::Expr* AstExpr;
+
+    ast::Initializer* AstInitializer;
+    std::vector<ast::Initializer*>* AstInitializerVector;
+
+    ast::Stmt* AstStmt;
+    ast::GlobalStmt* AstGlobalStmt;
+    std::vector<ast::Stmt*>* AstStmtVector;
+    std::vector<ast::GlobalStmt*>* AstGlobalStmtVector;
+
+    ast::Block* AstBlock;
+
+    std::tuple<ast::Type *, ast::Id*>* TypeIdTuple;
+    std::vector<std::tuple<ast::Type *, ast::Id*>*>* TypeIdTupleVector;
+}
 
 %token TK_INT TK_VOID TK_RETURN TK_CONST TK_IF TK_ELSE TK_WHILE TK_FOR TK_CONTINUE TK_BREAK
-%token <str_val> TK_IDENT
-%token <int_val> TK_INT_CONST
 
-%type   <ast_id_val> id
-%type	<ast_type_val> type
-%type	<ast_block_val> block
-%type	<ast_global_stmt_val> comp_unit_item func_def global_var_decl
-%type	<ast_stmt_val> block_item 
-%type   <ast_stmt_val> clause if_clause while_clause for_clause
-%type   <ast_stmt_val> stmt decl_stmt return_stmt continue_stmt break_stmt block_stmt empty_stmt for_init_stmt for_iter_stmt
-%type	<ast_expr_val> expr no_comma_expr func_call for_cond_expr
-%type   <ast_initializer_val> initializer
-%type   <ast_initializer_vec_val> initializers
-%type   <parser_var_def_manager_val> var_def
-%type	<parser_var_def_manager_vec_val> var_defs
-%type   <ast_global_stmt_vec_val> comp_unit_items
-%type   <ast_expr_vec_val> func_call_params var_def_trace
-%type   <ast_stmt_vec_val> block_items 
-%type   <ast_func_param_val> func_def_param 
-%type   <ast_func_params_val> func_def_params 
-%type   <int_val> number
+%token  <Int> TK_INT_CONST
+%token  <String> TK_IDENT
 
-// resolve the dangling-else by give a precedence 
+%type   <AstGlobalStmtVector> comp_unit_items
+%type	<AstGlobalStmt> comp_unit_item 
+
+%type   <AstGlobalStmt> func_def
+%type   <TypeIdTuple> func_def_param
+%type   <TypeIdTupleVector> func_def_params
+
+%type	<AstBlock> block
+%type	<AstStmt> block_item
+%type   <AstStmtVector> block_items
+
+%type   <AstStmt> stmt
+
+%type   <AstStmt> return_stmt continue_stmt break_stmt block_stmt empty_stmt
+
+%type   <AstStmt> decl_stmt
+%type   <AstGlobalStmt> global_var_decl
+
+%type   <ParserVarDefManager> var_def
+%type	<ParserVarDefManagerVector> var_defs
+%type   <AstExprVector> var_def_trace
+
+%type   <AstInitializer> initializer
+%type   <AstInitializerVector> initializers
+
+%type   <AstStmt> clause 
+
+%type   <AstStmt> if_clause while_clause 
+
+%type   <AstStmt> for_clause 
+%type   <AstExpr> for_cond_expr
+%type   <AstStmt> for_init_stmt for_iter_stmt
+
+%type	<AstExpr> expr 
+%type   <AstExpr> no_comma_expr
+
+%type   <AstExpr> func_call
+%type   <AstExprVector> func_call_params
+
+%type   <Int> number
+%type   <AstId> id
+%type	<AstType> type
+
+
+// resolve the dangling-else by give a precedence
 %nonassoc PREC_IF
 %nonassoc TK_ELSE
 
@@ -95,7 +129,7 @@ comp_unit_items
         $$ = $1;
     }
     | {
-        $$ = new std::vector<ast::GlobalStmt *>();
+        $$ = new std::vector<ast::GlobalStmt*>;
     }
 ;
 
@@ -106,7 +140,7 @@ comp_unit_item
 
 global_var_decl
     : type var_defs {
-        auto var_defs = std::vector<ast::GlobalVarDef *>();
+        auto var_defs = std::vector<ast::GlobalVarDef*>();
         var_defs.reserve($2->size());
 
         for (auto manager: *$2) {
@@ -118,7 +152,7 @@ global_var_decl
         $$ = new ast::GlobalVarDecl(var_defs);
     }
     | TK_CONST type var_defs {
-        auto var_defs = std::vector<ast::GlobalVarDef *>();
+        auto var_defs = std::vector<ast::GlobalVarDef*>();
 
         for (auto manager: *$3) {
             var_defs.push_back(
@@ -145,22 +179,22 @@ func_def_params
         $$ = $1;
     }
     | func_def_param {
-        $$ = new std::vector<std::tuple<ast::Type *, ast::Id *> *> { $1 };
+        $$ = new std::vector<std::tuple<ast::Type *, ast::Id*>*> { $1 };
     }
 ;
 
 func_def_param
     : type id {
-        $$ = new std::tuple<ast::Type *, ast::Id *>($1, $2);
+        $$ = new std::tuple<ast::Type *, ast::Id*>($1, $2);
     }
 ;
 
 type
     : TK_INT {
-        $$ = new ast::Int();
+        $$ = new ast::Int;
     }
     | TK_VOID {
-        $$ = new ast::Void();
+        $$ = new ast::Void;
     }
 ;
 
@@ -176,7 +210,7 @@ block_items
         $$ = $1;
     }
     | {
-        $$ = new std::vector<ast::Stmt *>{};
+        $$ = new std::vector<ast::Stmt*>{};
     }
 ;
 
@@ -233,7 +267,7 @@ for_iter_stmt
 block_stmt
     : stmt ';'    { $$ = $1; }
     | clause
-    | block       { $$ = $1; }  
+    | block       { $$ = $1; }
 ;
 
 stmt
@@ -266,13 +300,13 @@ initializers
         $$ = $1;
     }
     | initializer {
-        $$ = new std::vector<ast::Initializer *>{ $1 };
+        $$ = new std::vector<ast::Initializer*>{ $1 };
     }
 ;
 
 decl_stmt
     : type var_defs {
-        auto var_defs = std::vector<ast::VarDef *>();
+        auto var_defs = std::vector<ast::VarDef*>();
         var_defs.reserve($2->size());
 
         for (auto manager: *$2) {
@@ -284,7 +318,7 @@ decl_stmt
         $$ = new ast::VarDecl(var_defs);
     }
     | TK_CONST type var_defs {
-        auto var_defs = std::vector<ast::VarDef *>();
+        auto var_defs = std::vector<ast::VarDef*>();
 
         for (auto manager: *$3) {
             var_defs.push_back(
@@ -302,12 +336,12 @@ var_defs
         $$ = $1;
     }
     | var_def {
-        $$ = new std::vector<parser::VarDefManager *>{ $1 };
+        $$ = new std::vector<parser::VarDefManager*>{ $1 };
     }
 ;
 
 //
-// to generate dimension vector of variable declaration, 
+// to generate dimension vector of variable declaration,
 // use nullptr to represent pointer
 // .e.g  a[][3][4 + x] => { nullptr, 3, (4 + x) }  b => {}
 //
@@ -321,7 +355,7 @@ var_def_trace
         $$ = $1;
     }
     | {
-        $$ = new std::vector<ast::Expr *>{};
+        $$ = new std::vector<ast::Expr*>{};
     }
 ;
 
@@ -329,23 +363,23 @@ var_def
     : id var_def_trace '=' initializer {
         auto res = new parser::VarDefManager(new parser::Primitive, $1, $4);
         for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
-            if (*dim == nullptr) {
+            if (* dim == nullptr) {
                 res->wrap_pointer();
             }
             else {
-                res->wrap_array(*dim);
+                res->wrap_array(* dim);
             }
         }
         $$ = res;
     }
-    | id var_def_trace { 
+    | id var_def_trace {
         auto res = new parser::VarDefManager(new parser::Primitive, $1);
         for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
-            if (*dim == nullptr) {
+            if (* dim == nullptr) {
                 res->wrap_pointer();
             }
             else {
-                res->wrap_array(*dim);
+                res->wrap_array(* dim);
             }
         }
         $$ = res;
@@ -357,24 +391,24 @@ return_stmt
         $$ = new ast::Return($2);
     }
     | TK_RETURN  {
-        $$ = new ast::Return();
+        $$ = new ast::Return;
     }
 ;
 
 continue_stmt
     : TK_CONTINUE  {
-        $$ = new ast::Continue();
+        $$ = new ast::Continue;
     }
 ;
 
 break_stmt
     : TK_BREAK  {
-        $$ = new ast::Break();
+        $$ = new ast::Break;
     }
 ;
 
 empty_stmt
-    :        { $$ = new ast::Block({}); }
+    : { $$ = new ast::Block({}); }
 ;
 
 expr
@@ -459,7 +493,7 @@ func_call_params
         $$ = $1;
     }
     | no_comma_expr {
-        $$ = new std::vector<ast::Expr *>{ $1 };
+        $$ = new std::vector<ast::Expr*>{ $1 };
     }
 ;
 
@@ -477,7 +511,7 @@ block_start: {
     cur_nesting_level++;
 
     auto new_nesting_info = new NestingInfo(
-        cur_nesting_level, 
+        cur_nesting_level,
         cur_nesting_count[cur_nesting_level],
         cur_nesting_info
     );
@@ -493,6 +527,6 @@ block_end: {
 
 %%
 
-void yyerror(ast::CompUnit *&ast, const char *s) {
+void yyerror(ast::CompUnit*& ast, const char* s) {
     throw std::string(s);
 }
