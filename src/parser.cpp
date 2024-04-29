@@ -25,10 +25,19 @@ namespace parser {
     }
 
     VarDefManager::VarDefManager(TypeManger* type_manager, ast::Id* id)
-        : type_manager(type_manager), id(id), has_init(false), init(nullptr) {}
+        : type_manager(type_manager), id(id), has_init_bool(false), init(nullptr) {}
 
-    VarDefManager::VarDefManager(TypeManger* type_manager, ast::Id* id, ast::Initializer* init)
-        : type_manager(type_manager), id(id), has_init(true), init(init) {}
+    VarDefManager::VarDefManager(
+        TypeManger* type_manager, ast::Id* id, ast::Initializer* init
+    ) : type_manager(type_manager), id(id), has_init_bool(true), init(init) {}
+
+    ast::Type* VarDefManager::get_ast_type(ast::Type* primitive_type) {
+        return type_manager->to_ast_type(primitive_type);
+    }
+
+    ast::Id* VarDefManager::get_id() { return id; }
+
+    bool VarDefManager::has_init() { return has_init_bool; }
 
     void VarDefManager::wrap_pointer() {
         type_manager = new Pointer(type_manager);

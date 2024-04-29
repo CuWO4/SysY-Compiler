@@ -185,8 +185,15 @@ func_def_params
 ;
 
 func_def_param
-    : type id {
-        $$ = new std::tuple<ast::Type *, ast::Id*>($1, $2);
+    : type var_def {
+        if ($2->has_init()) {
+            throw "error: function parameters have default values";
+        }
+        
+        $$ = new std::tuple<ast::Type *, ast::Id*>(
+            $2->get_ast_type($1),
+            $2->get_id()
+        );
     }
 ;
 

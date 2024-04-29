@@ -60,7 +60,12 @@ namespace parser {
         VarDefManager(TypeManger *, ast::Id *, ast::Initializer* init);
 
         template <typename AstDef>
-        AstDef* to_ast_var_def(ast::Type* primitive_type );
+        AstDef* to_ast_var_def(ast::Type* primitive_type);
+
+        ast::Type* get_ast_type(ast::Type* primitive_type);
+        ast::Id* get_id();
+
+        bool has_init();
 
         /**
          * wrap type with pointer/array
@@ -73,7 +78,7 @@ namespace parser {
     private:
         TypeManger* type_manager;
         ast::Id* id;
-        bool has_init;
+        bool has_init_bool;
         ast::Initializer* init;
     };
 
@@ -81,7 +86,7 @@ namespace parser {
 
     template <typename AstDef>
     AstDef* VarDefManager::to_ast_var_def(ast::Type* primitive_type ) {
-        if (has_init) {
+        if (has_init_bool) {
             return new AstDef(
                 type_manager->to_ast_type(primitive_type),
                 id,
