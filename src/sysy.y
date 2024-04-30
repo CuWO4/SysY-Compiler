@@ -483,7 +483,6 @@ no_comma_expr
         $$ = new ast::Indexing($1, *$2);
     }
     | func_call
-    | id { $$ = $1; }
     | number                        {
 		$$ = new ast::Number($1);
 	}
@@ -494,8 +493,8 @@ indexing_trace
         $1->push_back($3);
         $$ = $1;
     }
-    | '[' expr ']' {
-        $$ = new std::vector<ast::Expr*> { $2 };
+    | {
+        $$ = new std::vector<ast::Expr*>;
     }
 ;
 

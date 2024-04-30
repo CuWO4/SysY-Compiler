@@ -66,6 +66,16 @@ namespace ast {
             Expr* length;
         };
 
+    class Id {
+    public:
+        std::string lit;
+        NestingInfo* nesting_info;
+
+        Id(std::string lit, NestingInfo* nesting_info);
+
+        std::string debug(int indent = 0) const;
+    };
+
     class Stmt: public Base {
     public:
         virtual koopa_trans::Blocks* to_koopa() const = 0;
@@ -291,22 +301,9 @@ namespace ast {
                 Id *id;
                 std::vector<Expr*> indexes;
 
-                koopa_trans::Blocks* get_pointer() const;
-            };
-
-            class Id: public Expr {
-            public:
-                std::string lit;
-                NestingInfo* nesting_info;
-
-                Id(std::string lit, NestingInfo* nesting_info);
-
-                koopa_trans::Blocks* to_koopa() const override;
-
-                bool is_assignable() const override;
-                koopa_trans::Blocks* assign(const Expr* rv) const override;
-
-                std::string debug(int indent = 0) const override;
+                std::tuple<koopa_trans::Blocks*, koopa::Id*> get_pointer(
+                    koopa::Id* id
+                ) const;
             };
 
             class FuncCall: public Expr {

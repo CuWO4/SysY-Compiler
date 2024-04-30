@@ -68,6 +68,11 @@ riscv_trans::Register GetElemPtr::rvalue_to_riscv(std::string& str) const {
     return riscv_trans::Register();
 }
 
+riscv_trans::Register GetPtr::rvalue_to_riscv(std::string& str) const {
+    // TODO
+    return riscv_trans::Register();
+}
+
 static riscv_trans::Register ordinary_inst_builder(
     std::string inst, 
     riscv_trans::Register first_reg, riscv_trans::Register second_reg, 

@@ -395,52 +395,26 @@ koopa_trans::Blocks* Not::to_koopa() const {
     );
 }
 
-koopa_trans::Blocks* Indexing::get_pointer() const {
+koopa_trans::Blocks* Indexing::to_koopa() const {
     auto id_koopa = value_manager.get_id('@' + id->lit, id->nesting_info);
 
     if (id_koopa == nullptr) {
         throw "undeclared identifier `" + id->lit + '`';
     }
 
+    // only atomic variables engage in compile-time evaluation
+    if (id_koopa->is_const() && id_koopa->type->get_dim().size() == 0) {
+        return new koopa_trans::Blocks(
+            value_manager.new_const(id_koopa->get_val())
+        );
+    }
+
     // -1 since all identifiers defined is wrapped by pointer
-    if (id_koopa->type->get_dim().size() - 1 != indexes.size()) {
+    if (id_koopa->type->get_dim().size() - 1 < indexes.size()) {
         throw "invalid indexing";
     }
-
-    auto res = new koopa_trans::Blocks;
-
-    auto pointer = id_koopa;
-
-    for (auto index: indexes) {
-
-        auto index_stmts = index->to_koopa();
-        *res += *index_stmts;
-
-        auto new_pointer = value_manager.new_id(
-            koopa::id_type::LocalId,
-            pointer->type->unwrap(),
-            new_id_name(),
-            new NestingInfo
-        );
-
-        *res += new koopa::SymbolDef(
-            new_pointer,
-            new koopa::GetElemPtr(
-                pointer, index_stmts->get_last_val()
-            )
-        );
-
-        pointer = new_pointer;
-    }
-
-    res->set_last_val(pointer);
-
-    return res;
-}
-
-koopa_trans::Blocks* Indexing::to_koopa() const {
-    auto res = get_pointer();
-    auto pointer = static_cast<koopa::Id*>(res->get_last_val());
+    
+    auto [res, pointer] = get_pointer(id_koopa);
 
     auto res_value = value_manager.new_id(
         koopa::id_type::LocalId,
@@ -449,13 +423,136 @@ koopa_trans::Blocks* Indexing::to_koopa() const {
         new NestingInfo
     );
     
-    *res += new koopa::SymbolDef(
-        res_value,
-        new koopa::Load(pointer)
-    );
+    if (
+        pointer->type->get_dim().size() <= 1 // atomic
+        || pointer->type->get_dim()[1] < 0 // pointer
+    ) {
+        *res += new koopa::SymbolDef(
+            res_value,
+            new koopa::Load(pointer)
+        );
+    }
+    else { // array
+        *res += new koopa::SymbolDef(
+            res_value,
+            new koopa::GetElemPtr(pointer, new koopa::Const(0))
+        );
+    }
+
     res->set_last_val(res_value);
     
     return res;
+}
+
+bool Expr::is_assignable() const {
+    return false;
+}
+
+koopa_trans::Blocks* Expr::assign(const Expr* rv) const {
+    assert(is_assignable());
+    return nullptr;
+}
+
+bool Indexing::is_assignable() const {
+    return true;
+}
+
+koopa_trans::Blocks* Indexing::assign(const Expr* rv) const {
+    auto id_koopa = value_manager.get_id('@' + id->lit, id->nesting_info);
+
+    if (id_koopa == nullptr) {
+        throw "undeclared identifier `" + id->lit + '`';
+    }
+
+    if (id_koopa->type->get_dim().size() - 1 != indexes.size()) {
+        throw "assigning a incomplete indexing";
+    }
+    
+    auto [res, pointer] = get_pointer(id_koopa);
+
+    auto rv_stmts = rv->to_koopa();
+    *res += *rv_stmts;
+    
+    *res += new koopa::StoreValue(
+        rv_stmts->get_last_val(),
+        pointer
+    );
+
+    res->set_last_val(rv_stmts->get_last_val());
+    
+    return res;
+}
+
+std::tuple<koopa_trans::Blocks*, koopa::Id*> Indexing::get_pointer(
+    koopa::Id* id
+) const {
+    assert(id);
+
+    auto res = new koopa_trans::Blocks;
+
+    auto pointer = id;
+
+    auto dimensions = id->type->get_dim();
+
+    for (int i = 0; i < indexes.size(); i++) {
+        if (dimensions[i + 1] < 0) { // pointer
+            // %ptr1 /*! type: *i32 */ = load %ptr /*! type: **i32 */
+            // %ptr2 /*! type: *i32 */ = getptr %ptr1 /*! type: *i32 */, idx
+            auto index_stmts = indexes[i]->to_koopa();
+            *res += *index_stmts;
+
+            auto new_pointer1 = value_manager.new_id(
+                koopa::id_type::LocalId,
+                pointer->type->unwrap(),
+                new_id_name(),
+                new NestingInfo
+            );
+
+            *res += new koopa::SymbolDef(
+                new_pointer1,
+                new koopa::Load(pointer)
+            );
+
+            auto new_pointer2 = value_manager.new_id(
+                koopa::id_type::LocalId,
+                new_pointer1->type,
+                new_id_name(),
+                new NestingInfo
+            );
+
+            *res += new koopa::SymbolDef(
+                new_pointer2,
+                new koopa::GetPtr(new_pointer1, index_stmts->get_last_val())
+            );
+
+            pointer = new_pointer2;
+        }
+        else { // array
+            // %ptr /*! type: *i32 */ = getelemptr %ptr /*! type: *[i32, n] */, idx
+            auto index_stmts = indexes[i]->to_koopa();
+            *res += *index_stmts;
+
+            auto new_pointer = value_manager.new_id(
+                koopa::id_type::LocalId,
+                new koopa::Pointer(pointer->type->unwrap()->unwrap()),
+                new_id_name(),
+                new NestingInfo
+            );
+
+            *res += new koopa::SymbolDef(
+                new_pointer,
+                new koopa::GetElemPtr(
+                    pointer, index_stmts->get_last_val()
+                )
+            );
+
+            pointer = new_pointer;
+        }
+    } /* int i = 0; i < indexes.size(); i++ */
+
+    res->set_last_val(pointer);
+
+    return std::make_tuple(res, pointer);
 }
 
 koopa_trans::Blocks* Number::to_koopa() const {
@@ -516,40 +613,6 @@ koopa_trans::Blocks* ConstInitializer::expr_to_koopa() const {
 koopa_trans::Blocks* Aggregate::expr_to_koopa() const {
     assert(this->get_dim() == 0); // always fail
     return nullptr;
-}
-
-koopa_trans::Blocks* Id::to_koopa() const {
-    auto id_koopa = value_manager.get_id('@' + lit, nesting_info);
-
-    if (id_koopa == nullptr) {
-        throw "undeclared identifier `" + lit + '`';
-    }
-
-    auto res = new koopa_trans::Blocks;
-
-    if (id_koopa->is_const()) {
-        return new koopa_trans::Blocks(value_manager.new_const(id_koopa->get_val()));
-    }
-    else {
-
-        auto new_id = value_manager.new_id(
-            koopa::id_type::LocalId,
-            //!? re-free bug
-            id_koopa->type->unwrap(), 
-            new_id_name(),
-            new NestingInfo
-        );
-
-        *res += new koopa::SymbolDef(
-            new_id,
-            new koopa::Load(id_koopa)
-        );
-
-        res->set_last_val( new_id );
-
-        return res;
-
-    }
 }
 
 bool is_consistent(koopa::FuncType* func_type, std::vector<Expr*> actual_params) {
@@ -1311,7 +1374,7 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt*>& global_stmts_ko
                 new koopa::FuncType(
                     {}, new koopa::Void
                 ),
-                "@endtime"
+                "@stoptime"
             )
         )
     );

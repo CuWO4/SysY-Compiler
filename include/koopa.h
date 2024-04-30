@@ -277,6 +277,10 @@ public:
                 std::string to_string() const override;
 
                 GetPtr(Id* base, Value* offset);
+
+                riscv_trans::Register rvalue_to_riscv(
+                    std::string& str
+                ) const override;
             };
 
             class GetElemPtr: public Rvalue {

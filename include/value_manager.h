@@ -15,7 +15,6 @@
  * call `leave_func` while leaving.
  */
 class ValueManager {
-// simulate, but not change the interface. add method `ids_of_func`, and return a iterable type
 public:
     koopa::Id* new_id(
         koopa::IdType id_type, koopa::Type* type, std::string lit, 
