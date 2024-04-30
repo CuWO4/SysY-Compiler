@@ -133,21 +133,21 @@ static koopa_trans::Blocks* build_short_circuit_evaluation(
     if (op == LOGIC_AND) {
         *res += new koopa::Branch(
             bool_lv, 
-            then_block->get_begin_block_id(), 
-            end_block->get_begin_block_id()
+            then_block->get_begin_block_label(), 
+            end_block->get_begin_block_label()
         );
     }
     else /* op == LOGIC_OR */ {
         *res += new koopa::Branch(
             bool_lv, 
-            end_block->get_begin_block_id(), 
-            then_block->get_begin_block_id()
+            end_block->get_begin_block_label(), 
+            then_block->get_begin_block_label()
         );
     }
 
     koopa::Value* bool_rv = init_bool_val(rv, then_block);
     *then_block += new koopa::StoreValue(bool_rv, res_addr);
-    *then_block += new koopa::Jump(end_block->get_begin_block_id());
+    *then_block += new koopa::Jump(end_block->get_begin_block_label());
 
     *res += then_block->to_raw_blocks();
     *res += end_block->to_raw_blocks();
@@ -415,31 +415,38 @@ koopa_trans::Blocks* Indexing::to_koopa() const {
     }
     
     auto [res, pointer] = get_pointer(id_koopa);
-
-    auto res_value = value_manager.new_id(
-        koopa::id_type::LocalId,
-        pointer->type->unwrap(),
-        new_id_name(),
-        new NestingInfo
-    );
     
     if (
         pointer->type->get_dim().size() <= 1 // atomic
         || pointer->type->get_dim()[1] < 0 // pointer
     ) {
+        auto res_value = value_manager.new_id(
+            koopa::id_type::LocalId,
+            pointer->type->unwrap(),
+            new_id_name(),
+            new NestingInfo
+        );
+
         *res += new koopa::SymbolDef(
             res_value,
             new koopa::Load(pointer)
         );
+        res->set_last_val(res_value);
     }
     else { // array
+        auto res_value = value_manager.new_id(
+            koopa::id_type::LocalId,
+            new koopa::Pointer(pointer->type->unwrap()->unwrap()),
+            new_id_name(),
+            new NestingInfo
+        );
+
         *res += new koopa::SymbolDef(
             res_value,
             new koopa::GetElemPtr(pointer, new koopa::Const(0))
         );
+        res->set_last_val(res_value);
     }
-
-    res->set_last_val(res_value);
     
     return res;
 }
@@ -955,24 +962,16 @@ koopa_trans::Blocks* If::to_koopa() const {
 
         auto then_blocks = then_stmt->to_koopa()->to_raw_blocks();
         auto else_blocks = else_stmt->to_koopa()->to_raw_blocks();
-        auto end_block = new koopa::Block(
-            value_manager.new_id(
-                koopa::id_type::BlockLabel,
-                new koopa::Label,   
-                new_block_name(), 
-                new NestingInfo
-            ),
-            {}
-        );
+        auto end_block = new koopa::Block(new_block_name(), {});
 
         *res += new koopa::Branch(
             cond_koopa,
-            then_blocks.front()->id,
-            else_blocks.front()->id
+            then_blocks.front()->label,
+            else_blocks.front()->label
         );
 
-    *then_blocks.back() += new koopa::Jump(end_block->id);
-    *else_blocks.back() += new koopa::Jump(end_block->id);
+    *then_blocks.back() += new koopa::Jump(end_block->label);
+    *else_blocks.back() += new koopa::Jump(end_block->label);
 
     *res += then_blocks;
     *res += else_blocks;
@@ -984,23 +983,15 @@ koopa_trans::Blocks* If::to_koopa() const {
         auto cond_koopa = res->get_last_val();
 
         auto then_blocks = then_stmt->to_koopa()->to_raw_blocks();
-        auto end_block = new koopa::Block(
-            value_manager.new_id(
-                koopa::id_type::BlockLabel,
-                new koopa::Label,   
-                new_block_name(), 
-                new NestingInfo
-            ),
-            {}
-        );
+        auto end_block = new koopa::Block(new_block_name(), {});
 
         *res += new koopa::Branch(
             cond_koopa,
-            then_blocks.front()->id,
-            end_block->id
+            then_blocks.front()->label,
+            end_block->label
         );
 
-        *then_blocks.back() += new koopa::Jump(end_block->id);
+        *then_blocks.back() += new koopa::Jump(end_block->label);
 
         *res += then_blocks;
         *res += end_block;
@@ -1029,24 +1020,24 @@ koopa_trans::Blocks* While::to_koopa() const {
 
     loop_tag_manager.push(
         LoopTag(
-            while_entry->get_begin_block_id(), 
-            while_end->get_begin_block_id()
+            while_entry->get_begin_block_label(), 
+            while_end->get_begin_block_label()
         )
     );
 
-    *res += new koopa::Jump(while_entry->get_begin_block_id());
+    *res += new koopa::Jump(while_entry->get_begin_block_label());
 
     auto cond_koopa = cond->to_koopa();
     *while_entry += *cond_koopa;
     *while_entry += new koopa::Branch(
         cond_koopa->get_last_val(), 
-        while_body->get_begin_block_id(), 
-        while_end->get_begin_block_id()
+        while_body->get_begin_block_label(), 
+        while_end->get_begin_block_label()
     );
 
     auto body_koopa = body->to_koopa();
     *while_body += *body_koopa;
-    *while_body += new koopa::Jump(while_entry->get_begin_block_id());
+    *while_body += new koopa::Jump(while_entry->get_begin_block_label());
 
     *res += while_entry->to_raw_blocks();
     *res += while_body->to_raw_blocks();
@@ -1082,29 +1073,29 @@ koopa_trans::Blocks* For::to_koopa() const {
 
     loop_tag_manager.push(
         LoopTag(
-            for_iter->get_begin_block_id(), 
-            for_end->get_begin_block_id()
+            for_iter->get_begin_block_label(), 
+            for_end->get_begin_block_label()
         )
     );
 
     *res += *init_stmt->to_koopa();
-    *res += new koopa::Jump(for_entry->get_begin_block_id());
+    *res += new koopa::Jump(for_entry->get_begin_block_label());
 
     auto cond_koopa = cond->to_koopa();
     *for_entry += *cond_koopa;
     *for_entry += new koopa::Branch(
         cond_koopa->get_last_val(), 
-        for_body->get_begin_block_id(), 
-        for_end->get_begin_block_id()
+        for_body->get_begin_block_label(), 
+        for_end->get_begin_block_label()
     );
 
     auto body_koopa = body->to_koopa();
     *for_body += *body_koopa;
-    *for_body += new koopa::Jump(for_iter->get_begin_block_id());
+    *for_body += new koopa::Jump(for_iter->get_begin_block_label());
 
     auto iter_koopa = iter_stmt->to_koopa();
     *for_iter += *iter_koopa;
-    *for_iter += new koopa::Jump(for_entry->get_begin_block_id());
+    *for_iter += new koopa::Jump(for_entry->get_begin_block_label());
 
     *res += for_entry->to_raw_blocks();
     *res += for_body->to_raw_blocks();

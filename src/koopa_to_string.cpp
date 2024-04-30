@@ -25,7 +25,10 @@ std::string FuncType::to_string() const {
     for (auto arg_type: arg_types) {
         res += arg_type->to_string() + ", ";
     }
-    if (arg_types.size() > 0) res.pop_back();
+    if (arg_types.size() > 0) {
+        res.pop_back(); // ` `
+        res.pop_back(); // `,`
+    }
     res += ")";
 
     if (ret_type->get_type_id() != type::Void) {
@@ -34,12 +37,12 @@ std::string FuncType::to_string() const {
     return res;
 }
 
-std::string Label::to_string() const {
-    return "label";
-}
-
 std::string Void::to_string() const {
     return "void";
+}
+
+std::string Label::get_name() const {
+    return name;
 }
 
 std::string Id::to_string() const {
@@ -160,11 +163,11 @@ std::string StoreInitializer::to_string() const {
 
 std::string Branch::to_string() const {
     return "br " + cond->to_string() + ", " 
-        + target1->to_string() + ", " + target2->to_string();
+        + target1.get_name() + ", " + target2.get_name();
 }
 
 std::string Jump::to_string() const {
-    return "jump " + target->to_string();
+    return "jump " + target.get_name();
 }
 
 std::string Return::to_string() const {
@@ -189,7 +192,7 @@ std::string Block::to_string() const {
         }
     }
 
-    res += id->to_string() + ":\n";
+    res += label.get_name() + ":\n";
     for (auto stmt: stmts) {
         res += '\t' + stmt->to_string() + '\n';
     }

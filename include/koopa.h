@@ -20,7 +20,7 @@ public:
 };
 
 namespace type {
-    enum TypeId { Int, Array, Pointer, FuncType, Void, Label };
+    enum TypeId { Int, Array, Pointer, FuncType, Void };
 }
 using TypeId = type::TypeId;
 
@@ -116,14 +116,6 @@ public:
         bool operator==(Type& other) override;
     };
 
-    class Label: public Type {
-
-        std::string to_string() const override;
-
-        TypeId get_type_id() override;
-        bool operator==(Type& other) override;
-    };
-
 class Value: public Base {
 public:
     virtual riscv_trans::Register value_to_riscv(std::string& str) const = 0;
@@ -133,7 +125,7 @@ public:
 };
 
     namespace id_type {
-        enum IdType { LocalId, GlobalId, ConstId, FuncId, BlockLabel };
+        enum IdType { LocalId, GlobalId, ConstId, FuncId };
     }
     using IdType = id_type::IdType;
 
@@ -217,6 +209,16 @@ public:
 
         std::string to_string() const override;
     };
+
+class Label {
+public:
+    Label();
+    Label(std::string name);
+    std::string get_name() const;
+
+private:
+    std::string name;
+};
 
 class Stmt: public Base {
 public:
@@ -532,8 +534,8 @@ public:
         class Branch: public EndStmt {
         public:
             Value* cond;
-            Id* target1;
-            Id* target2;
+            Label target1;
+            Label target2;
 
             std::string to_string() const override;
 
@@ -542,12 +544,12 @@ public:
                 riscv_trans::TransMode trans_mode
             ) const override;
 
-            Branch(Value* cond, Id* target1, Id* target2);
+            Branch(Value* cond, Label target1, Label target2);
         };
 
         class Jump: public EndStmt {
         public:
-            Id* target;
+            Label target;
 
             std::string to_string() const override;
 
@@ -556,7 +558,7 @@ public:
                 riscv_trans::TransMode trans_mode
             ) const override;
             
-            Jump(Id* target);
+            Jump(Label target);
         };
 
         namespace return_type {
@@ -587,7 +589,7 @@ public:
 
         class Block: public Base {
         public:
-            Id* id;
+            Label label;
             std::vector<Stmt*>     stmts;
 
             std::vector<std::string> preds;
@@ -601,7 +603,7 @@ public:
 
             void block_to_riscv(std::string& str) const;
 
-            Block(Id* id, std::vector<Stmt*> stmts);
+            Block(Label label, std::vector<Stmt*> stmts);
         };
 
         class FuncDef: public GlobalStmt {

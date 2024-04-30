@@ -15,15 +15,15 @@ static int get_max_called_func_param_n(const koopa::FuncDef* func_def) {
     for (auto block: func_def->blocks) {
         for (auto stmt: block->stmts) {
             // ! ugly, though works
-            if (typeid(* stmt) == typeid(koopa::FuncCall)) {
+            if (typeid(*stmt) == typeid(koopa::FuncCall)) {
                 result = max(
                     result, 
                     static_cast<koopa::FuncCall*>(stmt)->args.size()
                 );
             }
             else if (
-                typeid(* stmt) == typeid(koopa::SymbolDef) 
-                && typeid(* static_cast<koopa::SymbolDef*>(stmt)->val) 
+                typeid(*stmt) == typeid(koopa::SymbolDef) 
+                && typeid(*static_cast<koopa::SymbolDef*>(stmt)->val) 
                     == typeid(koopa::FuncCall)
             ) {
                 result = max(
@@ -46,10 +46,10 @@ static bool has_called_func(const koopa::FuncDef* func_def) {
     for (auto block: func_def->blocks) {
         for (auto stmt: block->stmts) {
             if (
-                typeid(* stmt) == typeid(koopa::FuncCall)
+                typeid(*stmt) == typeid(koopa::FuncCall)
                 || (
-                    typeid(* stmt) == typeid(koopa::SymbolDef) 
-                    && typeid(* static_cast<koopa::SymbolDef*>(stmt)->val) 
+                    typeid(*stmt) == typeid(koopa::SymbolDef) 
+                    && typeid(*static_cast<koopa::SymbolDef*>(stmt)->val) 
                         == typeid(koopa::FuncCall)
                 )
             ) {

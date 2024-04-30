@@ -5,15 +5,7 @@
 #include <string>
 
 #include "riscv_trans.h"
-
-namespace koopa {
-    class Stmt;
-    class Value;
-    class Block;
-    class Id;
-    class Label;
-    class GlobalStmt;
-}
+#include "../include/koopa.h"
 
 namespace koopa_trans {
     /**
@@ -66,7 +58,7 @@ namespace koopa_trans {
         Blocks(std::vector<koopa::Stmt*> stmts);
         Blocks(std::vector<koopa::Stmt*> stmts, koopa::Value* last_val);
 
-        koopa::Id* get_begin_block_id();
+        koopa::Label get_begin_block_label();
 
         void throw_last_val();
         void set_last_val(koopa::Value* new_last_val);
@@ -87,9 +79,10 @@ namespace koopa_trans {
         bool has_last_val;
         koopa::Value* last_val;
 
-        koopa::Id* begin_block_id;
+        bool has_begin_block_label;
+        koopa::Label begin_block_label;
 
-        void init_begin_block_id();
+        void init_begin_block_label();
     };
 
     class GlobalStmts {

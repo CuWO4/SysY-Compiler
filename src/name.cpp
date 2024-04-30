@@ -48,7 +48,7 @@ std::string build_comment(const koopa::Base* obj) {
     auto str = obj->to_string();
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 
-    if (typeid(* obj) == typeid(koopa::FuncDef)) {
+    if (typeid(*obj) == typeid(koopa::FuncDef)) {
         str = str.substr(0, str.find_first_of('{'));
     }
 

@@ -14,10 +14,6 @@ riscv_trans::Register Id::value_to_riscv(std::string& str) const {
         str += to_riscv_style(lit);
         return riscv_trans::Register();
     }
-    else if (id_type == koopa::id_type::BlockLabel){
-        /* empty */
-        return riscv_trans::Register();
-    }
     else if (id_type == koopa::id_type::GlobalId) {
         str += to_riscv_style(lit);
         return riscv_trans::Register();
@@ -249,7 +245,7 @@ void SymbolDef::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mod
     str += build_comment(this);
 
     //! ugly and not safe
-    if (typeid(* val) == typeid(MemoryDecl)) return;
+    if (typeid(*val) == typeid(MemoryDecl)) return;
 
     auto source_reg = val->rvalue_to_riscv(str);
 
@@ -286,14 +282,14 @@ void Return::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) 
 
 void Branch::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) const {
     auto cond_reg = cond->value_to_riscv(str);
-    str += build_inst("bnez", cond_reg.get_lit(), to_riscv_style(target1->lit));
-    str += build_inst("j", to_riscv_style(target2->lit));
+    str += build_inst("bnez", cond_reg.get_lit(), to_riscv_style(target1.get_name()));
+    str += build_inst("j", to_riscv_style(target2.get_name()));
 
     riscv_trans::temp_reg_manager.refresh_reg(cond_reg);
 }
 
 void Jump::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) const {
-    str += build_inst("j", to_riscv_style(target->lit));
+    str += build_inst("j", to_riscv_style(target.get_name()));
 }
 
 static void func_call_to_riscv_impl(const koopa::FuncCall* self, std::string& str) {
@@ -337,7 +333,7 @@ void FuncCall::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode
 }
 
 void Block::block_to_riscv(std::string& str) const {
-    str += to_riscv_style(id->lit) + ":\n";
+    str += to_riscv_style(label.get_name()) + ":\n";
     for(auto stmt: stmts) {
         stmt->stmt_to_riscv(str, riscv_trans::trans_mode::TextSegment);
     }

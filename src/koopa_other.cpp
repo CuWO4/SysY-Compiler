@@ -21,7 +21,6 @@ TypeId Int::get_type_id() { return type::Int; }
 TypeId Array::get_type_id() { return type::Array; }
 TypeId Pointer::get_type_id() { return type::Pointer; }
 TypeId FuncType::get_type_id() { return type::FuncType; }
-TypeId Label::get_type_id() { return type::Label; }
 TypeId Void::get_type_id() { return type::Void; }
 
 bool Type::operator!=(Type& other) {
@@ -55,10 +54,6 @@ bool FuncType::operator==(Type& other) {
 
 bool Void::operator==(Type& other) {
     return other.get_type_id() == type::Void;
-}
-
-bool Label::operator==(Type& other) {
-    return other.get_type_id() == type::Label;
 }
 
 bool Id::is_const() {

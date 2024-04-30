@@ -1,27 +1,26 @@
 #include "../include/koopa_trans.h"
 #include "../include/koopa.h"
 #include "../include/name.h"
-#include "../include/value_manager.h"
 
 namespace koopa_trans {
 
 Blocks::Blocks()
     : has_last_val(true), last_val(nullptr),
-    begin_block_id(nullptr) {}
+    has_begin_block_label(false) {}
 
 Blocks::Blocks(koopa::Value* last_val)
     : has_last_val(true), last_val(last_val),
-    begin_block_id(nullptr) {}
+    has_begin_block_label(false) {}
 
 Blocks::Blocks(std::vector<koopa::Stmt*> stmts)
     : active_stmts(stmts), 
     has_last_val(true), last_val(nullptr),
-    begin_block_id(nullptr) {}
+    has_begin_block_label(false) {}
 
 Blocks::Blocks(std::vector<koopa::Stmt*> stmts, koopa::Value* last_val)
     : active_stmts(stmts), 
     has_last_val(true), last_val(last_val),
-    begin_block_id(nullptr) {
+    has_begin_block_label(false) {
     assert(last_val);
 }
 
@@ -31,13 +30,9 @@ std::vector<koopa::Block*> Blocks::to_raw_blocks() {
 
     res.push_back( 
         new koopa::Block(
-            begin_block_id != nullptr 
-                ? begin_block_id
-                : value_manager.new_id(
-                    koopa::id_type::BlockLabel, 
-                    new koopa::Label, 
-                    new_block_name()
-                ),
+            has_begin_block_label
+                ? begin_block_label
+                : new_block_name(),
             active_stmts
         ) 
     );
@@ -48,19 +43,16 @@ std::vector<koopa::Block*> Blocks::to_raw_blocks() {
     //! memory leak
 }
 
-void Blocks::init_begin_block_id() {
-    begin_block_id = value_manager.new_id(
-        koopa::id_type::BlockLabel, 
-        new koopa::Label, 
-        new_block_name()
-    );
+void Blocks::init_begin_block_label() {
+    has_begin_block_label = true;
+    begin_block_label = new_block_name();
 }
 
-koopa::Id* Blocks::get_begin_block_id() {
-    if (begin_block_id != nullptr) return begin_block_id;
+koopa::Label Blocks::get_begin_block_label() {
+    if (has_begin_block_label) return begin_block_label;
 
-    init_begin_block_id();
-    return begin_block_id;
+    init_begin_block_label();
+    return begin_block_label;
 }
 
 void Blocks::throw_last_val() {

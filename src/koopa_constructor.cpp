@@ -15,6 +15,9 @@ FuncType::FuncType(std::vector<Type*> arg_types, Type* ret_type)
     assert(ret_type);
 }
 
+Label::Label(): name() {}
+Label::Label(std::string name): name(name) {}
+
 Id::Id(IdType id_type, Type* type, std::string lit) 
     : id_type(id_type), type(type), lit(lit), is_const_bool(false), val(0) {
     assert(type);
@@ -89,14 +92,12 @@ StoreInitializer::StoreInitializer(Initializer* initializer, Id* addr)
     assert(initializer); assert(addr);
 }
 
-Branch::Branch(Value* cond, Id* target1, Id* target2) 
+Branch::Branch(Value* cond, Label target1, Label target2) 
     : cond(cond), target1(target1), target2(target2) {
-    assert(cond); assert(target1); assert(target2);
+    assert(cond);
 }
 
-Jump::Jump(Id* target): target(target) {
-    assert(target);
-}
+Jump::Jump(Label target): target(target) {}
 
 Return::Return(): return_type(return_type::NotHasRetVal) {}
 
@@ -104,9 +105,8 @@ Return::Return(Value* val): return_type(return_type::HasRetVal), val(val) {
     assert(val);
 }
 
-Block::Block(Id* id, std::vector<Stmt*> stmts)
-    : id(id), stmts(stmts) {
-    assert(id);
+Block::Block(Label label, std::vector<Stmt*> stmts)
+    : label(label), stmts(stmts) {
 }
 
 FuncDef::FuncDef(Id* id, std::vector<Id*> formal_param_ids, std::vector<Block*> blocks)
