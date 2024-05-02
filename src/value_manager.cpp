@@ -84,7 +84,7 @@ void ValueManager::insert_const(koopa::Const* new_const) {
 
 
 koopa::Id* ValueManager::new_id(
-    koopa::IdType id_type, koopa::Type* type, 
+    koopa::Id::IdType id_type, koopa::Type* type, 
     std::string lit, NestingInfo* nesting_info
 ) {
     auto res = new koopa::Id(
@@ -97,7 +97,7 @@ koopa::Id* ValueManager::new_id(
 }
 
 koopa::Id* ValueManager::new_id(
-    koopa::IdType id_type, koopa::Type* type, 
+    koopa::Id::IdType id_type, koopa::Type* type, 
     std::string lit, int val, NestingInfo* nesting_info
 ) {
     auto res = new koopa::Id(
@@ -179,7 +179,7 @@ koopa::Id* ValueManager::get_id(std::string lit, NestingInfo* nesting_info) {
 koopa::Id* ValueManager::get_func_id(std::string lit, NestingInfo* nesting_info) {
     if (nesting_info->nesting_level == 0) {
         auto res = get_id_impl(global_ids, lit, nesting_info);
-        return res->type->get_type_id() != koopa::type::FuncType
+        return res->get_type()->get_type_id() != koopa::Type::FuncType
             ? res
             : nullptr;
     }
@@ -188,7 +188,7 @@ koopa::Id* ValueManager::get_func_id(std::string lit, NestingInfo* nesting_info)
         assert(current_manager != ids.end());
 
         auto res = get_id_impl(* current_manager->second, lit, nesting_info);
-        return res != nullptr && res->type->get_type_id() != koopa::type::FuncType
+        return res != nullptr && res->get_type()->get_type_id() != koopa::Type::FuncType
             ? res
             : get_id(lit, nesting_info->pa);
     }

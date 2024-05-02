@@ -17,12 +17,12 @@
 class ValueManager {
 public:
     koopa::Id* new_id(
-        koopa::IdType id_type, koopa::Type* type, std::string lit, 
+        koopa::Id::IdType id_type, koopa::Type* type, std::string lit, 
         NestingInfo* nesting_info = new NestingInfo
     );
 
     koopa::Id* new_id(
-        koopa::IdType id_type, koopa::Type* type, std::string lit, 
+        koopa::Id::IdType id_type, koopa::Type* type, std::string lit, 
         int val, NestingInfo* nesting_info = new NestingInfo
     );
 
@@ -30,7 +30,7 @@ public:
 
     /* return identifier if exist one; otherwise nullptr */
     koopa::Id* get_id(std::string lit, NestingInfo* nesting_info);
-    /* find identifier with type `koopa::type::FuncType` */
+    /* find identifier with type `koopa::Type::FuncType` */
     koopa::Id* get_func_id(std::string lit, NestingInfo* nesting_info);
 
     /*

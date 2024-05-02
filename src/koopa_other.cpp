@@ -17,32 +17,32 @@ bool NotEndStmt::is_end_stmt() { return false; }
 bool EndStmt::is_end_stmt() { return true; }
 bool GlobalStmt::is_end_stmt() { return false; }
 
-TypeId Int::get_type_id() { return type::Int; }
-TypeId Array::get_type_id() { return type::Array; }
-TypeId Pointer::get_type_id() { return type::Pointer; }
-TypeId FuncType::get_type_id() { return type::FuncType; }
-TypeId Void::get_type_id() { return type::Void; }
+Type::TypeId Int::get_type_id() { return Type::Int; }
+Type::TypeId Array::get_type_id() { return Type::Array; }
+Type::TypeId Pointer::get_type_id() { return Type::Pointer; }
+Type::TypeId FuncType::get_type_id() { return Type::FuncType; }
+Type::TypeId Void::get_type_id() { return Type::Void; }
 
 bool Type::operator!=(Type& other) {
     return !(*this == other);
 }
 
 bool Int::operator==(Type& other) { 
-    return other.get_type_id() == type::Int; 
+    return other.get_type_id() == Type::Int; 
 }
 
 bool Array::operator==(Type& other) {
-    return other.get_type_id() == type::Array 
+    return other.get_type_id() == Type::Array 
         && dynamic_cast<Array&>(other).length == length;
 }
 
 bool Pointer::operator==(Type& other) {
-    return other.get_type_id() == type::Pointer
+    return other.get_type_id() == Type::Pointer
         && *dynamic_cast<Pointer&>(other).pointed_type == *pointed_type;
 }
 
 bool FuncType::operator==(Type& other) {
-    if (other.get_type_id() != type::FuncType) return false;
+    if (other.get_type_id() != Type::FuncType) return false;
     auto other_casted = dynamic_cast<FuncType&>(other); 
     if (* other_casted.ret_type != *ret_type) return false;
     if (arg_types.size() != other_casted.arg_types.size()) return false;
@@ -53,8 +53,28 @@ bool FuncType::operator==(Type& other) {
 }
 
 bool Void::operator==(Type& other) {
-    return other.get_type_id() == type::Void;
+    return other.get_type_id() == Type::Void;
 }
+
+std::vector<Type*> FuncType::get_arg_types() const { return arg_types; };
+Type* FuncType::get_ret_type() const { return ret_type; }
+
+Type* Id::get_type() const { return type; }
+std::string Id::get_lit() const { return lit; }
+
+Id* FuncDef::get_id() const { return id; }
+std::vector<Id*> FuncDef::get_formal_param_ids() const { return formal_param_ids; }
+std::vector<Block*> FuncDef::get_blocks() const { return blocks; }
+
+int ConstInitializer::get_val() const { return val; }
+
+Id* FuncCall::get_id() const { return id;}
+std::vector<Value*> FuncCall::get_args() const { return args; };
+
+Rvalue* SymbolDef::get_val() const { return val; }
+
+Label Block::get_label() const { return label;}
+std::vector<Stmt*>& Block::get_stmts() { return stmts; }
 
 bool Id::is_const() {
     return is_const_bool;

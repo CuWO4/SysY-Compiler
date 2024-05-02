@@ -76,8 +76,8 @@ ConstVarDef::ConstVarDef(Type* type, Id* id, Initializer* init)
 
 VarDecl::VarDecl(std::vector<VarDef*> var_defs) : var_defs(var_defs) {}
 
-Return::Return(): return_type(return_type::NotHasRetVal) {}
-Return::Return(Expr* ret_val): return_type(return_type::HasRetVal), ret_val(ret_val) {
+Return::Return(): return_type(NotHasRetVal) {}
+Return::Return(Expr* ret_val): return_type(HasRetVal), ret_val(ret_val) {
     assert(ret_val);
 }
 

@@ -10,11 +10,11 @@
 namespace koopa {
 
 riscv_trans::Register Id::value_to_riscv(std::string& str) const {
-    if (id_type == koopa::id_type::FuncId) {
+    if (id_type == koopa::Id::FuncId) {
         str += to_riscv_style(lit);
         return riscv_trans::Register();
     }
-    else if (id_type == koopa::id_type::GlobalId) {
+    else if (id_type == koopa::Id::GlobalId) {
         str += to_riscv_style(lit);
         return riscv_trans::Register();
     }
@@ -258,7 +258,7 @@ void Return::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) 
 
     str += build_comment(this);
 
-    if (return_type == return_type::HasRetVal) {
+    if (return_type == HasRetVal) {
         auto ret_val_reg = val->value_to_riscv(str);
         str += build_inst("mv", "a0", ret_val_reg.get_lit());
         riscv_trans::temp_reg_manager.refresh_reg(ret_val_reg);
@@ -295,8 +295,9 @@ void Jump::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) co
 static void func_call_to_riscv_impl(const koopa::FuncCall* self, std::string& str) {
     // no need to save registers since all identifiers so far have been stored on the stack frame
 
-    for (int i = 0; i < self->args.size(); i++) {
-        auto arg_reg = self->args[i]->value_to_riscv(str);
+    auto self_args = self->get_args();
+    for (int i = 0; i < self_args.size(); i++) {
+        auto arg_reg = self_args[i]->value_to_riscv(str);
 
         if (i < 8) {
             str += build_inst(
@@ -318,7 +319,7 @@ static void func_call_to_riscv_impl(const koopa::FuncCall* self, std::string& st
 
     str += build_inst(
         "call",
-        to_riscv_style(self->id->lit)
+        to_riscv_style(self->get_id()->get_lit())
     );
 }
 
@@ -352,7 +353,7 @@ void FuncDef::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode)
 
         str += build_comment(this);
         
-        value_manager.enter_func(id->lit);
+        value_manager.enter_func(id->get_lit());
 
         riscv_trans::allocate_ids_storage_location(this);
 
@@ -383,7 +384,7 @@ void GlobalSymbolDef::stmt_to_riscv(std::string& str, riscv_trans::TransMode tra
     if (trans_mode == riscv_trans::trans_mode::DataSegment) {
         riscv_trans::id_storage_map.register_id(
             id, 
-            new riscv_trans::DataSeg(to_riscv_style(id->lit))
+            new riscv_trans::DataSeg(to_riscv_style(id->get_lit()))
         );
 
         str += build_comment(this);

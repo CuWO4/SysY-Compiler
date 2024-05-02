@@ -79,8 +79,6 @@ FuncCall::FuncCall(Id* id, std::vector<Value*> args): id(id), args(args) {
 
 SymbolDef::SymbolDef(Id* id, Rvalue* val): id(id), val(val) {
     assert(id); assert(val);
-    
-    is_unit = false;
 }
 
 StoreValue::StoreValue(Value* value, Id* addr): value(value), addr(addr) {
@@ -99,9 +97,9 @@ Branch::Branch(Value* cond, Label target1, Label target2)
 
 Jump::Jump(Label target): target(target) {}
 
-Return::Return(): return_type(return_type::NotHasRetVal) {}
+Return::Return(): return_type(NotHasRetVal) {}
 
-Return::Return(Value* val): return_type(return_type::HasRetVal), val(val) {
+Return::Return(Value* val): return_type(HasRetVal), val(val) {
     assert(val);
 }
 

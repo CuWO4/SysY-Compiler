@@ -19,13 +19,11 @@ public:
     virtual ~Base() = default;
 };
 
-namespace type {
-    enum TypeId { Int, Array, Pointer, FuncType, Void };
-}
-using TypeId = type::TypeId;
 
 class Type: public Base {
 public:
+    enum TypeId { Int, Array, Pointer, FuncType, Void };
+
     virtual TypeId get_type_id() = 0;
     virtual bool operator==(Type& other) = 0;
     bool operator!=(Type& other);
@@ -60,9 +58,6 @@ public:
 
     class Array: public Type {
     public:
-        Type* elem_type;
-        int length;
-
         std::string to_string() const override;
 
         Array(Type* elem_type, int length);
@@ -75,12 +70,14 @@ public:
         unsigned get_byte_size() const override;
 
         Type* unwrap() const override;
+
+    private:
+        Type* elem_type;
+        int length;
     };
 
     class Pointer: public Type {
     public:
-        Type* pointed_type;
-
         std::string to_string() const override;
 
         Pointer(Type* pointed_type);
@@ -93,19 +90,26 @@ public:
         unsigned get_byte_size() const override;
 
         Type* unwrap() const override;
+
+    private:
+        Type* pointed_type;
     };
 
     class FuncType: public Type {
     public:
-        std::vector<Type*>     arg_types;
-        Type* ret_type;
-
         std::string to_string() const override;
 
         FuncType(std::vector<Type*> arg_types, Type* ret_type);
 
         TypeId get_type_id() override;
         bool operator==(Type& other) override;
+
+        std::vector<Type*> get_arg_types() const;
+        Type* get_ret_type() const;
+
+    private:
+        std::vector<Type*> arg_types;
+        Type* ret_type;
     };
 
     class Void: public Type {
@@ -124,16 +128,10 @@ public:
     virtual int get_val() = 0;
 };
 
-    namespace id_type {
-        enum IdType { LocalId, GlobalId, ConstId, FuncId };
-    }
-    using IdType = id_type::IdType;
 
     class Id: public Value {
     public:
-        IdType id_type;
-        Type* type;
-        std::string lit;
+        enum IdType { LocalId, GlobalId, ConstId, FuncId };
 
         std::string to_string() const override;
 
@@ -145,7 +143,13 @@ public:
         Id(IdType id_type, Type* type, std::string lit);
         Id(IdType id_type, Type* type, std::string lit, int val);
 
+        Type* get_type() const;
+        std::string get_lit() const;
+
     private:
+        IdType id_type;
+        Type* type;
+        std::string lit;
         bool is_const_bool;
         int val;
     };
@@ -160,6 +164,7 @@ public:
         int get_val() override;
 
         Const(int val);
+
     private:
         int val;
     };
@@ -179,13 +184,16 @@ public:
 
     class ConstInitializer: public Initializer {
     public:
-        int val;
-
         std::string to_string() const override;
 
         void initializer_to_riscv(std::string& str, unsigned type_byte_size) const override;
 
         ConstInitializer(int val);
+
+        int get_val() const;
+
+    private:
+        int val;
     };
 
     class Aggregate: public Initializer {
@@ -227,8 +235,6 @@ public:
         riscv_trans::TransMode trans_mode
     ) const = 0;
 
-    bool is_unit;
-
     virtual bool is_end_stmt() = 0;
 };
     class NotEndStmt: public Stmt {
@@ -247,8 +253,6 @@ public:
 
             class MemoryDecl: public Rvalue {
             public:
-                Type* type;
-
                 MemoryDecl(Type* type);
 
                 std::string to_string() const override;
@@ -256,12 +260,13 @@ public:
                 riscv_trans::Register rvalue_to_riscv(
                     std::string& str
                 ) const override;
+
+            private:
+                Type* type;
             };
 
             class Load: public Rvalue {
             public:
-                Id* addr;
-
                 Load(Id* addr);
 
                 std::string to_string() const override;
@@ -269,13 +274,13 @@ public:
                 riscv_trans::Register rvalue_to_riscv(
                     std::string& str
                 ) const override;
+
+            private:
+                Id* addr;
             };
 
             class GetPtr: public Rvalue {
             public:
-                Id* base;
-                Value* offset;
-
                 std::string to_string() const override;
 
                 GetPtr(Id* base, Value* offset);
@@ -283,13 +288,14 @@ public:
                 riscv_trans::Register rvalue_to_riscv(
                     std::string& str
                 ) const override;
+
+            private:
+                Id* base;
+                Value* offset;
             };
 
             class GetElemPtr: public Rvalue {
             public:
-                Id* base;
-                Value* offset;
-
                 GetElemPtr(Id* base, Value* offset);
 
                 std::string to_string() const override;
@@ -297,6 +303,10 @@ public:
                 riscv_trans::Register rvalue_to_riscv(
                     std::string& str
                 ) const override;
+            
+            private:
+                Id* base;
+                Value* offset;
             };
 
             class Expr: public Rvalue {
@@ -462,9 +472,6 @@ public:
 
             class FuncCall: public Rvalue, public NotEndStmt {
             public:
-                Id* id;
-                std::vector<Value*>    args;
-
                 std::string to_string() const override;
 
                 void stmt_to_riscv(
@@ -477,13 +484,17 @@ public:
                 ) const override;
 
                 FuncCall(Id* id, std::vector<Value*> args);
+
+                Id* get_id() const;
+                std::vector<Value*> get_args() const;
+
+            private:
+                Id* id;
+                std::vector<Value*> args;
             };
 
         class SymbolDef: public NotEndStmt {
         public:
-            Id* id;
-            Rvalue* val;
-
             std::string to_string() const override;
 
             void stmt_to_riscv(
@@ -492,6 +503,12 @@ public:
             ) const override;
 
             SymbolDef(Id* id, Rvalue* val);
+
+            Rvalue* get_val() const;
+
+        private:
+            Id* id;
+            Rvalue* val;
         };
 
         class Store: public NotEndStmt {
@@ -499,9 +516,6 @@ public:
 
             class StoreValue: public Store {
             public:
-                Value* value;
-                Id* addr;
-
                 StoreValue(Value* value, Id* addr);
 
                 std::string to_string() const override;
@@ -510,13 +524,14 @@ public:
                     std::string& str, 
                     riscv_trans::TransMode trans_mode
                 ) const override;
+
+            private:
+                Value* value;
+                Id* addr;
             };
 
             class StoreInitializer: public Store {
             public:
-                Initializer* initializer;
-                Id* addr;
-
                 std::string to_string() const override;
 
                 void stmt_to_riscv(
@@ -525,6 +540,10 @@ public:
                 ) const override;
 
                 StoreInitializer(Initializer* initializer, Id* addr);
+
+            private:
+                Initializer* initializer;
+                Id* addr;
             };
 
     class EndStmt: public Stmt {
@@ -533,10 +552,6 @@ public:
 
         class Branch: public EndStmt {
         public:
-            Value* cond;
-            Label target1;
-            Label target2;
-
             std::string to_string() const override;
 
             void stmt_to_riscv(
@@ -545,12 +560,15 @@ public:
             ) const override;
 
             Branch(Value* cond, Label target1, Label target2);
+
+        private:
+            Value* cond;
+            Label target1;
+            Label target2;
         };
 
         class Jump: public EndStmt {
         public:
-            Label target;
-
             std::string to_string() const override;
 
             void stmt_to_riscv(
@@ -559,15 +577,16 @@ public:
             ) const override;
             
             Jump(Label target);
+
+        private:
+            Label target;
         };
 
-        namespace return_type {
-            enum ReturnType { HasRetVal, NotHasRetVal };
-        }
-        using ReturnType = return_type::ReturnType;
 
         class Return: public EndStmt {
         public:
+            enum ReturnType { HasRetVal, NotHasRetVal };
+            
             std::string to_string() const override;
 
             void stmt_to_riscv(
@@ -589,12 +608,6 @@ public:
 
         class Block: public Base {
         public:
-            Label label;
-            std::vector<Stmt*>     stmts;
-
-            std::vector<std::string> preds;
-            std::vector<std::string> succs;
-
             friend void operator+=(Block& self, Stmt* stmt);
 
             friend void operator+=(Block& self, std::vector<Stmt*> stmts);
@@ -604,14 +617,17 @@ public:
             void block_to_riscv(std::string& str) const;
 
             Block(Label label, std::vector<Stmt*> stmts);
+
+            Label get_label() const;
+            std::vector<Stmt*>& get_stmts();
+
+        private:
+            Label label;
+            std::vector<Stmt*> stmts;
         };
 
         class FuncDef: public GlobalStmt {
         public:
-            Id* id;
-            std::vector<Id*>       formal_param_ids;
-            std::vector<Block*>    blocks;
-
             std::string to_string() const override;
 
             void stmt_to_riscv(
@@ -624,12 +640,19 @@ public:
                 std::vector<Id*> formal_param_ids, 
                 std::vector<Block*> blocks
             );
+
+            Id* get_id() const;
+            std::vector<Id*> get_formal_param_ids() const;
+            std::vector<Block*> get_blocks() const;
+
+        private:
+            Id* id;
+            std::vector<Id*> formal_param_ids;
+            std::vector<Block*> blocks;
         };
 
         class FuncDecl: public GlobalStmt {
         public:
-            Id* id;
-
             std::string to_string() const override;
 
             void stmt_to_riscv(
@@ -638,13 +661,13 @@ public:
             ) const override;
 
             FuncDecl(Id* id);
+
+        private:
+            Id* id;
         };
 
         class GlobalMemoryDecl: public GlobalStmt {
         public:
-            Type* type;
-            Initializer* initializer;
-
             std::string to_string() const override;
 
             void stmt_to_riscv(
@@ -653,13 +676,14 @@ public:
             ) const override;
 
             GlobalMemoryDecl(Type* type, Initializer* initializer);
+
+        private:
+            Type* type;
+            Initializer* initializer;
         };
 
         class GlobalSymbolDef: public GlobalStmt {
         public:
-            Id* id;
-            GlobalMemoryDecl* decl;
-
             std::string to_string() const override;
 
             void stmt_to_riscv(
@@ -668,18 +692,22 @@ public:
             ) const override;
 
             GlobalSymbolDef(Id* id, GlobalMemoryDecl* decl);
+
+        private:
+            Id* id;
+            GlobalMemoryDecl* decl;
         };
 
 class Program: public Base {
 public:
-    std::vector<GlobalStmt*> global_stmts;
-
     std::string to_string() const override;
 
     void prog_to_riscv(std::string& str) const;
 
     Program(std::vector<GlobalStmt*> global_stmts);
 
+private:
+    std::vector<GlobalStmt*> global_stmts;
 };
 
 }

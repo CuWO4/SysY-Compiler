@@ -450,13 +450,11 @@ namespace ast {
             std::string debug(int indent = 0) const override;
         };
 
-        namespace return_type {
-            enum ReturnType { HasRetVal, NotHasRetVal };
-        }
-        using ReturnType = return_type::ReturnType;
 
         class Return: public Stmt {
         public:
+            enum ReturnType { HasRetVal, NotHasRetVal };
+            
             Return();
             Return(Expr* ret_val);
 

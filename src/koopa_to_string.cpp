@@ -31,7 +31,7 @@ std::string FuncType::to_string() const {
     }
     res += ")";
 
-    if (ret_type->get_type_id() != type::Void) {
+    if (ret_type->get_type_id() != Type::Void) {
         res += ": " + ret_type->to_string();
     }
     return res;
@@ -48,9 +48,9 @@ std::string Label::get_name() const {
 std::string Id::to_string() const {
     auto res = lit;
     if (debug_mode_koopa_type) {
-        if ((type->get_type_id() == type::Int)
-            || (type->get_type_id() == type::Array)
-            || (type->get_type_id() == type::Pointer)) {
+        if ((type->get_type_id() == Type::Int)
+            || (type->get_type_id() == Type::Array)
+            || (type->get_type_id() == Type::Pointer)) {
             res += " /*! type: " + type->to_string() + " */"; 
         }
     }
@@ -171,26 +171,11 @@ std::string Jump::to_string() const {
 }
 
 std::string Return::to_string() const {
-    return "ret " + (return_type == return_type::HasRetVal ? val->to_string(): "");
+    return "ret " + (return_type == HasRetVal ? val->to_string(): "");
 }
 
 std::string Block::to_string() const {
     auto res = std::string("");
-
-    if (debug_mode_koopa_pred_succ) {
-        if (preds.size() > 0) {
-            res += "//! pred: ";
-            for (auto pred: preds) res += pred + ", ";
-            res.pop_back();
-            res += '\n';
-        }
-        if (succs.size() > 0) {
-            res += "//! succ: ";
-            for (auto succ: succs) res += succ + ", ";
-            res.pop_back();
-            res += '\n';
-        }
-    }
 
     res += label.get_name() + ":\n";
     for (auto stmt: stmts) {
@@ -204,15 +189,18 @@ std::string FuncDef::to_string() const {
 
     res += '\n';
 
-    auto ret_type = dynamic_cast<FuncType*>(id->type)->ret_type;
+    auto ret_type = dynamic_cast<FuncType*>(id->get_type())->get_ret_type();
 
-    if (debug_mode_koopa_type) res += "//! type: " + id->type->to_string() + '\n';
+    if (debug_mode_koopa_type) {
+        res += "//! type: " + id->get_type()->to_string() + '\n';
+    }
 
     res += "fun " + id->to_string();
 
     res += '(';
     for (auto formal_param_id: formal_param_ids) {
-        res += formal_param_id->lit + ": " + formal_param_id->type->to_string() + ", ";
+        res += formal_param_id->get_lit() 
+            + ": " + formal_param_id->get_type()->to_string() + ", ";
     }
     if (formal_param_ids.size() > 0) { 
         res.pop_back(); // ` `
@@ -220,7 +208,7 @@ std::string FuncDef::to_string() const {
     }
     res += ')';
 
-    if (ret_type->get_type_id() != type::Void) {
+    if (ret_type->get_type_id() != Type::Void) {
         res += ": " + ret_type->to_string();
     }
     
@@ -237,14 +225,16 @@ std::string FuncDef::to_string() const {
 std::string FuncDecl::to_string() const {
     auto res = std::string("");
 
-    if (debug_mode_koopa_type) res += "//! type: " + id->type->to_string() + '\n';
+    if (debug_mode_koopa_type) {
+        res += "//! type: " + id->get_type()->to_string() + '\n';
+    }
 
     res += "decl ";
 
     res += id->to_string();
 
-    auto param_types = dynamic_cast<FuncType*>(id->type)->arg_types;
-    auto ret_type = dynamic_cast<FuncType*>(id->type)->ret_type;
+    auto param_types = dynamic_cast<FuncType*>(id->get_type())->get_arg_types();
+    auto ret_type = dynamic_cast<FuncType*>(id->get_type())->get_ret_type();
 
     res += '(';
     for (auto param_type: param_types) {
@@ -256,7 +246,7 @@ std::string FuncDecl::to_string() const {
     }
     res += ')';
 
-    if (ret_type->get_type_id() != type::Void) {
+    if (ret_type->get_type_id() != Type::Void) {
         res += ": " + ret_type->to_string();
     }
 

@@ -25,10 +25,9 @@ static koopa::Value* generate_binary_expr(
 ) {
 
     auto new_id = value_manager.new_id(
-        koopa::id_type::LocalId,
+        koopa::Id::LocalId,
         new koopa::Int,
-        new_id_name(),
-        new NestingInfo
+        new_id_name()
     );
 
     *dest += new koopa::SymbolDef(
@@ -73,6 +72,7 @@ static koopa_trans::Blocks* build_ordinary_binary_blocks(
     );
     return res;
 }
+
 enum ShortCircuitBinaryOp { LOGIC_AND, LOGIC_OR };
 
 static koopa_trans::Blocks* build_short_circuit_evaluation(
@@ -108,7 +108,7 @@ static koopa_trans::Blocks* build_short_circuit_evaluation(
     auto res = new koopa_trans::Blocks;
 
     auto res_addr = value_manager.new_id(
-        koopa::id_type::LocalId, 
+        koopa::Id::LocalId, 
         new koopa::Pointer(new koopa::Int), 
         new_id_name()
     );
@@ -152,7 +152,7 @@ static koopa_trans::Blocks* build_short_circuit_evaluation(
     *res += then_block->to_raw_blocks();
     *res += end_block->to_raw_blocks();
 
-    auto res_id = value_manager.new_id(koopa::id_type::LocalId, new koopa::Int, new_id_name());
+    auto res_id = value_manager.new_id(koopa::Id::LocalId, new koopa::Int, new_id_name());
     *res += new koopa::SymbolDef(res_id, new koopa::Load(res_addr));
     
     res->set_last_val(res_id);
@@ -169,7 +169,7 @@ koopa_trans::Blocks* LogicOr::to_koopa() const {
 
     for (auto stmts: {lv_stmts, rv_stmts}) {
         if (stmts->get_last_val()->is_const() && stmts->get_last_val()->get_val() != 0) {
-            return new koopa_trans::Blocks(new koopa::Const(1));
+            return new koopa_trans::Blocks(value_manager.new_const(1));
         }
     }
 
@@ -189,7 +189,7 @@ koopa_trans::Blocks* LogicAnd::to_koopa() const {
 
     for (auto stmts: {lv_stmts, rv_stmts}) {
         if (stmts->get_last_val()->is_const() && stmts->get_last_val()->get_val() == 0) {
-            return new koopa_trans::Blocks(new koopa::Const(0));
+            return new koopa_trans::Blocks(value_manager.new_const(0));
         }
     }
 
@@ -364,10 +364,9 @@ static koopa_trans::Blocks* build_ordinary_unary_blocks(
     }
 
     auto new_id = value_manager.new_id(
-        koopa::id_type::LocalId,
+        koopa::Id::LocalId,
         new koopa::Int,
-        new_id_name(),
-        new NestingInfo
+        new_id_name()
     );
 
     *lv_stmts += new koopa::SymbolDef(
@@ -403,28 +402,27 @@ koopa_trans::Blocks* Indexing::to_koopa() const {
     }
 
     // only atomic variables engage in compile-time evaluation
-    if (id_koopa->is_const() && id_koopa->type->get_dim().size() == 0) {
+    if (id_koopa->is_const() && id_koopa->get_type()->get_dim().size() == 0) {
         return new koopa_trans::Blocks(
             value_manager.new_const(id_koopa->get_val())
         );
     }
 
     // -1 since all identifiers defined is wrapped by pointer
-    if (id_koopa->type->get_dim().size() - 1 < indexes.size()) {
+    if (id_koopa->get_type()->get_dim().size() - 1 < indexes.size()) {
         throw "invalid indexing";
     }
     
     auto [res, pointer] = get_pointer(id_koopa);
     
     if (
-        pointer->type->get_dim().size() <= 1 // atomic
-        || pointer->type->get_dim()[1] < 0 // pointer
+        pointer->get_type()->get_dim().size() <= 1 // atomic
+        || pointer->get_type()->get_dim()[1] < 0 // pointer
     ) {
         auto res_value = value_manager.new_id(
-            koopa::id_type::LocalId,
-            pointer->type->unwrap(),
-            new_id_name(),
-            new NestingInfo
+            koopa::Id::LocalId,
+            pointer->get_type()->unwrap(),
+            new_id_name()
         );
 
         *res += new koopa::SymbolDef(
@@ -435,15 +433,14 @@ koopa_trans::Blocks* Indexing::to_koopa() const {
     }
     else { // array
         auto res_value = value_manager.new_id(
-            koopa::id_type::LocalId,
-            new koopa::Pointer(pointer->type->unwrap()->unwrap()),
-            new_id_name(),
-            new NestingInfo
+            koopa::Id::LocalId,
+            new koopa::Pointer(pointer->get_type()->unwrap()->unwrap()),
+            new_id_name()
         );
 
         *res += new koopa::SymbolDef(
             res_value,
-            new koopa::GetElemPtr(pointer, new koopa::Const(0))
+            new koopa::GetElemPtr(pointer, value_manager.new_const(0))
         );
         res->set_last_val(res_value);
     }
@@ -471,7 +468,7 @@ koopa_trans::Blocks* Indexing::assign(const Expr* rv) const {
         throw "undeclared identifier `" + id->lit + '`';
     }
 
-    if (id_koopa->type->get_dim().size() - 1 != indexes.size()) {
+    if (id_koopa->get_type()->get_dim().size() - 1 != indexes.size()) {
         throw "assigning a incomplete indexing";
     }
     
@@ -499,7 +496,7 @@ std::tuple<koopa_trans::Blocks*, koopa::Id*> Indexing::get_pointer(
 
     auto pointer = id;
 
-    auto dimensions = id->type->get_dim();
+    auto dimensions = id->get_type()->get_dim();
 
     for (int i = 0; i < indexes.size(); i++) {
         if (dimensions[i + 1] < 0) { // pointer
@@ -509,10 +506,9 @@ std::tuple<koopa_trans::Blocks*, koopa::Id*> Indexing::get_pointer(
             *res += *index_stmts;
 
             auto new_pointer1 = value_manager.new_id(
-                koopa::id_type::LocalId,
-                pointer->type->unwrap(),
-                new_id_name(),
-                new NestingInfo
+                koopa::Id::LocalId,
+                pointer->get_type()->unwrap(),
+                new_id_name()
             );
 
             *res += new koopa::SymbolDef(
@@ -521,10 +517,9 @@ std::tuple<koopa_trans::Blocks*, koopa::Id*> Indexing::get_pointer(
             );
 
             auto new_pointer2 = value_manager.new_id(
-                koopa::id_type::LocalId,
-                new_pointer1->type,
-                new_id_name(),
-                new NestingInfo
+                koopa::Id::LocalId,
+                new_pointer1->get_type(),
+                new_id_name()
             );
 
             *res += new koopa::SymbolDef(
@@ -540,10 +535,9 @@ std::tuple<koopa_trans::Blocks*, koopa::Id*> Indexing::get_pointer(
             *res += *index_stmts;
 
             auto new_pointer = value_manager.new_id(
-                koopa::id_type::LocalId,
-                new koopa::Pointer(pointer->type->unwrap()->unwrap()),
-                new_id_name(),
-                new NestingInfo
+                koopa::Id::LocalId,
+                new koopa::Pointer(pointer->get_type()->unwrap()->unwrap()),
+                new_id_name()
             );
 
             *res += new koopa::SymbolDef(
@@ -623,7 +617,7 @@ koopa_trans::Blocks* Aggregate::expr_to_koopa() const {
 }
 
 bool is_consistent(koopa::FuncType* func_type, std::vector<Expr*> actual_params) {
-    if (func_type->arg_types.size() != actual_params.size()) return false;
+    if (func_type->get_arg_types().size() != actual_params.size()) return false;
     
     // TODO  check param type
 
@@ -641,7 +635,7 @@ koopa_trans::Blocks* FuncCall::to_koopa() const {
 
     if (
         !is_consistent(
-            dynamic_cast<koopa::FuncType*>(func_id_koopa->type), 
+            dynamic_cast<koopa::FuncType*>(func_id_koopa->get_type()), 
             actual_params
         )
     ) {
@@ -656,14 +650,14 @@ koopa_trans::Blocks* FuncCall::to_koopa() const {
         actual_params_koopa.push_back(actual_param_koopa->get_last_val());
     }
 
-    auto ret_type_koopa = dynamic_cast<koopa::FuncType*>(func_id_koopa->type)->ret_type;
-    if (ret_type_koopa->get_type_id() == koopa::type::Void) {
+    auto ret_type_koopa = dynamic_cast<koopa::FuncType*>(func_id_koopa->get_type())->get_ret_type();
+    if (ret_type_koopa->get_type_id() == koopa::Type::Void) {
         *res += new koopa::FuncCall(func_id_koopa, actual_params_koopa);
         res->throw_last_val();
     }
     else {
         auto res_id = value_manager.new_id(
-            koopa::id_type::LocalId,
+            koopa::Id::LocalId,
             ret_type_koopa,
             new_id_name()
         );
@@ -709,7 +703,7 @@ koopa_trans::GlobalStmts* VolatileGlobalVarDef::to_koopa() const {
 
         *stmts += new koopa::GlobalSymbolDef(
             value_manager.new_id(
-                koopa::id_type::GlobalId,
+                koopa::Id::GlobalId,
                 new koopa::Pointer(
                     type_koopa
                 ),
@@ -722,7 +716,7 @@ koopa_trans::GlobalStmts* VolatileGlobalVarDef::to_koopa() const {
             )
         );
     }
-    else /* type->get_dim() > 0 */ { 
+    else /* get_type()->get_dim() > 0 */ { 
         koopa::Initializer* init_koopa;
         
         if (has_init) {
@@ -739,7 +733,7 @@ koopa_trans::GlobalStmts* VolatileGlobalVarDef::to_koopa() const {
 
         *stmts += new koopa::GlobalSymbolDef(
             value_manager.new_id(
-                koopa::id_type::GlobalId,
+                koopa::Id::GlobalId,
                 new koopa::Pointer(
                     type_koopa
                 ),
@@ -781,7 +775,7 @@ koopa_trans::GlobalStmts* ConstGlobalVarDef::to_koopa() const {
         }
 
         value_manager.new_id(
-            koopa::id_type::GlobalId,
+            koopa::Id::GlobalId,
             type_koopa,
             '@' + id->lit,
             rval_koopa->get_last_val()->get_val(),
@@ -790,7 +784,7 @@ koopa_trans::GlobalStmts* ConstGlobalVarDef::to_koopa() const {
 
         return stmts;
     }
-    else /* type->get_dim() > 0 */ { 
+    else /* get_type()->get_dim() > 0 */ { 
         return VolatileGlobalVarDef(type, id, init).to_koopa();
     }
 }
@@ -816,7 +810,7 @@ koopa_trans::Blocks* VolatileVarDef::to_koopa() const {
     if (type_koopa->get_dim().size() == 0) {
         *stmts += new koopa::SymbolDef(
             value_manager.new_id(
-                koopa::id_type::LocalId,
+                koopa::Id::LocalId,
                 new koopa::Pointer(
                     type_koopa
                 ),
@@ -840,10 +834,10 @@ koopa_trans::Blocks* VolatileVarDef::to_koopa() const {
             );
         }
     }
-    else /* type->get_dim() > 0 */ { 
+    else /* get_type()->get_dim() > 0 */ { 
         *stmts += new koopa::SymbolDef(
             value_manager.new_id(
-                koopa::id_type::LocalId,
+                koopa::Id::LocalId,
                 new koopa::Pointer(
                     type_koopa
                 ),
@@ -895,14 +889,14 @@ koopa_trans::Blocks* ConstVarDef::to_koopa() const {
         }
 
         value_manager.new_id(
-            koopa::id_type::LocalId,
+            koopa::Id::LocalId,
             type_koopa,
             '@' + id->lit,
             rval_koopa->get_last_val()->get_val(),
             id->nesting_info
         );
     }
-    else /* type->get_dim() > 0 */ { 
+    else /* get_type()->get_dim() > 0 */ { 
         return VolatileVarDef(type, id, init).to_koopa();
     }
 
@@ -920,7 +914,7 @@ koopa_trans::Blocks* VarDecl::to_koopa() const {
 }
 
 koopa_trans::Blocks* Return::to_koopa() const {
-    if (return_type == return_type::NotHasRetVal) {
+    if (return_type == NotHasRetVal) {
         return new koopa_trans::Blocks({new koopa::Return});
     }
 
@@ -966,12 +960,12 @@ koopa_trans::Blocks* If::to_koopa() const {
 
         *res += new koopa::Branch(
             cond_koopa,
-            then_blocks.front()->label,
-            else_blocks.front()->label
+            then_blocks.front()->get_label(),
+            else_blocks.front()->get_label()
         );
 
-    *then_blocks.back() += new koopa::Jump(end_block->label);
-    *else_blocks.back() += new koopa::Jump(end_block->label);
+    *then_blocks.back() += new koopa::Jump(end_block->get_label());
+    *else_blocks.back() += new koopa::Jump(end_block->get_label());
 
     *res += then_blocks;
     *res += else_blocks;
@@ -987,11 +981,11 @@ koopa_trans::Blocks* If::to_koopa() const {
 
         *res += new koopa::Branch(
             cond_koopa,
-            then_blocks.front()->label,
-            end_block->label
+            then_blocks.front()->get_label(),
+            end_block->get_label()
         );
 
-        *then_blocks.back() += new koopa::Jump(end_block->label);
+        *then_blocks.back() += new koopa::Jump(end_block->get_label());
 
         *res += then_blocks;
         *res += end_block;
@@ -1112,7 +1106,7 @@ koopa_trans::Blocks* Continue::to_koopa() const {
         throw "not using `continue` in loop";
     }
     return new koopa_trans::Blocks(
-        { new koopa::Jump(loop_tag_manager.top().continue_target) }
+        { new koopa::Jump(loop_tag_manager.top().get_continue_target()) }
     );
 }
 
@@ -1121,7 +1115,7 @@ koopa_trans::Blocks* Break::to_koopa() const {
         throw "not using `break` in loop";
     }
     return new koopa_trans::Blocks(
-        { new koopa::Jump(loop_tag_manager.top().break_target) }
+        { new koopa::Jump(loop_tag_manager.top().get_break_target()) }
     );
 }
 
@@ -1141,10 +1135,10 @@ static void trim_redundant_stmts_after_end_stmt(
 
     if (!exist_end_stmt) {
         koopa::Return* ret_stmt = nullptr;
-        if (ret_type->get_type_id() == koopa::type::Int) {
+        if (ret_type->get_type_id() == koopa::Type::Int) {
             ret_stmt = new koopa::Return(value_manager.new_const(0));
         }
-        else if (ret_type->get_type_id() == koopa::type::Void) {
+        else if (ret_type->get_type_id() == koopa::Type::Void) {
             ret_stmt = new koopa::Return;
         }
         else {
@@ -1160,7 +1154,7 @@ static void trim_redundant_stmts_after_end_stmt(
 ) {
     trim_redundant_stmts_after_end_stmt(blocks->active_stmts, ret_type);
     for (auto block: blocks->blocks) {
-        trim_redundant_stmts_after_end_stmt(block->stmts, ret_type);
+        trim_redundant_stmts_after_end_stmt(block->get_stmts(), ret_type);
     }
 }
 
@@ -1221,7 +1215,7 @@ koopa_trans::GlobalStmts* FuncDef::to_koopa() const {
     for (auto param: params) {
         auto param_type_koopa = std::get<0>(* param)->to_koopa();
         auto param_id_koopa = value_manager.new_id(
-            koopa::id_type::LocalId,
+            koopa::Id::LocalId,
             param_type_koopa, 
             '@' + std::get<1>(* param)->lit,
             std::get<1>(* param)->nesting_info
@@ -1233,7 +1227,7 @@ koopa_trans::GlobalStmts* FuncDef::to_koopa() const {
 
     value_manager.leave_func(); // func_id is global identifier
     auto id_koopa = value_manager.new_id(
-        koopa::id_type::FuncId,
+        koopa::Id::FuncId,
         new koopa::FuncType(
             param_types,
             ret_type->to_koopa()
@@ -1246,7 +1240,7 @@ koopa_trans::GlobalStmts* FuncDef::to_koopa() const {
     auto block_koopa = new koopa_trans::Blocks;
     for (int i = 0; i < param_types.size(); i++) {
         auto pointer_style_param_id = value_manager.new_id(
-            koopa::id_type::LocalId,
+            koopa::Id::LocalId,
             new koopa::Pointer(param_types[i]),
             '%' + std::get<1>(* params[i])->lit,
             std::get<1>(* params[i])->nesting_info
@@ -1280,7 +1274,7 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt*>& global_stmts_ko
     global_stmts_koopa.push_back(
         new koopa::FuncDecl(
             value_manager.new_id(
-                koopa::id_type::FuncId,
+                koopa::Id::FuncId,
                 new koopa::FuncType(
                     {}, new koopa::Int
                 ),
@@ -1291,7 +1285,7 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt*>& global_stmts_ko
     global_stmts_koopa.push_back(
         new koopa::FuncDecl(
             value_manager.new_id(
-                koopa::id_type::FuncId,
+                koopa::Id::FuncId,
                 new koopa::FuncType(
                     {}, new koopa::Int
                 ),
@@ -1302,7 +1296,7 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt*>& global_stmts_ko
     global_stmts_koopa.push_back(
         new koopa::FuncDecl(
             value_manager.new_id(
-                koopa::id_type::FuncId,
+                koopa::Id::FuncId,
                 new koopa::FuncType(
                     { new koopa::Pointer(new koopa::Int) }, 
                     new koopa::Int
@@ -1314,7 +1308,7 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt*>& global_stmts_ko
     global_stmts_koopa.push_back(
         new koopa::FuncDecl(
             value_manager.new_id(
-                koopa::id_type::FuncId,
+                koopa::Id::FuncId,
                 new koopa::FuncType(
                     { new koopa::Int }, 
                     new koopa::Void
@@ -1326,7 +1320,7 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt*>& global_stmts_ko
     global_stmts_koopa.push_back(
         new koopa::FuncDecl(
             value_manager.new_id(
-                koopa::id_type::FuncId,
+                koopa::Id::FuncId,
                 new koopa::FuncType(
                     { new koopa::Int }, 
                     new koopa::Void
@@ -1338,7 +1332,7 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt*>& global_stmts_ko
     global_stmts_koopa.push_back(
         new koopa::FuncDecl(
             value_manager.new_id(
-                koopa::id_type::FuncId,
+                koopa::Id::FuncId,
                 new koopa::FuncType(
                     { new koopa::Int, new koopa::Pointer(new koopa::Int) }, 
                     new koopa::Void
@@ -1350,7 +1344,7 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt*>& global_stmts_ko
     global_stmts_koopa.push_back(
         new koopa::FuncDecl(
             value_manager.new_id(
-                koopa::id_type::FuncId,
+                koopa::Id::FuncId,
                 new koopa::FuncType(
                     {}, new koopa::Void
                 ),
@@ -1361,7 +1355,7 @@ static void push_lib_func_decls(std::vector<koopa::GlobalStmt*>& global_stmts_ko
     global_stmts_koopa.push_back(
         new koopa::FuncDecl(
             value_manager.new_id(
-                koopa::id_type::FuncId,
+                koopa::Id::FuncId,
                 new koopa::FuncType(
                     {}, new koopa::Void
                 ),

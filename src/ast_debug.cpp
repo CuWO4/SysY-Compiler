@@ -163,7 +163,7 @@ std::string VarDecl::debug(int indent) const {
 
 std::string Return::debug(int indent) const {
     return build_indent(indent) + "Return " 
-        + (return_type == return_type::HasRetVal ? ret_val->debug(): "");
+        + (return_type == HasRetVal ? ret_val->debug(): "");
 }
 
 std::string If::debug(int indent) const {
