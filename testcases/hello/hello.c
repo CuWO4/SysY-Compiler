@@ -1,41 +1,18 @@
-int n;
-int bubblesort(int arr[])
-{
-    int i;
-    int j;
-    i =0; 
-    while(i < n-1){
-    // Last i elements are already in place
-        j = 0;
-        while(j < n-i-1){
-            if (arr[j] > arr[j+1]) {
-                // swap(& arr[j],& arr[j+1]); 
-                int tmp;
-                tmp = arr[j+1];
-                arr[j+1] = arr[j];
-                arr[j] = tmp;
-            }
-            j = j + 1;
-        }
-        i = i + 1;
+int fib_arr[10] = { 0 };
+
+int fib(int n) {
+    if (n <= 1) return n;
+
+    if (fib_arr[n] != 0) {
+        return fib_arr[n];
     }
-    return 0;
+    else {
+        return fib_arr[n] = fib(n - 1) + fib(n - 2);
+    }
 }
 
-int main(){
-    n = 10;
-    int a[10];
-    a[0]=4;a[1]=3;a[2]=9;a[3]=2;a[4]=0;
-    a[5]=1;a[6]=6;a[7]=5;a[8]=7;a[9]=8;
-    int i;
-    i = bubblesort(a);
-    while (i < n) {
-        int tmp;
-        tmp = a[i];
-        putint(tmp);
-        tmp = 10;
-        putch(tmp);
-        i = i + 1;
-    }
+int main() {
+    int n = getint();
+    putint(fib(n));
     return 0;
 }
