@@ -19,7 +19,10 @@ void test() {
     std::cout << ast->debug() << std::endl;
 }
 
-void handle_args(int argc, const char* argv[], std::string& mode, std::string& input, std::string& output) {
+void handle_args(
+	int argc, const char* argv[], 
+	std::string& mode, std::string& input, std::string& output
+) {
 	#ifndef DEBUG__
     for (int i = 1; i < argc; i++) {
 	    if (!strcmp(argv[i], "-koopa") 
@@ -34,13 +37,6 @@ void handle_args(int argc, const char* argv[], std::string& mode, std::string& i
 		}
 	    else if (!strcmp(argv[i], "-dbg-k")) { 
 		    debug_mode_koopa_type = true;
-		    debug_mode_koopa_pred_succ = true;
-		}
-	    else if (!strcmp(argv[i], "-dbg-k-type")) {
-		    debug_mode_koopa_type = true;
-		}
-	    else if (!strcmp(argv[i], "-dbg-k-pred-succ")) {
-		    debug_mode_koopa_pred_succ = true;
 		}
 	    else if (!strcmp(argv[i], "-dbg-r")) {
 		    debug_mode_riscv = true;

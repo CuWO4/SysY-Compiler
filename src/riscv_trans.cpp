@@ -4,6 +4,10 @@
 
 namespace riscv_trans {
 
+    bool is_within_imm12_range(int x) {
+        return x >= IMM12_MIN && x <= IMM12_MAX;
+    }
+
     const char* abi_name[33] = {
         "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "fp",
         "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", 
@@ -21,6 +25,11 @@ namespace riscv_trans {
     Register RiscvStorage::get_addr(std::string& str) {
         assert(0);
         return Register();
+    }
+
+    std::string RiscvStorage::get_lit() {
+        assert(0);
+        return "";
     }
 
     Register::Register(): serial_num(0) {}
@@ -64,7 +73,7 @@ namespace riscv_trans {
     void DataSeg::save(std::string& str, Register source_reg) {
         auto addr_reg = get_addr(str);
         
-        str += build_inst("sw", source_reg.get_lit(), build_mem(0, addr_reg));
+        str += build_sw_lw("sw", source_reg, 0, addr_reg);
 
         temp_reg_manager.refresh_reg(addr_reg);
     }
@@ -88,25 +97,22 @@ namespace riscv_trans {
     Register StackFrame::get(std::string& str) { 
         auto target_reg = temp_reg_manager.get_unused_reg();
         
-        str += build_inst("lw", target_reg.get_lit(), get_lit()); 
+        str += build_sw_lw("lw", target_reg, offset);
 
         return target_reg;
     }
 
     void StackFrame::save(std::string& str, Register source_reg) {
-        str += build_inst("sw", source_reg.get_lit(), get_lit());
+        str += build_sw_lw("sw", source_reg, offset);
     }
 
     Register StackFrame::get_addr(std::string& str) {
         auto target_reg = temp_reg_manager.get_unused_reg();
 
-        str += build_inst("addi", target_reg.get_lit(), "sp", std::to_string(offset));
+        str += build_i_type_inst("add", target_reg, Register("sp"), offset);
 
         return target_reg;
     }
-
-    std::string StackFrame::get_lit() { return build_mem(offset); }
-
 
     TempRegManager::TempRegManager() {
         for (int i = 0; i < TEMP_REG_COUNT; i++) {

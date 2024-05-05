@@ -49,4 +49,27 @@ std::string build_mem(
  */
 std::string build_comment(const koopa::Base* obj);
 
+/**
+ * handling `offset` beyond the IMM12 range
+ * @example  build_sw_lw(lw, t0, 4) =>  
+ *      lw      t0, 4(sp)
+ * @example  build_sw_lw(lw, t0, 10000) =>
+ *      li      t1, 10000
+ *      add     t1, t1, sp
+ *      lw      t0, 0(t1)   
+ */
+std::string build_sw_lw(
+    std::string inst,
+    riscv_trans::Register val_reg, 
+    int offset, 
+    riscv_trans::Register addr_reg = riscv_trans::Register("sp")
+);
+
+std::string build_i_type_inst(
+    std::string inst, 
+    riscv_trans::Register target_reg,
+    riscv_trans::Register first_reg, 
+    int second_val
+);
+
 #endif

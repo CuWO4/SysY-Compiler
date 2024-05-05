@@ -18,6 +18,10 @@ namespace koopa {
 
 namespace riscv_trans {
 
+    constexpr int IMM12_MIN = -2048;
+    constexpr int IMM12_MAX = 2047;
+    bool is_within_imm12_range(int x);
+
     class Register;
     /*
      * storage location in riscv of koopa identifier,
@@ -40,9 +44,9 @@ namespace riscv_trans {
 
         /**
          * @return   the literal of the value
-         * @example  `t1`, `a0`, `var`, `12(sp)`
+         * @example  `t1`, `a0`, `var`
          */
-        virtual std::string get_lit() = 0;
+        virtual std::string get_lit();
     };
 
     /*
@@ -116,8 +120,6 @@ namespace riscv_trans {
         Register get(std::string& str) override;
         void save(std::string& str, Register source_reg) override;
         Register get_addr(std::string& str) override;
-
-        std::string get_lit() override;
 
         int get_offset();
 

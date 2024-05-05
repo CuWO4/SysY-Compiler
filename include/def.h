@@ -9,7 +9,6 @@ extern int tmp_var_count;
  * generated koopa/assembly containing relative information 
  */
 extern bool debug_mode_koopa_type;
-extern bool debug_mode_koopa_pred_succ;
 extern bool debug_mode_riscv;
 
 #endif

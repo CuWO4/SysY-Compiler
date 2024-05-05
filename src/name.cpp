@@ -54,3 +54,52 @@ std::string build_comment(const koopa::Base* obj) {
 
     return debug_mode_riscv ? "\t# " + str + '\n': "";
 }
+
+std::string build_sw_lw(
+    std::string inst, 
+    riscv_trans::Register val_reg, 
+    int offset, 
+    riscv_trans::Register addr_reg
+) {
+    if (riscv_trans::is_within_imm12_range(offset)) {
+        return build_inst(inst, val_reg.get_lit(), build_mem(offset, addr_reg));
+    }
+    else {
+        auto res = std::string();
+
+        auto tmp_reg = riscv_trans::temp_reg_manager.get_unused_reg();
+
+        res += build_inst("li", tmp_reg.get_lit(), std::to_string(offset));
+        res += build_inst("add", tmp_reg.get_lit(), tmp_reg.get_lit(), addr_reg.get_lit());
+        res += build_inst(inst, val_reg.get_lit(), build_mem(0, tmp_reg));
+
+        riscv_trans::temp_reg_manager.refresh_reg(tmp_reg);
+
+        return res;
+    }
+}
+
+std::string build_i_type_inst(
+    std::string inst, 
+    riscv_trans::Register target_reg,
+    riscv_trans::Register first_reg, 
+    int second_val
+) {
+    if (riscv_trans::is_within_imm12_range(second_val)) {
+        return build_inst(
+            inst + "i", target_reg.get_lit(), 
+            first_reg.get_lit(), std::to_string(second_val)
+        );
+    }
+    else {
+        auto res = std::string();
+        auto tmp_reg = riscv_trans::temp_reg_manager.get_unused_reg();
+
+        res += build_inst("li", tmp_reg.get_lit(), std::to_string(second_val));
+        res += build_inst(inst, target_reg.get_lit(), first_reg.get_lit(), tmp_reg.get_lit());
+
+        riscv_trans::temp_reg_manager.refresh_reg(tmp_reg);
+
+        return res;
+    }
+}
