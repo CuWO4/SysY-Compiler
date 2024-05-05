@@ -40,7 +40,6 @@ std::vector<koopa::Block*> Blocks::to_raw_blocks() {
     res.insert(res.end(), blocks.begin(), blocks.end());
 
     return res;
-    //! memory leak
 }
 
 void Blocks::init_begin_block_label() {

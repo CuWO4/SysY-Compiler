@@ -4,25 +4,12 @@
 #include "../include/value_manager.h"
 
 #include <string>
-#include <typeinfo>
 
 
 namespace koopa {
 
 riscv_trans::Register Id::value_to_riscv(std::string& str) const {
-    if (id_type == koopa::Id::FuncId) {
-        str += to_riscv_style(lit);
-        return riscv_trans::Register();
-    }
-    else if (id_type == koopa::Id::GlobalId) {
-        str += to_riscv_style(lit);
-        return riscv_trans::Register();
-    }
-    else {
-        auto target_reg = riscv_trans::temp_reg_manager.get_unused_reg();
-        str += riscv_trans::id_storage_map.get_storage(this)->get(target_reg);
-        return target_reg;
-    }
+    return riscv_trans::id_storage_map.get_storage(this)->get(str);
 }
 
 riscv_trans::Register Const::value_to_riscv(std::string& str) const {
@@ -31,42 +18,54 @@ riscv_trans::Register Const::value_to_riscv(std::string& str) const {
     return target_reg;
 }
 
-void ConstInitializer::initializer_to_riscv(
-    std::string& str, unsigned type_byte_size
-) const {
-    str += "\t.word " + std::to_string(val) + '\n';
-}
-
-void Aggregate::initializer_to_riscv(
-    std::string& str, unsigned type_byte_size
-) const {
-    // TODO
-}
-
-void Zeroinit::initializer_to_riscv(
-    std::string& str, unsigned type_byte_size
-) const {
-    str += "\t.zero " + std::to_string(4 * type_byte_size) + '\n';
-}
-
 riscv_trans::Register MemoryDecl::rvalue_to_riscv(std::string& str) const {
-    return riscv_trans::Register();
+    return riscv_trans::id_storage_map.get_storage(pseudo_id)->get_addr(str);
 }
 
 riscv_trans::Register Load::rvalue_to_riscv(std::string& str) const {
+    auto addr_reg = riscv_trans::id_storage_map.get_storage(addr)->get(str);
+
     auto target_reg = riscv_trans::temp_reg_manager.get_unused_reg();
-    str += riscv_trans::id_storage_map.get_storage(addr)->get(target_reg);
+
+    str += build_inst("lw", target_reg.get_lit(), build_mem(0, addr_reg));
+
+    riscv_trans::temp_reg_manager.refresh_reg(addr_reg);
+
     return target_reg;
 }
 
 riscv_trans::Register GetElemPtr::rvalue_to_riscv(std::string& str) const {
-    // TODO
-    return riscv_trans::Register();
+    auto addr_reg = base->value_to_riscv(str);
+    auto offset_reg = offset->value_to_riscv(str);
+    auto size_reg = riscv_trans::temp_reg_manager.get_unused_reg();
+
+    str += build_inst(
+        "li", size_reg.get_lit(), 
+        std::to_string(base->get_type()->unwrap()->unwrap()->get_byte_size())
+    );
+    str += build_inst("mul", offset_reg.get_lit(), offset_reg.get_lit(), size_reg.get_lit());
+    str += build_inst("add", addr_reg.get_lit(), addr_reg.get_lit(), offset_reg.get_lit());
+
+    riscv_trans::temp_reg_manager.refresh_reg(size_reg);
+    riscv_trans::temp_reg_manager.refresh_reg(offset_reg);
+    return addr_reg;
 }
 
 riscv_trans::Register GetPtr::rvalue_to_riscv(std::string& str) const {
-    // TODO
-    return riscv_trans::Register();
+    auto addr_reg = base->value_to_riscv(str);
+    auto offset_reg = offset->value_to_riscv(str);
+    auto size_reg = riscv_trans::temp_reg_manager.get_unused_reg();
+
+    str += build_inst(
+        "li", size_reg.get_lit(), 
+        std::to_string(base->get_type()->unwrap()->get_byte_size())
+    );
+    str += build_inst("mul", offset_reg.get_lit(), offset_reg.get_lit(), size_reg.get_lit());
+    str += build_inst("add", addr_reg.get_lit(), addr_reg.get_lit(), offset_reg.get_lit());
+
+    riscv_trans::temp_reg_manager.refresh_reg(size_reg);
+    riscv_trans::temp_reg_manager.refresh_reg(offset_reg);
+    return addr_reg;
 }
 
 static riscv_trans::Register ordinary_inst_builder(
@@ -229,27 +228,42 @@ riscv_trans::Register Sar::rvalue_to_riscv(std::string& str) const {
 void StoreValue::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) const {
     str += build_comment(this);
 
+    auto addr_reg = riscv_trans::id_storage_map.get_storage(addr)->get(str);
+
     auto val_reg = value->value_to_riscv(str);
 
-    str += riscv_trans::id_storage_map.get_storage(addr)->save(val_reg);
+    str += build_inst("sw", val_reg.get_lit(), build_mem(0, addr_reg));
 
     riscv_trans::temp_reg_manager.refresh_reg(val_reg);
+    riscv_trans::temp_reg_manager.refresh_reg(addr_reg);
 }
 
 void StoreInitializer::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) const {
-    // TODO
+    str += build_comment(this);
+
+    auto flat_vec = initializer->to_flat_vec(addr->get_type()->unwrap()->get_byte_size());
+
+    auto addr_reg = riscv_trans::id_storage_map.get_storage(addr)->get(str);
+    auto tmp_reg = riscv_trans::temp_reg_manager.get_unused_reg();
+
+    int offset = 0;
+    for (auto item: flat_vec) {
+        str += build_inst("li", tmp_reg.get_lit(), std::to_string(item));
+        str += build_inst("sw", tmp_reg.get_lit(), build_mem(offset, addr_reg.get_lit()));
+        offset += 4;
+    }
+
+    riscv_trans::temp_reg_manager.refresh_reg(tmp_reg);
+    riscv_trans::temp_reg_manager.refresh_reg(addr_reg);
 }
 
 void SymbolDef::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) const {
 
     str += build_comment(this);
 
-    //! ugly and not safe
-    if (typeid(*val) == typeid(MemoryDecl)) return;
-
     auto source_reg = val->rvalue_to_riscv(str);
 
-    str += riscv_trans::id_storage_map.get_storage(id)->save(source_reg);
+    riscv_trans::id_storage_map.get_storage(id)->save(str, source_reg);
 
     riscv_trans::temp_reg_manager.refresh_reg(source_reg);
 }
@@ -318,8 +332,7 @@ static void func_call_to_riscv_impl(const koopa::FuncCall* self, std::string& st
     }
 
     str += build_inst(
-        "call",
-        to_riscv_style(self->get_id()->get_lit())
+        "call", to_riscv_style(self->get_id()->get_lit())
     );
 }
 
@@ -330,6 +343,8 @@ riscv_trans::Register FuncCall::rvalue_to_riscv(std::string& str) const {
 }
 
 void FuncCall::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) const {
+    str += build_comment(static_cast<const koopa::Stmt*>(this));
+
     func_call_to_riscv_impl(this, str);
 }
 
@@ -357,18 +372,18 @@ void FuncDef::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode)
 
         riscv_trans::allocate_ids_storage_location(this);
 
-        id->value_to_riscv(str);
-        str += ":\n";
+        str += to_riscv_style(id->get_lit()) + ":\n";
 
         if (riscv_trans::current_stack_frame_size != 0) {
             str += build_inst(
                 "addi", "sp", "sp", 
-                '-' + std::to_string(riscv_trans::current_stack_frame_size));
+                '-' + std::to_string(riscv_trans::current_stack_frame_size)
+            );
         }
 
         if (riscv_trans::current_has_called_func) {
             str += build_inst(
-                "sw", "ra", std::to_string(riscv_trans::current_stack_frame_size - 4) + "(sp)"
+                "sw", "ra", build_mem(riscv_trans::current_stack_frame_size - 4)
             );
         }
 
@@ -389,19 +404,32 @@ void GlobalSymbolDef::stmt_to_riscv(std::string& str, riscv_trans::TransMode tra
 
         str += build_comment(this);
 
-        str += "\t.global ";
-        id->value_to_riscv(str);
-        str += '\n';
-
-        id->value_to_riscv(str);
-        str += ":\n";
-
+        str += "\t.global " + to_riscv_style(id->get_lit()) + '\n';
+        str += to_riscv_style(id->get_lit()) + ":\n";
         decl->stmt_to_riscv(str, trans_mode);
     }
 }
 
 void GlobalMemoryDecl::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) const {
-    initializer->initializer_to_riscv(str, type->get_byte_size());
+    auto flat_vec = initializer->to_flat_vec(type->get_byte_size());
+
+    int zero_count = 0;
+    for (auto item: flat_vec) {
+        if (item == 0) { 
+            zero_count++;
+            continue; 
+        }
+
+        if (zero_count > 0) {
+            str += "\t.zero " + std::to_string(zero_count * 4) + "\n";
+        }
+
+        str += "\t.word " + std::to_string(item) + "\n";
+    }
+
+    if (zero_count > 0) {
+        str += "\t.zero " + std::to_string(zero_count * 4) + "\n";
+    }
 }
 
 void FuncDecl::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) const {

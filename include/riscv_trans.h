@@ -28,18 +28,15 @@ namespace riscv_trans {
 
         /**
          * @return   get or save the value of `source_reg` to Storage Location 
-         * @example  `mv    a0, t0`
-         *           `lui   a0, %hi(num)
-         *            li    a1, 10
-         *            sw    a1, %lo(num)(a0)`
          * ! Although this breaks the design pattern, it is broken because of the
          * ! asymmetry between storing a value to a variable in a code segment and
          * ! the other two forms (requiring loading the high address in front,
          * ! freeing the save address register in the back, etc.) It is worth it,
          * ! otherwise it may require a lot of effort to reconstruct the system.
          */
-        virtual std::string get(Register target_reg) = 0;
-        virtual std::string save(Register source_reg) = 0;
+        virtual Register get(std::string& str) = 0;
+        virtual void save(std::string& str, Register source_reg) = 0;
+        virtual Register get_addr(std::string& str);
 
         /**
          * @return   the literal of the value
@@ -83,8 +80,9 @@ namespace riscv_trans {
          */
         Register(std::string lit);
         
-        std::string get(Register target_reg) override;
-        std::string save(Register source_reg) override;
+        Register get(std::string& str) override;
+        void save(std::string& str, Register source_reg) override;
+
         std::string get_lit() override;
 
         int get_serial_num();
@@ -99,8 +97,10 @@ namespace riscv_trans {
         DataSeg();
         DataSeg(std::string lit);
 
-        std::string get(Register target_reg) override;
-        std::string save(Register source_reg) override;
+        Register get(std::string& str) override;
+        void save(std::string& str, Register source_reg) override;
+        Register get_addr(std::string& str) override;
+
         std::string get_lit() override;
 
     private:
@@ -113,8 +113,10 @@ namespace riscv_trans {
         StackFrame();
         StackFrame(int offset);
 
-        std::string get(Register target_reg) override;
-        std::string save(Register source_reg) override;
+        Register get(std::string& str) override;
+        void save(std::string& str, Register source_reg) override;
+        Register get_addr(std::string& str) override;
+
         std::string get_lit() override;
 
         int get_offset();

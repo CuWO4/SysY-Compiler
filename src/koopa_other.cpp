@@ -108,13 +108,35 @@ unsigned Type::get_byte_size() const {
     return 0;
 }
 
-unsigned Int::get_byte_size() const { return 1; }
+unsigned Int::get_byte_size() const { return 4; }
 
 unsigned Array::get_byte_size() const {
     return length * elem_type->get_byte_size();
 }
 
-unsigned Pointer::get_byte_size() const { return 1; }
+unsigned Pointer::get_byte_size() const { return 4; }
+
+std::vector<int> ConstInitializer::to_flat_vec(unsigned byte_size) const {
+    return { val };
+}
+
+std::vector<int> Aggregate::to_flat_vec(unsigned byte_size) const {
+    auto res = std::vector<int>();
+    res.reserve(byte_size / 4);
+
+    for (auto initializer: initializers) {
+        auto sub_flat_vec = initializer->to_flat_vec(byte_size / initializers.size());
+        res.insert(res.end(), sub_flat_vec.begin(), sub_flat_vec.end());
+    }
+    
+    return res;
+}
+
+std::vector<int> Zeroinit::to_flat_vec(unsigned byte_size) const {
+    return std::vector<int>(byte_size / 4, 0);
+}
+
+
 
 std::vector<int> Type::get_dim() const {
     assert(0);

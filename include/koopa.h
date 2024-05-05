@@ -131,8 +131,6 @@ public:
 
     class Id: public Value {
     public:
-        enum IdType { LocalId, GlobalId, ConstId, FuncId };
-
         std::string to_string() const override;
 
         riscv_trans::Register value_to_riscv(std::string& str) const override;
@@ -140,14 +138,13 @@ public:
         bool is_const() override;
         int get_val() override;
 
-        Id(IdType id_type, Type* type, std::string lit);
-        Id(IdType id_type, Type* type, std::string lit, int val);
+        Id(Type* type, std::string lit);
+        Id(Type* type, std::string lit, int val);
 
         Type* get_type() const;
         std::string get_lit() const;
 
     private:
-        IdType id_type;
         Type* type;
         std::string lit;
         bool is_const_bool;
@@ -179,14 +176,14 @@ public:
 
 class Initializer: public Base {
 public:
-    virtual void initializer_to_riscv(std::string& str, unsigned type_byte_size) const = 0;
+    virtual std::vector<int> to_flat_vec(unsigned type_byte_size) const = 0;
 };
 
     class ConstInitializer: public Initializer {
     public:
         std::string to_string() const override;
 
-        void initializer_to_riscv(std::string& str, unsigned type_byte_size) const override;
+        std::vector<int> to_flat_vec(unsigned type_byte_size) const override;
 
         ConstInitializer(int val);
 
@@ -202,7 +199,7 @@ public:
 
         std::string to_string() const override;
 
-        void initializer_to_riscv(std::string& str, unsigned type_byte_size) const override;
+        std::vector<int> to_flat_vec(unsigned type_byte_size) const override;
 
         Aggregate(std::vector<Initializer*> initializers);
     };
@@ -210,7 +207,7 @@ public:
     class Zeroinit: public Initializer {
         std::string to_string() const override;
 
-        void initializer_to_riscv(std::string& str, unsigned type_byte_size) const override;
+        std::vector<int> to_flat_vec(unsigned type_byte_size) const override;
     };
 
     class UndefInitializer: public Initializer {
@@ -251,9 +248,26 @@ public:
             ) const = 0;
         };
 
+            /**
+             * We need to allocate a physical stack frame for the alloc instruction
+             * and identify it with a pseudo ID. Variables are pointers that hold 
+             * the address of the stack frame and have their own stack frame space. 
+             * When accessing or setting variables, an additional dereference is 
+             * performed. Constructor functions take literals of variables, and 
+             * the function automatically adds a unique marker to them. Although 
+             * this unnecessarily increases memory I/O, it ensures consistent behavior 
+             * for load and store instructions. This behavior can degrade to regular 
+             * access and setting operations in constant propagation optimization.
+             */
             class MemoryDecl: public Rvalue {
             public:
-                MemoryDecl(Type* type);
+                /**
+                 * @param pseudo_lit  raw literal of variable, for example `x`
+                 */
+                MemoryDecl(
+                    Type* type, std::string pseudo_lit, 
+                    NestingInfo* nesting_info = new NestingInfo
+                );
 
                 std::string to_string() const override;
 
@@ -262,6 +276,7 @@ public:
                 ) const override;
 
             private:
+                Id* pseudo_id;
                 Type* type;
             };
 
@@ -586,7 +601,7 @@ public:
         class Return: public EndStmt {
         public:
             enum ReturnType { HasRetVal, NotHasRetVal };
-            
+
             std::string to_string() const override;
 
             void stmt_to_riscv(

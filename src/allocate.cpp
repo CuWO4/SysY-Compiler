@@ -68,7 +68,7 @@ static void allocate_location(const koopa::FuncDef* func_def, int stack_frame_si
 
     auto func_ids = value_manager.get_func_ids(func_def->get_id()->get_lit());
     for (auto id : func_ids) {
-        stack_frame_size -= 4;
+        stack_frame_size -= id->get_type()->get_byte_size();
         riscv_trans::id_storage_map.register_id(
             id, 
             new riscv_trans::StackFrame(stack_frame_size)
@@ -96,9 +96,12 @@ static void allocate_location(const koopa::FuncDef* func_def, int stack_frame_si
 }
 
 static int get_stack_frame_size(const koopa::FuncDef* func_def) {
-    int stack_frame_size = 4 * value_manager.get_func_ids(
-        func_def->get_id()->get_lit()
-    ).size();
+    int stack_frame_size = 0;
+
+    auto func_ids = value_manager.get_func_ids(func_def->get_id()->get_lit());
+    for (auto id : func_ids) {
+        stack_frame_size += id->get_type()->get_byte_size();
+    }
 
     /*
      * to save ra

@@ -1,4 +1,5 @@
 #include "../include/koopa.h"
+#include "../include/value_manager.h"
 
 namespace koopa {
 
@@ -18,13 +19,13 @@ FuncType::FuncType(std::vector<Type*> arg_types, Type* ret_type)
 Label::Label(): name() {}
 Label::Label(std::string name): name(name) {}
 
-Id::Id(IdType id_type, Type* type, std::string lit) 
-    : id_type(id_type), type(type), lit(lit), is_const_bool(false), val(0) {
+Id::Id(Type* type, std::string lit) 
+    : type(type), lit(lit), is_const_bool(false), val(0) {
     assert(type);
 }
 
-Id::Id(IdType id_type, Type* type, std::string lit, int val) 
-    : id_type(id_type), type(type), lit(lit), is_const_bool(true), val(val) {
+Id::Id(Type* type, std::string lit, int val) 
+    : type(type), lit(lit), is_const_bool(true), val(val) {
     assert(type);
 }
 
@@ -35,8 +36,16 @@ ConstInitializer::ConstInitializer(int val): val(val) {}
 Aggregate::Aggregate(std::vector<Initializer*> initializers) 
     : initializers(initializers) {}
 
-MemoryDecl::MemoryDecl(Type* type): type(type) {
+MemoryDecl::MemoryDecl(
+    Type* type, std::string pseudo_lit, NestingInfo* nesting_info
+): type(type) {
     assert(type);
+
+    pseudo_id = value_manager.new_id(
+        type,
+        "!" + pseudo_lit,
+        nesting_info
+    );
 }
 
 Load::Load(Id* addr): addr(addr) {
