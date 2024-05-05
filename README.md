@@ -44,9 +44,7 @@
 
 ## 示例
 
-![](./pic/fib-c.png)
-
-![](./pic/fib-result.png)
+![](./pic/fib.png)
 
 ## 历史版本
 
