@@ -18,6 +18,11 @@ namespace riscv_trans {
     int current_stack_frame_size = 0;
     bool current_has_called_func = false;
 
+    Register RiscvStorage::get_addr(std::string& str) {
+        assert(0);
+        return Register();
+    }
+
     Register::Register(): serial_num(0) {}
     Register::Register(int serial_num): serial_num(serial_num) {}
     Register::Register(std::string lit) {
@@ -31,83 +36,75 @@ namespace riscv_trans {
         throw "unknown register `" + lit + '`';
     }
 
-    std::string Register::get(Register target_reg) { 
-        return build_inst(
-            "mv",
-            target_reg.get_lit(),
-            get_lit()
-        ); 
+    Register Register::get(std::string& str) { 
+        auto target_reg = temp_reg_manager.get_unused_reg();
+
+        str += build_inst("mv", target_reg.get_lit(), get_lit()); 
+
+        return target_reg;
+
     }
-    std::string Register::save(Register source_reg) {
-        return build_inst(
-            "mv",
-            get_lit(),
-            source_reg.get_lit()
-        );
+
+    void Register::save(std::string& str, Register source_reg) {
+        str += build_inst("mv", get_lit(), source_reg.get_lit());
     }
+
     std::string Register::get_lit() { return abi_name[serial_num]; }
+
     int Register::get_serial_num() { return serial_num; }
 
 
     DataSeg::DataSeg() : lit("") {}
     DataSeg::DataSeg(std::string lit): lit(lit) {}
 
-    std::string DataSeg::get(Register target_reg) { 
-        // 32-bit compiler, la is enough
-        // in 64-bit case, we need %hi and %lo
-        auto res = build_inst(
-            "la",
-            target_reg.get_lit(),
-            get_lit()
-        ); 
-        res += build_inst(
-            "lw",
-            target_reg.get_lit(),
-            build_mem(0, target_reg)
-        );
-
-        return res;
+    Register DataSeg::get(std::string& str) { 
+        return get_addr(str);
     }
-    std::string DataSeg::save(Register source_reg) {
-        auto addr_reg = temp_reg_manager.get_unused_reg();
 
-        // 32-bit compiler, la is enough
-        // in 64-bit case, we need %hi and %lo
-        auto res = build_inst(
-            "la",
-            addr_reg.get_lit(),
-            get_lit()
-        ); 
-        res += build_inst(
-            "sw",
-            source_reg.get_lit(),
-            build_mem(0, addr_reg)
-        );
+    void DataSeg::save(std::string& str, Register source_reg) {
+        auto addr_reg = get_addr(str);
+        
+        str += build_inst("sw", source_reg.get_lit(), build_mem(0, addr_reg));
 
         temp_reg_manager.refresh_reg(addr_reg);
-
-        return res;
     }
+
+    Register DataSeg::get_addr(std::string& str) {
+        auto target_reg = temp_reg_manager.get_unused_reg();
+
+        // 32-bit compiler, la is enough
+        // in 64-bit case, we need %hi and %lo
+        str += build_inst("la", target_reg.get_lit(), get_lit());
+        
+        return target_reg;
+    }
+
     std::string DataSeg::get_lit() { return lit; }
 
 
     StackFrame::StackFrame(): offset(0) {}
     StackFrame::StackFrame(int offset): offset(offset) {}
 
-    std::string StackFrame::get(Register target_reg) { 
-        return build_inst(
-            "lw",
-            target_reg.get_lit(),
-            get_lit()
-        ); 
+    Register StackFrame::get(std::string& str) { 
+        auto target_reg = temp_reg_manager.get_unused_reg();
+        
+        str += build_inst("lw", target_reg.get_lit(), get_lit()); 
+
+        return target_reg;
     }
-    std::string StackFrame::save(Register source_reg) {
-        return build_inst(
-            "sw",
-            source_reg.get_lit(),
-            get_lit()
-        );
+
+    void StackFrame::save(std::string& str, Register source_reg) {
+        str += build_inst("sw", source_reg.get_lit(), get_lit());
     }
+
+    Register StackFrame::get_addr(std::string& str) {
+        auto target_reg = temp_reg_manager.get_unused_reg();
+
+        str += build_inst("addi", target_reg.get_lit(), "sp", std::to_string(offset));
+
+        return target_reg;
+    }
+
     std::string StackFrame::get_lit() { return build_mem(offset); }
 
 

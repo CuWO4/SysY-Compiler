@@ -84,11 +84,10 @@ void ValueManager::insert_const(koopa::Const* new_const) {
 
 
 koopa::Id* ValueManager::new_id(
-    koopa::Id::IdType id_type, koopa::Type* type, 
+    koopa::Type* type, 
     std::string lit, NestingInfo* nesting_info
 ) {
     auto res = new koopa::Id(
-        id_type,
         type, 
         build_name(lit, nesting_info)
     );
@@ -97,11 +96,10 @@ koopa::Id* ValueManager::new_id(
 }
 
 koopa::Id* ValueManager::new_id(
-    koopa::Id::IdType id_type, koopa::Type* type, 
+    koopa::Type* type, 
     std::string lit, int val, NestingInfo* nesting_info
 ) {
     auto res = new koopa::Id(
-        id_type,
         type, 
         build_name(lit, nesting_info), 
         val
