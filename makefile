@@ -20,6 +20,10 @@ CFLAGS += -g -O0
 CXXFLAGS += -g -O0
 endif
 
+# RELEASE flags
+RELEASE ?= 0
+RELEASE_TARGET_EXEC := sysyc
+
 # Compilers
 CXX := clang++
 FLEX := flex
@@ -45,6 +49,14 @@ OBJS := $(patsubst $(BUILD_DIR)/%.cpp, $(BUILD_DIR)/%.cpp.o, $(OBJS))
 INC_DIRS := include/
 INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 CPPFLAGS = $(INC_FLAGS) -MMD -MP
+
+ifeq ($(RELEASE), 1)
+$(BUILD_DIR)/release/$(RELEASE_TARGET_EXEC): $(FB_SRCS) $(SRCS) | $(BUILD_DIR)/release
+	$(CXX) $(SRCS) -O3 -o $@
+
+$(BUILD_DIR)/release:
+	mkdir "$@"
+endif
 
 # Main target
 $(BUILD_DIR)/$(TARGET_EXEC): $(FB_SRCS) $(OBJS)

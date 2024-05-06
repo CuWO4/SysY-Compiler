@@ -1,3 +1,17 @@
+/*
+ *  
+ *   .d8888. db    db .d8888. db    db  .o88b. 
+ *   88'  YP `8b  d8' 88'  YP `8b  d8' d8P  Y8 
+ *   `8bo.    `8bd8'  `8bo.    `8bd8'  8P      
+ *     `Y8b.    88      `Y8b.    88    8b      
+ *   db   8D    88    db   8D    88    Y8b  d8 
+ *   `8888Y'    YP    `8888Y'    YP     `Y88P' 
+ *
+ *	Author: CuWO4 <wutong.tony@outlook.com>
+ *	License: MIT License
+ *  
+ */
+
 #include "../include/ast.h"
 #include "../include/koopa.h"
 #include "../include/def.h"
