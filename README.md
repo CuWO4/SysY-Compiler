@@ -20,13 +20,23 @@
 
 ## 编译
 
-> `make`
+```bash
+make
+```
+
+或
+
+```bash
+make RELEASE=1
+```
 
 ## 运行
 
-> `compiler [MODE] -o [TARGET] [DBG-FLAGS]`
+```bash
+compiler [MODE] -o [TARGET] [DBG-FLAGS]
+```
 
-* `[MODE]`: 
+- `[MODE]`: 
 
     * `-koopa`: 生成 `Koopa IR`;
 
@@ -34,9 +44,9 @@
 
     * `-test`: 向控制台打印 `AST`.
 
-* `[TARGET]`: 目标文件.
+- `[TARGET]`: 目标文件.
 
-* `[DBG-FLAGS]`: 下述选项可同时启用,
+- `[DBG-FLAGS]`: 下述选项可同时启用,
 
     * `-dbg-k`: 生成的 `Koopa IR` 代码中会包含类型信息;
 
@@ -56,15 +66,15 @@ CuWO4, [邮箱](mailto:wutong.tony@outlook.com).
 
 ## 环境
 
-> Unbuntu 20.04.6 LTS
->
-> Ubuntu clang version 13.0.1
->
-> flex 2.6.4
->
-> bison (GNU Bison) 3.5.1
->
-> GNU Make 4.2.1
+- Unbuntu 20.04.6 LTS
+
+- Ubuntu clang version 13.0.1
+
+- flex 2.6.4
+
+- bison (GNU Bison) 3.5.1
+
+- GNU Make 4.2.1
 
 ## TODO LIST
 
@@ -114,7 +124,7 @@ CuWO4, [邮箱](mailto:wutong.tony@outlook.com).
 
 * **逻辑**: `!`, `||`, `&&`;
 
-* **比较**: `==`, `!=`, `<`, `>`, `<=`, `>=`;
+* **比较**: `==`, `!=`, `<`, `-`, `<=`, `-=`;
 
 * **赋值**: `=`;
 
