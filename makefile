@@ -30,9 +30,7 @@ TOP_DIR := ${CURDIR}
 TARGET_EXEC := compiler
 SRC_DIR := $(TOP_DIR)/src
 BUILD_DIR ?= $(TOP_DIR)/build
-LIB_DIR ?= $(CDE_LIBRARY_PATH)/native
 INC_DIR ?= $(CDE_INCLUDE_PATH)
-LDFLAGS += -L$(LIB_DIR) -lkoopa
 
 # Source files & target files
 FB_SRCS := $(patsubst $(SRC_DIR)/%.l, $(BUILD_DIR)/%.lex$(FB_EXT), $(wildcard $(SRC_DIR)/*.l))
@@ -48,7 +46,7 @@ CPPFLAGS = $(INC_FLAGS) -MMD -MP
 
 # Main target
 $(BUILD_DIR)/$(TARGET_EXEC): $(FB_SRCS) $(OBJS)
-	$(CXX) $(OBJS) $(LDFLAGS) -lpthread -ldl -o $@
+	$(CXX) $(OBJS) $(LDFLAGS) -o $@
 
 # C++ source
 define cxx_recipe

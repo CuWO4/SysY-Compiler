@@ -2,7 +2,7 @@
 
 将 `C` 的子集 `SysY` 编译为 `RISC-V` 的玩具编译器.
 
-参考文档: [北大编译实践在线文档](https://pku-minic.github.io/online-doc/#/)
+参考文档: [北大编译实践在线文档](https://pku-minic.github.io/online-doc/#/).
 
 ---
 
@@ -30,10 +30,12 @@ make
 make release
 ```
 
+Windows 平台若遇到编译问题, 可尝试将 `makefile` 中的 `CXX := clang++` 替换为 `CXX := g++`.
+
 ## 运行
 
 ```bash
-compiler [MODE] -o [TARGET] [DBG-FLAGS]
+sysyc [MODE] -o [TARGET] [DBG-FLAGS]
 ```
 
 - `[MODE]`: 
