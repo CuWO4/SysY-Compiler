@@ -1,5 +1,5 @@
-#include "../include/koopa.h"
-#include "../include/def.h"
+#include "koopa.h"
+#include "def.h"
 
 #include <string>
 

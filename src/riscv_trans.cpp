@@ -1,6 +1,6 @@
-#include "../include/riscv_trans.h"
+#include "riscv_trans.h"
 
-#include "../include/name.h"
+#include "name.h"
 
 namespace riscv_trans {
 

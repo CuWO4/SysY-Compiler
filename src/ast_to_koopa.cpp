@@ -1,10 +1,10 @@
-#include "../include/ast.h"
-#include "../include/koopa.h"
-#include "../include/koopa_trans.h"
-#include "../include/value_manager.h"
-#include "../include/name.h"
-#include "../include/loop_tag.h"
-#include "../include/aggregate_agent.h"
+#include "ast.h"
+#include "koopa.h"
+#include "koopa_trans.h"
+#include "value_manager.h"
+#include "name.h"
+#include "loop_tag.h"
+#include "aggregate_agent.h"
 
 #include <string>
 #include <functional>

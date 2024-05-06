@@ -1,7 +1,7 @@
-#include "../include/koopa.h"
-#include "../include/name.h"
-#include "../include/riscv_trans.h"
-#include "../include/value_manager.h"
+#include "koopa.h"
+#include "name.h"
+#include "riscv_trans.h"
+#include "value_manager.h"
 
 #include <string>
 

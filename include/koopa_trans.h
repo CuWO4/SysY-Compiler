@@ -5,7 +5,7 @@
 #include <string>
 
 #include "riscv_trans.h"
-#include "../include/koopa.h"
+#include "koopa.h"
 
 namespace koopa_trans {
     /**

@@ -1,6 +1,6 @@
-#include "../include/koopa_trans.h"
-#include "../include/koopa.h"
-#include "../include/name.h"
+#include "koopa_trans.h"
+#include "koopa.h"
+#include "name.h"
 
 namespace koopa_trans {
 

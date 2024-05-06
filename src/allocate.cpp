@@ -1,8 +1,8 @@
 #include <typeinfo>
 
-#include "../include/riscv_trans.h"
+#include "riscv_trans.h"
 
-#include "../include/value_manager.h"
+#include "value_manager.h"
 
 static int max(int a, int b) { return a > b ? a : b; }
 

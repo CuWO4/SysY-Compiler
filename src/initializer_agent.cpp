@@ -1,4 +1,4 @@
-#include "../include/aggregate_agent.h"
+#include "aggregate_agent.h"
 
 namespace ast {
     AggregateAgent::AggregateAgent(std::vector<int> dimensions) 

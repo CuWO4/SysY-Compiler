@@ -1,4 +1,4 @@
-#include "../include/koopa.h"
+#include "koopa.h"
 
 #include <iostream>
 

@@ -4,16 +4,16 @@
     #include <string>
     #include <tuple>
 
-    #include "../include/ast.h"
-    #include "../include/nesting_info.h"
-    #include "../include/parser.hpp"
+    #include "ast.h"
+    #include "nesting_info.h"
+    #include "parser.hpp"
 
     int yylex();
     void yyerror(ast::CompUnit*& ast, const char* s);
 }
 
 %{
-    #include "../include/ast.h"
+    #include "ast.h"
 
     int cur_nesting_level = 0;
     int cur_nesting_count[4096] = { 0 };

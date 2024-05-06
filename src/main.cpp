@@ -12,9 +12,9 @@
  *  
  */
 
-#include "../include/ast.h"
-#include "../include/koopa.h"
-#include "../include/def.h"
+#include "ast.h"
+#include "koopa.h"
+#include "def.h"
 
 #include <cassert>
 #include <cstdio>

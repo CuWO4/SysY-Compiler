@@ -1,5 +1,5 @@
-#include "../include/koopa.h"
-#include "../include/value_manager.h"
+#include "koopa.h"
+#include "value_manager.h"
 
 namespace koopa {
 

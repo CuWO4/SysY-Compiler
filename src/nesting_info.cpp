@@ -1,4 +1,4 @@
-#include "../include/nesting_info.h"
+#include "nesting_info.h"
 
 NestingInfo::NestingInfo()
     : need_suffix(false),
