@@ -27,7 +27,7 @@ make
 或
 
 ```bash
-make RELEASE=1
+make release
 ```
 
 ## 运行

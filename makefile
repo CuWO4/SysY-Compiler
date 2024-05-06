@@ -20,10 +20,6 @@ CFLAGS += -g -O0
 CXXFLAGS += -g -O0
 endif
 
-# RELEASE flags
-RELEASE ?= 0
-RELEASE_TARGET_EXEC := sysyc
-
 # Compilers
 CXX := clang++
 FLEX := flex
@@ -50,14 +46,6 @@ INC_DIRS := include/
 INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 CPPFLAGS = $(INC_FLAGS) -MMD -MP
 
-ifeq ($(RELEASE), 1)
-$(BUILD_DIR)/release/$(RELEASE_TARGET_EXEC): $(FB_SRCS) $(SRCS) | $(BUILD_DIR)/release
-	$(CXX) $(SRCS) -O3 -o $@
-
-$(BUILD_DIR)/release:
-	mkdir "$@"
-endif
-
 # Main target
 $(BUILD_DIR)/$(TARGET_EXEC): $(FB_SRCS) $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -lpthread -ldl -o $@
@@ -82,6 +70,15 @@ $(BUILD_DIR) :
 
 DEPS := $(OBJS:.o=.d)
 -include $(DEPS)
+
+#release
+RELEASE_TARGET_EXEC := sysyc
+RELEASE_FLAGS := -O3 -flto
+release: $(FB_SRCS) $(SRCS) | $(BUILD_DIR)/release
+	$(CXX) $(INC_FLAGS) $(SRCS) $(RELEASE_FLAGS) -o $(BUILD_DIR)/release/$(RELEASE_TARGET_EXEC)
+
+$(BUILD_DIR)/release:
+	mkdir "$@"
 
 run-koopa :
 	koopac testcases/hello/hello.koopa | llc --filetype=obj -o build/hello.o
