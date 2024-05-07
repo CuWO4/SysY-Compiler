@@ -10,9 +10,9 @@
 
 实现 `SysY` 向 `Koopa IR` 或 `RISC-V` 的编译.
 
-`SysY` 是 `C` 的子集. 详见 [SysY标准概述](#SysY概述).
+`SysY` 是 `C` 的子集. 详见 [SysY 标准概述](#SysY概述).
 
-`Koopa IR` 是北大编译实践课发明的一种基于 `LLVM IR` 的中间表示. 详见 [Koopa IR标准概述](https://pku-minic.github.io/online-doc/#/misc-app-ref/koopa).
+`Koopa IR` 是北大编译实践课模仿 `LLVM IR` 设计的中间表示. 详见 [Koopa IR 标准概述](https://pku-minic.github.io/online-doc/#/misc-app-ref/koopa).
 
 `RISC-V` 是由加州大学伯克利分校设计并推广的第五代 RISC 指令系统体系结构. 详见 [RISC-V手册](https://riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf).
 
@@ -30,7 +30,7 @@ make
 make release
 ```
 
-Windows 平台若遇到编译问题, 可尝试将 `makefile` 中的 `CXX := clang++` 替换为 `CXX := g++`.
+Windows 平台若因为 `sysy.lex.cpp` 缺少 `unistd.h` 头文件导致编译失败, 可尝试下载 `MinGW` 提供的 `flex` 依赖后, 将 `makefile` 中的 `CXX := clang++` 替换为 `CXX := g++`.
 
 ## 运行
 
@@ -68,15 +68,15 @@ CuWO4, [邮箱](mailto:wutong.tony@outlook.com).
 
 ## 环境
 
-- Unbuntu 20.04.6 LTS
+- Unbuntu 20.04.6 LTS;
 
-- Ubuntu clang version 13.0.1
+- Ubuntu clang version 13.0.1;
 
-- flex 2.6.4
+- flex 2.6.4;
 
-- bison (GNU Bison) 3.5.1
+- bison (GNU Bison) 3.5.1;
 
-- GNU Make 4.2.1
+- GNU Make 4.2.1.
 
 ## TODO LIST
 
@@ -108,9 +108,9 @@ CuWO4, [邮箱](mailto:wutong.tony@outlook.com).
 
     * [ ] 控制流化简;
 
-    * [ ] 窥孔优化.
+    * [ ] 窥孔优化;
 
-    * [ ] 强度削弱;
+    * [ ] 强度削弱.
 
 ## SysY 概述
 
@@ -130,8 +130,8 @@ CuWO4, [邮箱](mailto:wutong.tony@outlook.com).
 
 * **赋值**: `=`;
 
-* **其它**: `()`[^1], `[]`[^2], `,`
+* **其它**: `()`[^1], `[]`[^2], `,`.
 
-[^1]: 函数调用
+[^1]: 函数调用.
 
-[^2]: 数组解引用
+[^2]: 数组解引用.
