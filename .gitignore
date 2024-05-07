@@ -1,10 +1,12 @@
-/build
-/tmp
-/.vscode
-/.VSCodeCounter
-/devlog
+build/
+tmp/
+.*/
+devlog/
  
 *.txt
 *.tmp
 *.koopa
 *.S
+
+!sample/*.koopa
+!sample/*.S

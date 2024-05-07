@@ -56,7 +56,11 @@ sysyc [MODE] -o [TARGET] [DBG-FLAGS]
 
 ## 示例
 
-![](./pic/fib.png)
+| 主题 | `C` | `Koopa IR` | `RISC-V` |
+| :--: | :--: | :--: | :--: |
+| **斐波那契数列** | <a href="sample/fib.c">fib.c</a> | <a href="sample/fib.koopa">fib.koopa</a> | <a href="sample/fib.S">fib.S</a> |
+| **归并排序** | <a href="sample/msort.c">msort.c</a> | <a href="sample/msort.koopa">msort.koopa</a> | <a href="sample/msort.S">msort.S</a> |
+| **快速傅里叶变换** | <a href="sample/fft.c">fft.c</a> | <a href="sample/fft.koopa">fft.koopa</a> | <a href="sample/fft.S">fft.S</a> |
 
 ## 历史版本
 
@@ -131,6 +135,23 @@ CuWO4, [邮箱](mailto:wutong.tony@outlook.com).
 * **赋值**: `=`;
 
 * **其它**: `()`[^1], `[]`[^2], `,`.
+
+**运行时库**：无需包含头文件, 自动声明以下八个函数:
+
+```c 
+int getint();
+int getch();
+int getarray(int[]);
+void putint(int);
+void putch(int);
+void putarray(int, int[]);
+void starttime();
+void stoptime();
+```
+
+规范详见 [SysY 运行时库](https://gitlab.eduxiji.net/csc1/nscscc/compiler2021/-/blob/master/SysY%E8%BF%90%E8%A1%8C%E6%97%B6%E5%BA%93.pdf).
+
+---
 
 [^1]: 函数调用.
 
