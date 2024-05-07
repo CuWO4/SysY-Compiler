@@ -1,0 +1,64 @@
+decl @getint(): i32
+decl @getch(): i32
+decl @getarray(*i32): i32
+decl @putint(i32)
+decl @putch(i32)
+decl @putarray(i32, *i32)
+decl @starttime()
+decl @stoptime()
+global @fib_arr = alloc [i32, 10], {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+fun @fib(@n_0: i32): i32 {
+%LLB_5:
+	%n_0 = alloc i32
+	store @n_0, %n_0
+	%0 = load %n_0
+	%1 = le %0, 1
+	br %1, %LLB_0, %LLB_1
+
+%LLB_0:
+	%2 = load %n_0
+	ret %2
+
+%LLB_1:
+	%3 = load %n_0
+	%4 = getelemptr @fib_arr, %3
+	%5 = load %4
+	%6 = ne %5, 0
+	br %6, %LLB_2, %LLB_3
+
+%LLB_2:
+	%7 = load %n_0
+	%8 = getelemptr @fib_arr, %7
+	%9 = load %8
+	ret %9
+
+%LLB_3:
+	%10 = load %n_0
+	%11 = getelemptr @fib_arr, %10
+	%12 = load %n_0
+	%13 = sub %12, 1
+	%14 = call @fib(%13)
+	%15 = load %n_0
+	%16 = sub %15, 2
+	%17 = call @fib(%16)
+	%18 = add %14, %17
+	store %18, %11
+	ret %18
+
+%LLB_4:
+	ret 0
+}
+
+
+fun @main(): i32 {
+%LLB_6:
+	@n_1 = alloc i32
+	%19 = call @getint()
+	store %19, @n_1
+	%20 = load @n_1
+	%21 = call @fib(%20)
+	call @putint(%21)
+	ret 0
+}
+

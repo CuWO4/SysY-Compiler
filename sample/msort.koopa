@@ -1,0 +1,203 @@
+decl @getint(): i32
+decl @getch(): i32
+decl @getarray(*i32): i32
+decl @putint(i32)
+decl @putch(i32)
+decl @putarray(i32, *i32)
+decl @starttime()
+decl @stoptime()
+global @buf = alloc [[i32, 100], 2], zeroinit
+
+fun @merge_sort(@low_0: i32, @high_0: i32) {
+%LLB_17:
+	%low_0 = alloc i32
+	store @low_0, %low_0
+	%high_0 = alloc i32
+	store @high_0, %high_0
+	%0 = load %low_0
+	%1 = add %0, 1
+	%2 = load %high_0
+	%3 = ge %1, %2
+	br %3, %LLB_0, %LLB_1
+
+%LLB_0:
+	ret 
+
+%LLB_1:
+	@mid_0 = alloc i32
+	%7 = load %low_0
+	%8 = load %high_0
+	%9 = add %7, %8
+	%10 = div %9, 2
+	store %10, @mid_0
+	%11 = load %low_0
+	%12 = load @mid_0
+	call @merge_sort(%11, %12)
+	%13 = load @mid_0
+	%14 = load %high_0
+	call @merge_sort(%13, %14)
+	@i_0 = alloc i32
+	%15 = load %low_0
+	store %15, @i_0
+	@j_0 = alloc i32
+	%16 = load @mid_0
+	store %16, @j_0
+	@k_0 = alloc i32
+	%17 = load %low_0
+	store %17, @k_0
+	jump %LLB_2
+
+%LLB_2:
+	%18 = load @i_0
+	%19 = load @mid_0
+	%20 = lt %18, %19
+	%21 = ne %20, 0
+	%22 = load @j_0
+	%23 = load %high_0
+	%24 = lt %22, %23
+	%25 = ne %24, 0
+	%26 = and %21, %25
+	br %26, %LLB_4, %LLB_3
+
+%LLB_4:
+	%27 = getelemptr @buf, 0
+	%28 = load @i_0
+	%29 = getelemptr %27, %28
+	%30 = load %29
+	%31 = getelemptr @buf, 0
+	%32 = load @j_0
+	%33 = getelemptr %31, %32
+	%34 = load %33
+	%35 = lt %30, %34
+	br %35, %LLB_5, %LLB_6
+
+%LLB_5:
+	%36 = getelemptr @buf, 1
+	%37 = load @k_0
+	%38 = getelemptr %36, %37
+	%39 = getelemptr @buf, 0
+	%40 = load @i_0
+	%41 = getelemptr %39, %40
+	%42 = load %41
+	store %42, %38
+	%43 = load @i_0
+	%44 = add %43, 1
+	store %44, @i_0
+	jump %LLB_7
+
+%LLB_6:
+	%45 = getelemptr @buf, 1
+	%46 = load @k_0
+	%47 = getelemptr %45, %46
+	%48 = getelemptr @buf, 0
+	%49 = load @j_0
+	%50 = getelemptr %48, %49
+	%51 = load %50
+	store %51, %47
+	%52 = load @j_0
+	%53 = add %52, 1
+	store %53, @j_0
+	jump %LLB_7
+
+%LLB_7:
+	%54 = load @k_0
+	%55 = add %54, 1
+	store %55, @k_0
+	jump %LLB_2
+
+%LLB_3:
+	jump %LLB_8
+
+%LLB_8:
+	%56 = load @i_0
+	%57 = load @mid_0
+	%58 = lt %56, %57
+	br %58, %LLB_10, %LLB_9
+
+%LLB_10:
+	%59 = getelemptr @buf, 1
+	%60 = load @k_0
+	%61 = getelemptr %59, %60
+	%62 = getelemptr @buf, 0
+	%63 = load @i_0
+	%64 = getelemptr %62, %63
+	%65 = load %64
+	store %65, %61
+	%66 = load @i_0
+	%67 = add %66, 1
+	store %67, @i_0
+	%68 = load @k_0
+	%69 = add %68, 1
+	store %69, @k_0
+	jump %LLB_8
+
+%LLB_9:
+	jump %LLB_11
+
+%LLB_11:
+	%70 = load @j_0
+	%71 = load %high_0
+	%72 = lt %70, %71
+	br %72, %LLB_13, %LLB_12
+
+%LLB_13:
+	%73 = getelemptr @buf, 1
+	%74 = load @k_0
+	%75 = getelemptr %73, %74
+	%76 = getelemptr @buf, 0
+	%77 = load @j_0
+	%78 = getelemptr %76, %77
+	%79 = load %78
+	store %79, %75
+	%80 = load @j_0
+	%81 = add %80, 1
+	store %81, @j_0
+	%82 = load @k_0
+	%83 = add %82, 1
+	store %83, @k_0
+	jump %LLB_11
+
+%LLB_12:
+	jump %LLB_14
+
+%LLB_14:
+	%84 = load %low_0
+	%85 = load %high_0
+	%86 = lt %84, %85
+	br %86, %LLB_16, %LLB_15
+
+%LLB_16:
+	%87 = getelemptr @buf, 0
+	%88 = load %low_0
+	%89 = getelemptr %87, %88
+	%90 = getelemptr @buf, 1
+	%91 = load %low_0
+	%92 = getelemptr %90, %91
+	%93 = load %92
+	store %93, %89
+	%94 = load %low_0
+	%95 = add %94, 1
+	store %95, %low_0
+	jump %LLB_14
+
+%LLB_15:
+	ret 
+}
+
+
+fun @main(): i32 {
+%LLB_18:
+	@n_0 = alloc i32
+	%96 = getelemptr @buf, 0
+	%97 = getelemptr %96, 0
+	%98 = call @getarray(%97)
+	store %98, @n_0
+	%99 = load @n_0
+	call @merge_sort(0, %99)
+	%100 = load @n_0
+	%101 = getelemptr @buf, 0
+	%102 = getelemptr %101, 0
+	call @putarray(%100, %102)
+	ret 0
+}
+
