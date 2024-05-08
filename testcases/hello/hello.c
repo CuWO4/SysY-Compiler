@@ -1,3 +1,12 @@
+/*
+
+
+
+
+
+
+*/
+
 int fib_arr[10] = { 0 };
 
 int fib(int n) {

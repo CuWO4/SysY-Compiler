@@ -12,10 +12,10 @@
 %}
 
 %x PREPROCESSING_SCAN_STATE
+%x BLOCK_COMMENT_STATE
 
 WhiteSpace      [ \t\n\r]
 LineComment     "//".*
-BlockComment    "/"\*.*?\*"/"
 
 Identifier      [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -27,11 +27,15 @@ Hexadecimal     0[xX][0-9a-fA-F]+
 
 {WhiteSpace}
 {LineComment}
-{BlockComment}
 
 #               { BEGIN(PREPROCESSING_SCAN_STATE); }
 <PREPROCESSING_SCAN_STATE>\n    { BEGIN(INITIAL); }
-<PREPROCESSING_SCAN_STATE>.     /* skip all preprocessing commands */
+<PREPROCESSING_SCAN_STATE>.     { /* skip all preprocessing commands */ }
+
+"/*"            { BEGIN(BLOCK_COMMENT_STATE); }
+<BLOCK_COMMENT_STATE>"*/"           { BEGIN(INITIAL); }
+<BLOCK_COMMENT_STATE>.              { /* skip */ }
+<BLOCK_COMMENT_STATE>{WhiteSpace}   { /* skip */ }
 
 "||"            { return TK_LOGIC_OR; }
 "&&"            { return TK_LOGIC_AND; }
