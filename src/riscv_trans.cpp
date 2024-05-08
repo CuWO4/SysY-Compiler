@@ -156,9 +156,7 @@ namespace riscv_trans {
     }
 
     void IdStorageMap::register_id(const koopa::Id* id, RiscvStorage* storage) {
-        map.insert(
-            std::pair<const koopa::Id *, RiscvStorage*>(id, storage)
-        );
+        map.emplace(id, storage);
     }
 
 }

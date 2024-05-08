@@ -38,9 +38,7 @@ static std::string build_name(std::string lit, NestingInfo* nesting_info) {
     auto existed_id_count_pair = existed_id_counts.find(lit);
     int existed_id_count = 0;
     if (existed_id_count_pair == existed_id_counts.end()) {
-        existed_id_counts.insert(
-            std::pair<std::string, int>(lit, 1)
-        );
+        existed_id_counts.emplace(lit, 1);
         existed_id_count = 0;
     }
     else {
@@ -55,25 +53,19 @@ static std::string build_name(std::string lit, NestingInfo* nesting_info) {
 void ValueManager::insert_id(std::string key, koopa::Id* new_id) {
 
     if (!in_func) {
-        global_ids.insert(
-            std::pair<std::string, koopa::Id*>(key, new_id)
-        ); 
+        global_ids.emplace(key, new_id);
     }
     else if (formal_param_trans_state) {
         auto current_manager = formal_params.find(current_func_id_lit);
         assert(current_manager != ids.end());
 
-        current_manager->second->insert(
-            std::pair<std::string, koopa::Id*>(key, new_id)
-        ); 
+        current_manager->second->emplace(key, new_id);
     }
     else {
         auto current_manager = ids.find(current_func_id_lit);
         assert(current_manager != ids.end());
 
-        current_manager->second->insert(
-            std::pair<std::string, koopa::Id*>(key, new_id)
-        ); 
+        current_manager->second->emplace(key, new_id);
     }
 }
 
@@ -200,18 +192,8 @@ void ValueManager::enter_func(std::string func_id_lit) {
      * will fail (nothing will happen). so don’t worry that re-entering the function 
      * will cause the original saved variables to be lost.
      */
-    ids.insert(
-        std::pair<std::string, std::unordered_map<std::string, koopa::Id*>*>(
-            current_func_id_lit,
-            new std::unordered_map<std::string, koopa::Id*>
-        )
-    );
-    formal_params.insert(
-        std::pair<std::string, std::unordered_map<std::string, koopa::Id*>*>(
-            current_func_id_lit,
-            new std::unordered_map<std::string, koopa::Id*>
-        )
-    );
+    ids.emplace(current_func_id_lit, new std::unordered_map<std::string, koopa::Id*>);
+    formal_params.emplace(current_func_id_lit, new std::unordered_map<std::string, koopa::Id*>);
 }
 
 void ValueManager::leave_func() {
