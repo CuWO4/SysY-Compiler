@@ -38,7 +38,7 @@ Windows 平台若因为 `sysy.lex.cpp` 缺少 `unistd.h` 头文件导致编译�
 sysyc [MODE] -o [TARGET] [DBG-FLAGS]
 ```
 
-- `[MODE]`: 
+- `[MODE]` 指定编译模式, 可选值:
 
     * `-koopa`: 生成 `Koopa IR`;
 
@@ -46,13 +46,36 @@ sysyc [MODE] -o [TARGET] [DBG-FLAGS]
 
     * `-test`: 向控制台打印 `AST`.
 
-- `[TARGET]`: 目标文件.
+- `[TARGET]` 指定目标文件.
 
-- `[DBG-FLAGS]`: 下述选项可同时启用,
+- `[DBG-FLAGS]` 指定 `DEBUG` 模式, 可选值(可同时启用):
 
     * `-dbg-k`: 生成的 `Koopa IR` 代码中会包含类型信息;
 
     * `-dbg-r`: 生成的 `RISC-V` 代码中会包含 `Koopa IR` 原句.
+
+## 测试
+
+本节内容依赖 `Docker` 镜像 `maxxing/compiler-dev`, 须在相应容器中运行. 
+
+### 自动测试
+
+```bash
+test.py [STAGE] [TARGET-LANG]
+```
+
+- `STAGE`: 指定测试样例阶段; 当未指定时, 测试所有阶段. 可选值: `lv1`, `lv2`, ... , `lv9`, `perf`.
+
+- `TARGET-LANG`: 指定测试语言; 当未指定时, 测试所有语言. 可选值: `koopa`, `riscv`.
+
+### 手动测试
+
+```bash
+test.py hello [MODE] [DBG-FLAGS]
+```
+
+以指定的 `MODE` 和 `DBG-FLAGS` 编译 `testcases/hello/hello.c`, 详见 [运行](#运行).
+
 
 ## 示例
 

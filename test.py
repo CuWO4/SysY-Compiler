@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# script for testing in docker `maxxing/compiler-dev`
+
 import sys
 import os
 
@@ -22,10 +24,12 @@ def call_command(stage, target_lang, debug_flag):
         target_lang_ext = "koopa" if target_lang == "koopa" else "S"
         debug_flag_string = " ".join(debug_flag)
 
-        command = f"./build/compiler -{target_lang} ./testcases/hello/hello.c -o ./testcases/hello/hello.{target_lang_ext} {debug_flag_string}"
+        command = f"./build/compiler -{target_lang} ./testcases/hello/hello.c " \
+            f"-o ./testcases/hello/hello.{target_lang_ext} {debug_flag_string}"
     else:
         stage_string = f"-s {stage}" if stage else ""
-        command = f"autotest -{target_lang} {stage_string} /root/compiler"
+        command = f"autotest -t /root/compiler/testcases/testcases " \
+            f"-{target_lang} {stage_string} /root/compiler"
         
     print(command)
     os.system(command)
