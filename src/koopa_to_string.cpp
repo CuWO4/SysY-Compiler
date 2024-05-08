@@ -185,6 +185,12 @@ std::string Block::to_string() const {
 }
 
 std::string FuncDef::to_string() const {
+    if (FuncDecl::declared_funcs.count(id) > 0) { return ""; }
+
+    return func_decl_to_string_agent();
+}
+
+std::string FuncDef::func_decl_to_string_agent() const {
     auto res = std::string("");
 
     res += '\n';
@@ -223,6 +229,10 @@ std::string FuncDef::to_string() const {
 }
 
 std::string FuncDecl::to_string() const {
+    if (FuncDecl::func_implementations.count(id) > 0) { 
+        return func_implementations.find(id)->second->func_decl_to_string_agent();
+    }
+
     auto res = std::string("");
 
     if (debug_mode_koopa_type) {

@@ -124,6 +124,8 @@ FuncDef::FuncDef(Id* id, std::vector<Id*> formal_param_ids, std::vector<Block*> 
 FuncDecl::FuncDecl(Id* id): id(id) {
     assert(id);
 }
+std::unordered_set<koopa::Id*> FuncDecl::declared_funcs = {};
+std::unordered_map<koopa::Id*, koopa::FuncDef*> FuncDecl::func_implementations = {};
 
 GlobalMemoryDecl::GlobalMemoryDecl(Type* type, Initializer* initializer)
     : type(type), initializer(initializer) {

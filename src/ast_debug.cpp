@@ -231,8 +231,8 @@ std::string Array::debug(int indent) const {
 std::string FuncDef::debug(int indent) const {
     auto res = build_indent(indent) + ret_type->debug() + ' ' + id->lit + '(';
     for (auto param: params) {
-        res += std::get<0>(* param)->debug() + ' '
-            + std::get<1>(* param)->debug() + ", ";
+        res += std::get<0>(*param)->debug() + ' '
+            + std::get<1>(*param)->debug() + ", ";
     }
     if (params.size() > 0) {
         res.pop_back(); // `,`
@@ -242,6 +242,19 @@ std::string FuncDef::debug(int indent) const {
     res += "{\n" 
         + block->debug(indent + 1) 
         + build_indent(indent) + "}";
+    return res;
+}
+
+std::string FuncDecl::debug(int indent) const {
+    auto res = build_indent(indent) + ret_type->debug() + ' ' + id->lit + '(';
+    for (auto param_type: param_types) {
+        res += param_type->debug() + ", ";
+    }
+    if (param_types.size() > 0) {
+        res.pop_back(); // `,`
+        res.pop_back(); // ` `
+    }
+    res += ");"; 
     return res;
 }
 

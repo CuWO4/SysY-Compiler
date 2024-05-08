@@ -123,9 +123,30 @@ ConstGlobalVarDef::ConstGlobalVarDef(Type* type, Id* id, Initializer* init)
 GlobalVarDecl::GlobalVarDecl(std::vector<GlobalVarDef*> var_defs) : var_defs(var_defs) {}
 
 FuncDef::FuncDef(
-    Type* ret_type, Id* id, std::vector<std::tuple<Type *, Id*>*> params, Block* block
+    Type* ret_type, Id* id, std::vector<std::tuple<Type*, Id*>*> params, Block* block
 ) : ret_type(ret_type), id(id), params(params), block(block) {
     assert(ret_type); assert(id); assert(block);
+}
+
+FuncDecl::FuncDecl(
+    Type* ret_type, Id* id, std::vector<Type*> param_types
+) : ret_type(ret_type), id(id), param_types(param_types) {
+    assert(ret_type); assert(id);
+}
+
+FuncDecl::FuncDecl(
+    Type* ret_type, Id* id, std::vector<std::tuple<Type*, Id*>*> params
+) : ret_type(ret_type), id(id) {
+    assert(ret_type); assert(id);
+
+    auto param_types = std::vector<Type*>();
+    param_types.reserve(params.size());
+
+    for (auto param: params) {
+        param_types.push_back(std::get<0>(*param));
+    }
+
+    this->param_types = param_types;
 }
 
 CompUnit::CompUnit(std::vector<ast::GlobalStmt*> global_stmts)

@@ -58,7 +58,7 @@
 %type   <AstGlobalStmtVector> comp_unit_items
 %type	<AstGlobalStmt> comp_unit_item 
 
-%type   <AstGlobalStmt> func_def
+%type   <AstGlobalStmt> func_def_and_decl
 %type   <TypeIdTuple> func_def_param
 %type   <TypeIdTupleVector> func_def_params
 
@@ -135,7 +135,7 @@ comp_unit_items
 ;
 
 comp_unit_item
-    : func_def
+    : func_def_and_decl
     | global_var_decl ';'       { $$ = $1; }
 ;
 
@@ -165,12 +165,18 @@ global_var_decl
     }
 ;
 
-func_def
+func_def_and_decl
     : type id block_start '(' func_def_params ')' block block_end {
         $$ = new ast::FuncDef($1, $2, *$5, $7);
     }
     | type id block_start '(' ')' block block_end {
         $$ = new ast::FuncDef($1, $2, {}, $6);
+    }
+    | type id block_start '(' func_def_params ')' ';' block_end {
+        $$ = new ast::FuncDecl($1, $2, *$5);
+    }
+    | type id block_start '(' ')' ';' block_end {
+        $$ = new ast::FuncDecl($1, $2, std::vector<ast::Type*>{});
     }
 ;
 

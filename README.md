@@ -111,7 +111,7 @@ CuWO4, [邮箱](mailto:wutong.tony@outlook.com).
 
 - [ ] 支持更多语法.
 
-    * [ ] 函数声明;
+    * [x] 函数声明;
 
     * [ ] 自增, 自减, 算术赋值, 位运算, 三目运算符;
 
@@ -141,7 +141,7 @@ CuWO4, [邮箱](mailto:wutong.tony@outlook.com).
 
 ## SysY 概述
 
-**支持的全局语句**: 函数定义, 全局变量定义.
+**支持的全局语句**: 不隐去形参名的函数声明, 函数定义, 全局变量定义.
 
 **支持的子句**: 变量定义, 表达式语句, `return`, `if`, `else`, `while`, `for`, `break`, `continue`.
 

@@ -1186,12 +1186,28 @@ koopa::Type* Array::to_koopa() const {
     );
 }
 
+koopa::Id* get_func_id(
+    koopa::FuncType* func_type, 
+    std::string lit, 
+    NestingInfo* nesting_info
+) {
+    auto existed_id = value_manager.get_id('@' + lit, nesting_info);
+    if (existed_id == nullptr) {
+        auto new_id = value_manager.new_id(
+            func_type,
+            '@' + lit,
+            nesting_info
+        );
+        return new_id;
+    } else {
+        if (*existed_id->get_type() != *func_type) { 
+            throw "inconsistent redefinition of function `" + lit + "`"; 
+        }
+        return existed_id;
+    }
+}
 
 koopa_trans::GlobalStmts* FuncDef::to_koopa() const {
-    if (value_manager.get_id('@' + id->lit, id->nesting_info) != nullptr) {
-        throw "`" + id->lit + "` redefined";
-    }
-
     value_manager.enter_func(id->lit);
 
     auto param_types = std::vector<koopa::Type*>();
@@ -1213,14 +1229,15 @@ koopa_trans::GlobalStmts* FuncDef::to_koopa() const {
     value_manager.leave_formal_params();
 
     value_manager.leave_func(); // func_id is global identifier
-    auto id_koopa = value_manager.new_id(
+
+    auto id_koopa = get_func_id(
         new koopa::FuncType(
             param_types,
             ret_type->to_koopa()
-        ),
-        '@' + id->lit,
-        id->nesting_info
+        ), 
+        id->lit, id->nesting_info
     );
+
     value_manager.enter_func(id->lit);
 
     auto block_koopa = new koopa_trans::Blocks;
@@ -1248,6 +1265,17 @@ koopa_trans::GlobalStmts* FuncDef::to_koopa() const {
 
     value_manager.leave_func();
 
+    if (koopa::FuncDecl::declared_funcs.count(id_koopa) > 0) {
+        if (koopa::FuncDecl::func_implementations.count(id_koopa) > 0) {
+            throw "function `" + id->lit + "` redefined";
+        }
+
+        koopa::FuncDecl::func_implementations[id_koopa] = new koopa::FuncDef(
+            id_koopa,
+            param_ids,
+            block_koopa->to_raw_blocks()
+        );
+    }
     return new koopa_trans::GlobalStmts(
         new koopa::FuncDef(
             id_koopa,
@@ -1255,6 +1283,27 @@ koopa_trans::GlobalStmts* FuncDef::to_koopa() const {
             block_koopa->to_raw_blocks()
         )
     );
+}
+
+koopa_trans::GlobalStmts* FuncDecl::to_koopa() const {
+    auto param_types_koopa = std::vector<koopa::Type*>{};
+    param_types_koopa.reserve(param_types_koopa.size());
+
+    for (auto param_type: param_types) {
+        param_types_koopa.push_back(param_type->to_koopa());
+    }
+
+    auto id_koopa = get_func_id(
+        new koopa::FuncType(
+            param_types_koopa,
+            ret_type->to_koopa()
+        ), 
+        id->lit, id->nesting_info
+    );
+
+    koopa::FuncDecl::declared_funcs.emplace(id_koopa);
+
+    return new koopa_trans::GlobalStmts{ new koopa::FuncDecl(id_koopa) };
 }
 
 /* push the declaration of lib functions */

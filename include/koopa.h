@@ -25,8 +25,10 @@ public:
     enum TypeId { Int, Array, Pointer, FuncType, Void };
 
     virtual TypeId get_type_id() = 0;
-    virtual bool operator==(Type& other) = 0;
+    bool operator==(Type& other);
+    virtual bool operator==(Type&& other) = 0;
     bool operator!=(Type& other);
+    bool operator!=(Type&& other);
 
     /**
      * @return type dimensions, use -1 to represent pointer
@@ -49,7 +51,7 @@ public:
         std::string to_string() const override;
 
         TypeId get_type_id() override;
-        bool operator==(Type& other) override;
+        bool operator==(Type&& other) override;
 
         std::vector<int> get_dim() const override;
 
@@ -63,7 +65,7 @@ public:
         Array(Type* elem_type, int length);
 
         TypeId get_type_id() override;
-        bool operator==(Type& other) override;
+        bool operator==(Type&& other) override;
 
         std::vector<int> get_dim() const override;
 
@@ -83,7 +85,7 @@ public:
         Pointer(Type* pointed_type);
 
         TypeId get_type_id() override;
-        bool operator==(Type& other) override;
+        bool operator==(Type&& other) override;
 
         std::vector<int> get_dim() const override;
 
@@ -102,7 +104,7 @@ public:
         FuncType(std::vector<Type*> arg_types, Type* ret_type);
 
         TypeId get_type_id() override;
-        bool operator==(Type& other) override;
+        bool operator==(Type&& other) override;
 
         std::vector<Type*> get_arg_types() const;
         Type* get_ret_type() const;
@@ -117,7 +119,7 @@ public:
         std::string to_string() const override;
 
         TypeId get_type_id() override;
-        bool operator==(Type& other) override;
+        bool operator==(Type&& other) override;
     };
 
 class Value: public Base {
@@ -645,6 +647,12 @@ public:
         public:
             std::string to_string() const override;
 
+            /**
+             * koopa only allows functions declared or defined once,
+             * so the declaration must expanse to corresponding definition
+             */
+            std::string func_decl_to_string_agent() const;
+
             void stmt_to_riscv(
                 std::string& str, 
                 riscv_trans::TransMode trans_mode
@@ -676,6 +684,9 @@ public:
             ) const override;
 
             FuncDecl(Id* id);
+
+            static std::unordered_set<koopa::Id*> declared_funcs;
+            static std::unordered_map<koopa::Id*, koopa::FuncDef*> func_implementations;
 
         private:
             Id* id;

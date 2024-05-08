@@ -542,21 +542,46 @@ namespace ast {
 
         class FuncDef: public GlobalStmt {
         public:
-            Type* ret_type;
-            Id* id;
-            std::vector<std::tuple<Type *, Id*>*> params;
-            Block* block;
-
             FuncDef(
                 Type* ret_type, 
                 Id* id, 
-                std::vector<std::tuple<Type *, Id*>*> params, 
+                std::vector<std::tuple<Type*, Id*>*> params, 
                 Block* block
             );
 
             koopa_trans::GlobalStmts* to_koopa() const override;
 
             std::string debug(int indent = 0) const override;
+
+        private:
+            Type* ret_type;
+            Id* id;
+            std::vector<std::tuple<Type *, Id*>*> params;
+            Block* block;
+        };
+
+        class FuncDecl: public GlobalStmt {
+        public:
+            FuncDecl(
+                Type* ret_type, 
+                Id* id, 
+                std::vector<Type*> param_types
+            );
+
+            FuncDecl(
+                Type* ret_type, 
+                Id* id, 
+                std::vector<std::tuple<Type*, Id*>*> params
+            );
+
+            koopa_trans::GlobalStmts* to_koopa() const override;
+
+            std::string debug(int indent = 0) const override;
+        
+        private:
+            Type* ret_type;
+            Id* id;
+            std::vector<Type*> param_types;
         };
 
         class GlobalVarDef: public GlobalStmt {

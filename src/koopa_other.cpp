@@ -23,36 +23,49 @@ Type::TypeId Pointer::get_type_id() { return Type::Pointer; }
 Type::TypeId FuncType::get_type_id() { return Type::FuncType; }
 Type::TypeId Void::get_type_id() { return Type::Void; }
 
+bool Type::operator==(Type& other) {
+    return *this == std::move(other);
+}
+
 bool Type::operator!=(Type& other) {
     return !(*this == other);
 }
 
-bool Int::operator==(Type& other) { 
+bool Type::operator!=(Type&& other) {
+    return !(*this == other);
+}
+
+bool Int::operator==(Type&& other) { 
     return other.get_type_id() == Type::Int; 
 }
 
-bool Array::operator==(Type& other) {
+bool Array::operator==(Type&& other) {
     return other.get_type_id() == Type::Array 
         && dynamic_cast<Array&>(other).length == length;
 }
 
-bool Pointer::operator==(Type& other) {
+bool Pointer::operator==(Type&& other) {
     return other.get_type_id() == Type::Pointer
         && *dynamic_cast<Pointer&>(other).pointed_type == *pointed_type;
 }
 
-bool FuncType::operator==(Type& other) {
+bool FuncType::operator==(Type&& other) {
     if (other.get_type_id() != Type::FuncType) return false;
+    
     auto other_casted = dynamic_cast<FuncType&>(other); 
-    if (* other_casted.ret_type != *ret_type) return false;
+
+    if (*other_casted.ret_type != *ret_type) return false;
+
     if (arg_types.size() != other_casted.arg_types.size()) return false;
+
     for (int i = 0; i < arg_types.size(); i++) {
-        if (* arg_types[i] != *other_casted.arg_types[i]) return false;
+        if (*arg_types[i] != *other_casted.arg_types[i]) return false;
     }
+
     return true;
 }
 
-bool Void::operator==(Type& other) {
+bool Void::operator==(Type&& other) {
     return other.get_type_id() == Type::Void;
 }
 
