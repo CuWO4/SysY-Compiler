@@ -1,7 +1,4 @@
-#include <typeinfo>
-
 #include "riscv_trans.h"
-
 #include "value_manager.h"
 
 static int max(int a, int b) { return a > b ? a : b; }
@@ -10,30 +7,13 @@ static int max(int a, int b) { return a > b ? a : b; }
  * @return the maximum number of parameters of the functions being called 
  * @example  max_called_func_param_n( main() { f(1, 2); g(1, 2, 3, 4); } ) => 4
  */
-static int get_max_called_func_param_n(const koopa::FuncDef* func_def) {
-    int result = 0;
+static unsigned get_max_called_func_param_n(const koopa::FuncDef* func_def) {
+    unsigned result = 0;
     for (auto* block: func_def->get_blocks()) {
         for (auto* stmt: block->get_stmts()) {
-            // ! ugly, though works
-            if (typeid(*stmt) == typeid(koopa::FuncCall)) {
-                result = max(
-                    result, 
-                    static_cast<koopa::FuncCall*>(stmt)->get_args().size()
-                );
+            if (stmt->is_func_call()) {
+                result = max(result, stmt->get_func_call_param_n() );
             }
-            else if (
-                typeid(*stmt) == typeid(koopa::SymbolDef) 
-                && typeid(*static_cast<koopa::SymbolDef*>(stmt)->get_val()) 
-                    == typeid(koopa::FuncCall)
-            ) {
-                result = max(
-                    result, 
-                    static_cast<koopa::FuncCall*>(
-                        static_cast<koopa::SymbolDef*>(stmt)->get_val()
-                    )->get_args().size()
-                );
-            }
-
         }
     }
     return result;
@@ -45,17 +25,9 @@ static int get_max_called_func_param_n(const koopa::FuncDef* func_def) {
 static bool has_called_func(const koopa::FuncDef* func_def) {
     for (auto* block: func_def->get_blocks()) {
         for (auto* stmt: block->get_stmts()) {
-            if (
-                typeid(*stmt) == typeid(koopa::FuncCall)
-                || (
-                    typeid(*stmt) == typeid(koopa::SymbolDef) 
-                    && typeid(*static_cast<koopa::SymbolDef*>(stmt)->get_val()) 
-                        == typeid(koopa::FuncCall)
-                )
-            ) {
+            if (stmt->is_func_call()) {
                 return true;
             }
-
         }
     }
     return false;

@@ -410,7 +410,7 @@ void Block::block_to_riscv(std::string& str) const {
 void FuncDef::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode) const {
     if (trans_mode == riscv_trans::trans_mode::TextSegment) {
 
-        str += build_comment(this);
+        str += build_comment(this->id);
         
         value_manager.enter_func(id->get_lit());
 

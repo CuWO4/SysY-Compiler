@@ -235,6 +235,10 @@ public:
     ) const = 0;
 
     virtual bool is_end_stmt() = 0;
+
+    virtual bool is_func_call() const;
+    /* crash if is not a function calling */
+    virtual unsigned get_func_call_param_n() const;
 };
     class NotEndStmt: public Stmt {
         bool is_end_stmt() override;
@@ -248,6 +252,10 @@ public:
             virtual riscv_trans::Register rvalue_to_riscv(
                 std::string& str
             ) const = 0;
+
+            virtual bool is_func_call() const;
+            /* crash if is not a function calling */
+            virtual unsigned get_func_call_param_n() const;
         };
 
             /**
@@ -500,6 +508,9 @@ public:
                     std::string& str
                 ) const override;
 
+                bool is_func_call() const override;
+                unsigned get_func_call_param_n() const override;
+
                 FuncCall(Id* id, std::vector<Value*> args);
 
                 Id* get_id() const;
@@ -518,6 +529,9 @@ public:
                 std::string& str, 
                 riscv_trans::TransMode trans_mode
             ) const override;
+
+            bool is_func_call() const override;
+            unsigned get_func_call_param_n() const override;
 
             SymbolDef(Id* id, Rvalue* val);
 

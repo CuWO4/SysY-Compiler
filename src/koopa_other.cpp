@@ -129,6 +129,40 @@ unsigned Array::get_byte_size() const {
 
 unsigned Pointer::get_byte_size() const { return 4; }
 
+bool Stmt::is_func_call() const {
+    return false;
+}
+
+unsigned Stmt::get_func_call_param_n() const {
+    assert(is_func_call());
+    return 0;
+}
+
+bool Rvalue::is_func_call() const {
+    return false;
+}
+
+unsigned Rvalue::get_func_call_param_n() const {
+    assert(is_func_call());
+    return 0;
+}
+
+bool FuncCall::is_func_call() const {
+    return true;
+}
+
+unsigned FuncCall::get_func_call_param_n() const {
+    return args.size();
+}
+
+bool SymbolDef::is_func_call() const {
+    return val->is_func_call();
+}
+
+unsigned SymbolDef::get_func_call_param_n() const {
+    return val->get_func_call_param_n();
+}
+
 std::vector<int> ConstInitializer::to_flat_vec(unsigned byte_size) const {
     return { val };
 }

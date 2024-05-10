@@ -3,7 +3,6 @@
 #include "def.h"
 
 #include <algorithm>
-#include <typeinfo>
 
 std::string new_block_name() {
     return "%LLB_" + std::to_string(block_count++);
@@ -47,10 +46,6 @@ std::string build_mem(int offset, riscv_trans::Register base_addr) {
 std::string build_comment(const koopa::Base* obj) {
     auto str = obj->to_string();
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-
-    if (typeid(*obj) == typeid(koopa::FuncDef)) {
-        str = str.substr(0, str.find_first_of('{'));
-    }
 
     return debug_mode_riscv ? "\t# " + str + '\n': "";
 }
