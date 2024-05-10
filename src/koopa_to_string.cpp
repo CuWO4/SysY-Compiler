@@ -19,7 +19,7 @@ std::string Pointer::to_string() const {
 }
 
 std::string FuncType::to_string() const {
-    auto res = std::string("");
+    auto res { std::string("") };
 
     res += '(';
     for (auto* arg_type: arg_types) {
@@ -31,7 +31,7 @@ std::string FuncType::to_string() const {
     }
     res += ")";
 
-    if (ret_type->get_type_id() != Type::Void) {
+    if (ret_type->get_type_id() != Type::TypeId::Void) {
         res += ": " + ret_type->to_string();
     }
     return res;
@@ -46,11 +46,11 @@ std::string Label::get_name() const {
 }
 
 std::string Id::to_string() const {
-    auto res = lit;
+    auto res { lit };
     if (debug_mode_koopa_type) {
-        if ((type->get_type_id() == Type::Int)
-            || (type->get_type_id() == Type::Array)
-            || (type->get_type_id() == Type::Pointer)) {
+        if ((type->get_type_id() == Type::TypeId::Int)
+            || (type->get_type_id() == Type::TypeId::Array)
+            || (type->get_type_id() == Type::TypeId::Pointer)) {
             res += " /*! type: " + type->to_string() + " */"; 
         }
     }
@@ -70,7 +70,7 @@ std::string ConstInitializer::to_string() const {
 }
 
 std::string Aggregate::to_string() const {
-    auto res = std::string("");
+    auto res { std::string("") };
 
     res += '{';
     for (auto* initializer: initializers) {
@@ -134,7 +134,7 @@ std::string Shr::to_string() const { return "shr " + lv->to_string() + ", " + rv
 std::string Sar::to_string() const { return "sar " + lv->to_string() + ", " + rv->to_string(); }
 
 std::string FuncCall::to_string() const {
-    auto res = std::string("");
+    auto res { std::string("") };
 
     res += "call " + id->to_string() + '(';
     for (auto* arg: args) {
@@ -171,11 +171,11 @@ std::string Jump::to_string() const {
 }
 
 std::string Return::to_string() const {
-    return "ret " + (return_type == HasRetVal ? val->to_string(): "");
+    return "ret " + (return_type == ReturnType::HasRetVal ? val->to_string(): "");
 }
 
 std::string Block::to_string() const {
-    auto res = std::string("");
+    auto res { std::string("") };
 
     res += label.get_name() + ":\n";
     for (auto* stmt: stmts) {
@@ -191,11 +191,11 @@ std::string FuncDef::to_string() const {
 }
 
 std::string FuncDef::func_decl_to_string_agent() const {
-    auto res = std::string("");
+    auto res { std::string("") };
 
     res += '\n';
 
-    auto* ret_type = dynamic_cast<FuncType*>(id->get_type())->get_ret_type();
+    auto* ret_type { dynamic_cast<FuncType*>(id->get_type())->get_ret_type() };
 
     if (debug_mode_koopa_type) {
         res += "//! type: " + id->get_type()->to_string() + '\n';
@@ -214,7 +214,7 @@ std::string FuncDef::func_decl_to_string_agent() const {
     }
     res += ')';
 
-    if (ret_type->get_type_id() != Type::Void) {
+    if (ret_type->get_type_id() != Type::TypeId::Void) {
         res += ": " + ret_type->to_string();
     }
     
@@ -233,7 +233,7 @@ std::string FuncDecl::to_string() const {
         return func_implementations.find(id)->second->func_decl_to_string_agent();
     }
 
-    auto res = std::string("");
+    auto res { std::string("") };
 
     if (debug_mode_koopa_type) {
         res += "//! type: " + id->get_type()->to_string() + '\n';
@@ -243,8 +243,8 @@ std::string FuncDecl::to_string() const {
 
     res += id->to_string();
 
-    auto param_types = dynamic_cast<FuncType*>(id->get_type())->get_arg_types();
-    auto* ret_type = dynamic_cast<FuncType*>(id->get_type())->get_ret_type();
+    auto param_types { dynamic_cast<FuncType*>(id->get_type())->get_arg_types() };
+    auto* ret_type { dynamic_cast<FuncType*>(id->get_type())->get_ret_type() };
 
     res += '(';
     for (auto* param_type: param_types) {
@@ -256,7 +256,7 @@ std::string FuncDecl::to_string() const {
     }
     res += ')';
 
-    if (ret_type->get_type_id() != Type::Void) {
+    if (ret_type->get_type_id() != Type::TypeId::Void) {
         res += ": " + ret_type->to_string();
     }
 
@@ -272,7 +272,7 @@ std::string GlobalSymbolDef::to_string() const {
 }
 
 std::string Program::to_string() const {
-    auto res = std::string("");
+    auto res { std::string("") };
 
     for (auto* global_stmt: global_stmts) {
         res += global_stmt->to_string() + '\n';

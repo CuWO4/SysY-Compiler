@@ -15,9 +15,9 @@
 %{
     #include "ast.h"
 
-    int cur_nesting_level = 0;
-    int cur_nesting_count[4096] = { 0 };
-    NestingInfo* cur_nesting_info = new NestingInfo;
+    int cur_nesting_level { 0 };
+    int cur_nesting_count[4096] { 0 };
+    NestingInfo* cur_nesting_info { new NestingInfo };
 %}
 
 %parse-param    { ast::CompUnit*& ast }
@@ -141,7 +141,7 @@ comp_unit_item
 
 global_var_decl
     : type var_defs {
-        auto var_defs = std::vector<ast::GlobalVarDef*>();
+        auto var_defs { std::vector<ast::GlobalVarDef*>() };
         var_defs.reserve($2->size());
 
         for (auto* manager: *$2) {
@@ -153,7 +153,7 @@ global_var_decl
         $$ = new ast::GlobalVarDecl(var_defs);
     }
     | TK_CONST type var_defs {
-        auto var_defs = std::vector<ast::GlobalVarDef*>();
+        auto var_defs { std::vector<ast::GlobalVarDef*>() };
 
         for (auto* manager: *$3) {
             var_defs.push_back(
@@ -320,7 +320,7 @@ initializers
 
 decl_stmt
     : type var_defs {
-        auto var_defs = std::vector<ast::VarDef*>();
+        auto var_defs { std::vector<ast::VarDef*>() };
         var_defs.reserve($2->size());
 
         for (auto* manager: *$2) {
@@ -332,7 +332,7 @@ decl_stmt
         $$ = new ast::VarDecl(var_defs);
     }
     | TK_CONST type var_defs {
-        auto var_defs = std::vector<ast::VarDef*>();
+        auto var_defs { std::vector<ast::VarDef*>() };
 
         for (auto* manager: *$3) {
             var_defs.push_back(
@@ -375,8 +375,8 @@ var_def_trace
 
 var_def
     : id var_def_trace '=' initializer {
-        auto* res = new parser::VarDefManager(new parser::Primitive, $1, $4);
-        for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
+        auto* res { new parser::VarDefManager(new parser::Primitive, $1, $4) };
+        for (auto dim { $2->rbegin() }; dim != $2->rend(); dim++) {
             if (*dim == nullptr) {
                 res->wrap_pointer();
             }
@@ -387,8 +387,8 @@ var_def
         $$ = res;
     }
     | id var_def_trace {
-        auto* res = new parser::VarDefManager(new parser::Primitive, $1);
-        for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
+        auto* res { new parser::VarDefManager(new parser::Primitive, $1) };
+        for (auto dim { $2->rbegin() }; dim != $2->rend(); dim++) {
             if (*dim == nullptr) {
                 res->wrap_pointer();
             }

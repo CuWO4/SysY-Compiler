@@ -8,7 +8,7 @@ static int max(int a, int b) { return a > b ? a : b; }
  * @example  max_called_func_param_n( main() { f(1, 2); g(1, 2, 3, 4); } ) => 4
  */
 static unsigned get_max_called_func_param_n(const koopa::FuncDef* func_def) {
-    unsigned result = 0;
+    unsigned result { 0 };
     for (auto* block: func_def->get_blocks()) {
         for (auto* stmt: block->get_stmts()) {
             if (stmt->is_func_call()) {
@@ -38,7 +38,7 @@ static void allocate_location(const koopa::FuncDef* func_def, int stack_frame_si
         stack_frame_size -= 4; // reserve for ra
     }
 
-    auto func_ids = value_manager.get_func_ids(func_def->get_id()->get_lit());
+    auto func_ids { value_manager.get_func_ids(func_def->get_id()->get_lit()) };
     for (auto* id : func_ids) {
         stack_frame_size -= id->get_type()->get_byte_size();
         riscv_trans::id_storage_map.register_id(
@@ -47,7 +47,7 @@ static void allocate_location(const koopa::FuncDef* func_def, int stack_frame_si
         );
     }
 
-    int param_count = 0;
+    int param_count { 0 };
     for (auto* id: func_def->get_formal_param_ids()) {
         if (param_count < 8) {
             riscv_trans::id_storage_map.register_id(
@@ -68,9 +68,9 @@ static void allocate_location(const koopa::FuncDef* func_def, int stack_frame_si
 }
 
 static int get_stack_frame_size(const koopa::FuncDef* func_def) {
-    int stack_frame_size = 0;
+    int stack_frame_size { 0 };
 
-    auto func_ids = value_manager.get_func_ids(func_def->get_id()->get_lit());
+    auto func_ids { value_manager.get_func_ids(func_def->get_id()->get_lit()) };
     for (auto* id : func_ids) {
         stack_frame_size += id->get_type()->get_byte_size();
     }
@@ -82,7 +82,7 @@ static int get_stack_frame_size(const koopa::FuncDef* func_def) {
         stack_frame_size += 4;
     }
 
-    int max_called_func_param_n = get_max_called_func_param_n(func_def);
+    unsigned max_called_func_param_n { get_max_called_func_param_n(func_def) };
     /*
      * to save callee's arguments
      */

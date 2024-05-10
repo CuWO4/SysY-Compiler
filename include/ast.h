@@ -453,7 +453,7 @@ namespace ast {
 
         class Return: public Stmt {
         public:
-            enum ReturnType { HasRetVal, NotHasRetVal };
+            enum class ReturnType { HasRetVal, NotHasRetVal };
             
             Return();
             Return(Expr* ret_val);

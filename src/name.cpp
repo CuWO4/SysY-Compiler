@@ -13,10 +13,10 @@ std::string new_id_name() {
 }
 
 std::string align(std::string str, int n) {
-    int blank_count = n - str.length();
+    size_t blank_count { n - str.length() };
 
     if (blank_count > 0) {
-        for (int i = 0; i < blank_count; i++) str += ' ';
+        for (int i { 0 }; i < blank_count; i++) str += ' ';
     }
 
     return str;
@@ -31,7 +31,7 @@ std::string build_inst(
     std::string r1, std::string r2, std::string r3, 
     bool is_i_type_inst
 ) {
-    auto res = '\t' + align(op_code + (is_i_type_inst ? "i": ""));
+    auto res { '\t' + align(op_code + (is_i_type_inst ? "i": "")) };
     if (r1 != "") res += r1;
     if (r2 != "") res += ", " + r2;
     if (r3 != "") res += ", " + r3;
@@ -44,7 +44,7 @@ std::string build_mem(int offset, riscv_trans::Register base_addr) {
 }
 
 std::string build_comment(const koopa::Base* obj) {
-    auto str = obj->to_string();
+    auto str { obj->to_string() };
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 
     return debug_mode_riscv ? "\t# " + str + '\n': "";
@@ -60,9 +60,9 @@ std::string build_sw_lw(
         return build_inst(inst, val_reg.get_lit(), build_mem(offset, addr_reg));
     }
     else {
-        auto res = std::string();
+        auto res { std::string() };
 
-        auto tmp_reg = riscv_trans::temp_reg_manager.get_unused_reg();
+        auto tmp_reg { riscv_trans::temp_reg_manager.get_unused_reg() };
 
         res += build_inst("li", tmp_reg.get_lit(), std::to_string(offset));
         res += build_inst("add", tmp_reg.get_lit(), tmp_reg.get_lit(), addr_reg.get_lit());
@@ -87,8 +87,8 @@ std::string build_i_type_inst(
         );
     }
     else {
-        auto res = std::string();
-        auto tmp_reg = riscv_trans::temp_reg_manager.get_unused_reg();
+        auto res { std::string() };
+        auto tmp_reg { riscv_trans::temp_reg_manager.get_unused_reg() };
 
         res += build_inst("li", tmp_reg.get_lit(), std::to_string(second_val));
         res += build_inst(inst, target_reg.get_lit(), first_reg.get_lit(), tmp_reg.get_lit());

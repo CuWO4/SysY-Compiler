@@ -183,13 +183,10 @@ namespace riscv_trans {
     /*
      * indicate which stage the riscv translation is currently in
      */
-    namespace trans_mode {
-        enum TransMode {
-            DataSegment,
-            TextSegment
-        };
-    }
-    using TransMode = trans_mode::TransMode;
+    enum class TransMode {
+        DataSegment,
+        TextSegment
+    };
 }
 
 

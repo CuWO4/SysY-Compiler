@@ -19,8 +19,8 @@ namespace riscv_trans {
 
     IdStorageMap id_storage_map;
 
-    int current_stack_frame_size = 0;
-    bool current_has_called_func = false;
+    int current_stack_frame_size { 0 };
+    bool current_has_called_func { false };
 
     Register RiscvStorage::get_addr(std::string& str) {
         assert(0);
@@ -35,7 +35,7 @@ namespace riscv_trans {
     Register::Register(): serial_num(0) {}
     Register::Register(int serial_num): serial_num(serial_num) {}
     Register::Register(std::string lit) {
-        for (int i = 0; i < REG_COUNT; i++) {
+        for (int i { 0 }; i < REG_COUNT; i++) {
             if (abi_name[i] == lit) {
                 serial_num = i;
                 return;
@@ -46,7 +46,7 @@ namespace riscv_trans {
     }
 
     Register Register::get(std::string& str) { 
-        auto target_reg = temp_reg_manager.get_unused_reg();
+        auto target_reg { temp_reg_manager.get_unused_reg() };
 
         str += build_inst("mv", target_reg.get_lit(), get_lit()); 
 
@@ -71,7 +71,7 @@ namespace riscv_trans {
     }
 
     void DataSeg::save(std::string& str, Register source_reg) {
-        auto addr_reg = get_addr(str);
+        auto addr_reg { get_addr(str) };
         
         str += build_sw_lw("sw", source_reg, 0, addr_reg);
 
@@ -79,7 +79,7 @@ namespace riscv_trans {
     }
 
     Register DataSeg::get_addr(std::string& str) {
-        auto target_reg = temp_reg_manager.get_unused_reg();
+        auto target_reg { temp_reg_manager.get_unused_reg() };
 
         // 32-bit compiler, la is enough
         // in 64-bit case, we need %hi and %lo
@@ -95,7 +95,7 @@ namespace riscv_trans {
     StackFrame::StackFrame(int offset): offset(offset) {}
 
     Register StackFrame::get(std::string& str) { 
-        auto target_reg = temp_reg_manager.get_unused_reg();
+        auto target_reg { temp_reg_manager.get_unused_reg() };
         
         str += build_sw_lw("lw", target_reg, offset);
 
@@ -107,7 +107,7 @@ namespace riscv_trans {
     }
 
     Register StackFrame::get_addr(std::string& str) {
-        auto target_reg = temp_reg_manager.get_unused_reg();
+        auto target_reg { temp_reg_manager.get_unused_reg() };
 
         str += build_i_type_inst("add", target_reg, Register("sp"), offset);
 
@@ -115,13 +115,13 @@ namespace riscv_trans {
     }
 
     TempRegManager::TempRegManager() {
-        for (int i = 0; i < TEMP_REG_COUNT; i++) {
+        for (int i { 0 }; i < TEMP_REG_COUNT; i++) {
             is_used[i] = false;
         }
     }
 
     Register TempRegManager::get_unused_reg() {
-        for (int i = 0; i < TEMP_REG_COUNT; i++) {
+        for (int i { 0 }; i < TEMP_REG_COUNT; i++) {
             if (!is_used[i]) {
                 is_used[i] = true;
                 return Register("t" + std::to_string(i));
@@ -132,7 +132,7 @@ namespace riscv_trans {
     }
 
     void TempRegManager::refresh_reg(Register reg) {
-        auto lit = reg.get_lit();
+        auto lit { reg.get_lit() };
 
         if (lit.at(0) != 't') return;
 
@@ -146,7 +146,7 @@ namespace riscv_trans {
     }
 
     RiscvStorage* IdStorageMap::get_storage(const koopa::Id* id) {
-        auto res = map.find(id);
+        auto res { map.find(id) };
 
         if (res == map.end()) {
             throw "identifier `" + id->get_lit() + "` is not registered in `IdStorageMap`";

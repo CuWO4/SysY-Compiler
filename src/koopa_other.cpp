@@ -17,11 +17,11 @@ bool NotEndStmt::is_end_stmt() { return false; }
 bool EndStmt::is_end_stmt() { return true; }
 bool GlobalStmt::is_end_stmt() { return false; }
 
-Type::TypeId Int::get_type_id() { return Type::Int; }
-Type::TypeId Array::get_type_id() { return Type::Array; }
-Type::TypeId Pointer::get_type_id() { return Type::Pointer; }
-Type::TypeId FuncType::get_type_id() { return Type::FuncType; }
-Type::TypeId Void::get_type_id() { return Type::Void; }
+Type::TypeId Int::get_type_id() { return Type::TypeId::Int; }
+Type::TypeId Array::get_type_id() { return Type::TypeId::Array; }
+Type::TypeId Pointer::get_type_id() { return Type::TypeId::Pointer; }
+Type::TypeId FuncType::get_type_id() { return Type::TypeId::FuncType; }
+Type::TypeId Void::get_type_id() { return Type::TypeId::Void; }
 
 bool Type::operator==(Type& other) {
     return *this == std::move(other);
@@ -36,29 +36,29 @@ bool Type::operator!=(Type&& other) {
 }
 
 bool Int::operator==(Type&& other) { 
-    return other.get_type_id() == Type::Int; 
+    return other.get_type_id() == Type::TypeId::Int; 
 }
 
 bool Array::operator==(Type&& other) {
-    return other.get_type_id() == Type::Array 
+    return other.get_type_id() == Type::TypeId::Array 
         && dynamic_cast<Array&>(other).length == length;
 }
 
 bool Pointer::operator==(Type&& other) {
-    return other.get_type_id() == Type::Pointer
+    return other.get_type_id() == Type::TypeId::Pointer
         && *dynamic_cast<Pointer&>(other).pointed_type == *pointed_type;
 }
 
 bool FuncType::operator==(Type&& other) {
-    if (other.get_type_id() != Type::FuncType) return false;
+    if (other.get_type_id() != Type::TypeId::FuncType) return false;
     
-    auto other_casted = dynamic_cast<FuncType&>(other); 
+    auto other_casted { dynamic_cast<FuncType&>(other) }; 
 
     if (*other_casted.ret_type != *ret_type) return false;
 
     if (arg_types.size() != other_casted.arg_types.size()) return false;
 
-    for (int i = 0; i < arg_types.size(); i++) {
+    for (int i { 0 }; i < arg_types.size(); i++) {
         if (*arg_types[i] != *other_casted.arg_types[i]) return false;
     }
 
@@ -66,7 +66,7 @@ bool FuncType::operator==(Type&& other) {
 }
 
 bool Void::operator==(Type&& other) {
-    return other.get_type_id() == Type::Void;
+    return other.get_type_id() == Type::TypeId::Void;
 }
 
 std::vector<Type*> FuncType::get_arg_types() const { return arg_types; };
@@ -168,11 +168,11 @@ std::vector<int> ConstInitializer::to_flat_vec(unsigned byte_size) const {
 }
 
 std::vector<int> Aggregate::to_flat_vec(unsigned byte_size) const {
-    auto res = std::vector<int>();
+    auto res { std::vector<int>() };
     res.reserve(byte_size / 4);
 
     for (auto* initializer: initializers) {
-        auto sub_flat_vec = initializer->to_flat_vec(byte_size / initializers.size());
+        auto sub_flat_vec { initializer->to_flat_vec(byte_size / initializers.size()) };
         res.insert(res.end(), sub_flat_vec.begin(), sub_flat_vec.end());
     }
     
@@ -195,13 +195,13 @@ std::vector<int> Int::get_dim() const {
 }
 
 std::vector<int> Array::get_dim() const {
-    auto res = elem_type->get_dim();
+    auto res { elem_type->get_dim() };
     res.insert(res.begin(), length);
     return res;
 }
 
 std::vector<int> Pointer::get_dim() const {
-    auto res = pointed_type->get_dim();
+    auto res { pointed_type->get_dim() };
     res.insert(res.begin(), -1);
     return res;
 }

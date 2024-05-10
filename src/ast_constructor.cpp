@@ -76,8 +76,8 @@ ConstVarDef::ConstVarDef(Type* type, Id* id, Initializer* init)
 
 VarDecl::VarDecl(std::vector<VarDef*> var_defs) : var_defs(var_defs) {}
 
-Return::Return(): return_type(NotHasRetVal) {}
-Return::Return(Expr* ret_val): return_type(HasRetVal), ret_val(ret_val) {
+Return::Return(): return_type(ReturnType::NotHasRetVal) {}
+Return::Return(Expr* ret_val): return_type(ReturnType::HasRetVal), ret_val(ret_val) {
     assert(ret_val);
 }
 
@@ -139,7 +139,7 @@ FuncDecl::FuncDecl(
 ) : ret_type(ret_type), id(id) {
     assert(ret_type); assert(id);
 
-    auto param_types = std::vector<Type*>();
+    auto param_types { std::vector<Type*>() };
     param_types.reserve(params.size());
 
     for (auto* param: params) {

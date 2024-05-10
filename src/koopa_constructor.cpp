@@ -106,9 +106,9 @@ Branch::Branch(Value* cond, Label target1, Label target2)
 
 Jump::Jump(Label target): target(target) {}
 
-Return::Return(): return_type(NotHasRetVal) {}
+Return::Return(): return_type(ReturnType::NotHasRetVal) {}
 
-Return::Return(Value* val): return_type(HasRetVal), val(val) {
+Return::Return(Value* val): return_type(ReturnType::HasRetVal), val(val) {
     assert(val);
 }
 

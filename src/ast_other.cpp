@@ -35,7 +35,7 @@ bool FuncCall::has_side_effect() const {
 unsigned ConstInitializer::get_dim() const { return 0; }
 
 unsigned Aggregate::get_dim() const {
-    unsigned max_dim = 0;
+    unsigned max_dim { 0 };
     for (auto* initializer: initializers) {
         max_dim = std::max(max_dim, initializer->get_dim());
     }

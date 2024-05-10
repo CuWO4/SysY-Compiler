@@ -22,7 +22,7 @@ public:
 
 class Type: public Base {
 public:
-    enum TypeId { Int, Array, Pointer, FuncType, Void };
+    enum class TypeId { Int, Array, Pointer, FuncType, Void };
 
     virtual TypeId get_type_id() = 0;
     bool operator==(Type& other);
@@ -616,7 +616,7 @@ public:
 
         class Return: public EndStmt {
         public:
-            enum ReturnType { HasRetVal, NotHasRetVal };
+            enum class ReturnType { HasRetVal, NotHasRetVal };
 
             std::string to_string() const override;
 

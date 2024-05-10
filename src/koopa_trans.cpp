@@ -25,7 +25,7 @@ Blocks::Blocks(std::vector<koopa::Stmt*> stmts, koopa::Value* last_val)
 }
 
 std::vector<koopa::Block*> Blocks::to_raw_blocks() {
-    auto res = std::vector<koopa::Block*>{};
+    auto res { std::vector<koopa::Block*>{} };
     res.reserve(1 + blocks.size());
 
     res.push_back( 

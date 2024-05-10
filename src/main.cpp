@@ -38,7 +38,7 @@ void handle_args(
 	std::string& mode, std::string& input, std::string& output
 ) {
 	#ifndef DEBUG__
-    for (int i = 1; i < argc; i++) {
+    for (int i { 1 }; i < argc; i++) {
 	    if (!strcmp(argv[i], "-koopa") 
 			|| !strcmp(argv[i], "-riscv") 
 			|| !strcmp(argv[i], "-test")
@@ -55,7 +55,7 @@ void handle_args(
 	    else if (!strcmp(argv[i], "-dbg-r")) {
 		    debug_mode_riscv = true;
 		}
-	    else input = argv[i];
+	    else { input = argv[i]; }
 	}
 
 	#else 
@@ -69,7 +69,9 @@ void handle_args(
 
 int main(int argc, const char* argv[]) {
     try {
-	    std::string mode = {}, input = {}, output = {};
+	    std::string mode { "" }; 
+		std::string input { "" }; 
+		std::string output { "" };
 	    handle_args(argc, argv, mode, input, output);
 
 	    yyin = fopen(input.c_str(), "r");
@@ -88,14 +90,14 @@ int main(int argc, const char* argv[]) {
 	    ast::CompUnit* ast;
 	    yyparse(ast);
 
-	    auto* koopa = ast->to_koopa();
+	    auto* koopa { ast->to_koopa() };
 
 	    if (mode == "-koopa") {
 		    os << koopa->to_string();
 		} 
 	    else if (mode == "-riscv") {
 
-		    std::string riscv_string = "";
+		    std::string riscv_string { "" };
 
 			/* the `trans_mode` actually does not work for `CompUnit` */
 		    koopa->prog_to_riscv(riscv_string); 

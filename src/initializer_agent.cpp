@@ -5,8 +5,8 @@ namespace ast {
         : dimension_at(-1), dimensions(dimensions) {
 
         std::vector<int> element_count;
-        int total_element_count = 1;
-        for (auto it = dimensions.rbegin(); it != dimensions.rend(); it++) {
+        int total_element_count { 1 };
+        for (auto it { dimensions.rbegin() }; it != dimensions.rend(); it++) {
             total_element_count *= *it;
             element_count.push_back(total_element_count);
         }
@@ -23,7 +23,7 @@ namespace ast {
     }
 
     void AggregateAgent::enter_aggregate() {
-        int enter_layer = 0;
+        int enter_layer { 0 };
         do {
             dimension_at++;
             enter_layer++;
@@ -44,7 +44,7 @@ namespace ast {
     }
 
     koopa::Initializer* AggregateAgent::to_aggregate() {
-        int element_idx = 0;
+        int element_idx { 0 };
         return to_aggregate(0, element_idx);
     }
 
@@ -53,7 +53,7 @@ namespace ast {
     ) {
         std::vector<koopa::Initializer*> initializers;
 
-        for (int i = 0; i < dimensions[dimension_at]; i++) {
+        for (int i { 0 }; i < dimensions[dimension_at]; i++) {
             if (dimension_at == dimensions.size() - 1) {
                 initializers.push_back(
                     new koopa::ConstInitializer(filled_elements[element_idx++])
