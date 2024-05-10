@@ -395,7 +395,7 @@ void FuncCall::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode
 
 void Block::block_to_riscv(std::string& str) const {
     str += to_riscv_style(label.get_name()) + ":\n";
-    for(auto stmt: stmts) {
+    for(auto* stmt: stmts) {
         stmt->stmt_to_riscv(str, riscv_trans::trans_mode::TextSegment);
     }
 }
@@ -434,7 +434,7 @@ void FuncDef::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode)
             );
         }
 
-        for (auto block: blocks) {
+        for (auto* block: blocks) {
             block->block_to_riscv(str);
         }
 
@@ -484,14 +484,14 @@ void FuncDecl::stmt_to_riscv(std::string& str, riscv_trans::TransMode trans_mode
 
 void Program::prog_to_riscv(std::string& str) const {
     str += "\t.data\n";
-    for (auto global_stmt: global_stmts) {
+    for (auto* global_stmt: global_stmts) {
         global_stmt->stmt_to_riscv(str, riscv_trans::trans_mode::DataSegment);
     }
 
 
     str += "\t.text\n";
     str += "\t.global main\n";
-    for (auto global_stmt: global_stmts) {
+    for (auto* global_stmt: global_stmts) {
         global_stmt->stmt_to_riscv(str, riscv_trans::trans_mode::TextSegment);
     }
 

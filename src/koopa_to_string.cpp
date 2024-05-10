@@ -22,7 +22,7 @@ std::string FuncType::to_string() const {
     auto res = std::string("");
 
     res += '(';
-    for (auto arg_type: arg_types) {
+    for (auto* arg_type: arg_types) {
         res += arg_type->to_string() + ", ";
     }
     if (arg_types.size() > 0) {
@@ -73,7 +73,7 @@ std::string Aggregate::to_string() const {
     auto res = std::string("");
 
     res += '{';
-    for (auto initializer: initializers) {
+    for (auto* initializer: initializers) {
         res += initializer->to_string() + ", ";
     }
     if (initializers.size() > 0) {
@@ -137,7 +137,7 @@ std::string FuncCall::to_string() const {
     auto res = std::string("");
 
     res += "call " + id->to_string() + '(';
-    for (auto arg: args) {
+    for (auto* arg: args) {
         res += arg->to_string() + ", ";
     }
     if (args.size() > 0) {
@@ -178,7 +178,7 @@ std::string Block::to_string() const {
     auto res = std::string("");
 
     res += label.get_name() + ":\n";
-    for (auto stmt: stmts) {
+    for (auto* stmt: stmts) {
         res += '\t' + stmt->to_string() + '\n';
     }
     return res;
@@ -195,7 +195,7 @@ std::string FuncDef::func_decl_to_string_agent() const {
 
     res += '\n';
 
-    auto ret_type = dynamic_cast<FuncType*>(id->get_type())->get_ret_type();
+    auto* ret_type = dynamic_cast<FuncType*>(id->get_type())->get_ret_type();
 
     if (debug_mode_koopa_type) {
         res += "//! type: " + id->get_type()->to_string() + '\n';
@@ -204,7 +204,7 @@ std::string FuncDef::func_decl_to_string_agent() const {
     res += "fun " + id->to_string();
 
     res += '(';
-    for (auto formal_param_id: formal_param_ids) {
+    for (auto* formal_param_id: formal_param_ids) {
         res += formal_param_id->get_lit() 
             + ": " + formal_param_id->get_type()->to_string() + ", ";
     }
@@ -219,7 +219,7 @@ std::string FuncDef::func_decl_to_string_agent() const {
     }
     
     res += " {\n";
-    for (auto block: blocks) {
+    for (auto* block: blocks) {
         res += block->to_string() + '\n';
     }
     res.pop_back(); // `\n`
@@ -244,10 +244,10 @@ std::string FuncDecl::to_string() const {
     res += id->to_string();
 
     auto param_types = dynamic_cast<FuncType*>(id->get_type())->get_arg_types();
-    auto ret_type = dynamic_cast<FuncType*>(id->get_type())->get_ret_type();
+    auto* ret_type = dynamic_cast<FuncType*>(id->get_type())->get_ret_type();
 
     res += '(';
-    for (auto param_type: param_types) {
+    for (auto* param_type: param_types) {
         res += param_type->to_string() + ", ";
     }
     if (param_types.size() > 0) {
@@ -274,7 +274,7 @@ std::string GlobalSymbolDef::to_string() const {
 std::string Program::to_string() const {
     auto res = std::string("");
 
-    for (auto global_stmt: global_stmts) {
+    for (auto* global_stmt: global_stmts) {
         res += global_stmt->to_string() + '\n';
     }
 

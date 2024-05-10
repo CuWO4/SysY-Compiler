@@ -137,7 +137,7 @@ std::vector<int> Aggregate::to_flat_vec(unsigned byte_size) const {
     auto res = std::vector<int>();
     res.reserve(byte_size / 4);
 
-    for (auto initializer: initializers) {
+    for (auto* initializer: initializers) {
         auto sub_flat_vec = initializer->to_flat_vec(byte_size / initializers.size());
         res.insert(res.end(), sub_flat_vec.begin(), sub_flat_vec.end());
     }

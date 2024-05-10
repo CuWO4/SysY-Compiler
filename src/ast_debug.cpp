@@ -86,7 +86,7 @@ std::string Indexing::debug(int indent) const {
     std::string res = "";
 
     res += id->debug();
-    for (auto index: indexes) {
+    for (auto* index: indexes) {
         res += '[' + index->debug() + ']';
     }
 
@@ -103,7 +103,7 @@ std::string FuncCall::debug(int indent) const {
     auto res = build_indent(indent) + func_id->debug();
 
     res += '(';
-    for (auto actual_param: actual_params) {
+    for (auto* actual_param: actual_params) {
         res += actual_param->debug() + ", ";
     }
     if (actual_params.size() > 0) {
@@ -126,7 +126,7 @@ std::string ConstInitializer::debug(int indent) const {
 std::string Aggregate::debug(int indent) const {
     auto res = build_indent(indent);
     res += "{ ";
-    for (auto initializer: initializers) {
+    for (auto* initializer: initializers) {
         res += initializer->debug() + ' ';
     }
     res += "}";
@@ -152,7 +152,7 @@ std::string ConstVarDef::debug(int indent) const {
 
 std::string VarDecl::debug(int indent) const {
     std::string res = "";
-    for (auto var_def: var_defs) {
+    for (auto* var_def: var_defs) {
         res += var_def->debug(indent) + '\n';
     }
     if (var_defs.size() > 0) {
@@ -205,7 +205,7 @@ std::string Break::debug(int indent) const {
 std::string Block::debug(int indent) const {
     auto res = std::string("");
 
-    for (auto stmt: stmts) {
+    for (auto* stmt: stmts) {
         res += stmt->debug(indent) + '\n';
     }
 
@@ -230,7 +230,7 @@ std::string Array::debug(int indent) const {
 
 std::string FuncDef::debug(int indent) const {
     auto res = build_indent(indent) + ret_type->debug() + ' ' + id->lit + '(';
-    for (auto param: params) {
+    for (auto* param: params) {
         res += std::get<0>(*param)->debug() + ' '
             + std::get<1>(*param)->debug() + ", ";
     }
@@ -247,7 +247,7 @@ std::string FuncDef::debug(int indent) const {
 
 std::string FuncDecl::debug(int indent) const {
     auto res = build_indent(indent) + ret_type->debug() + ' ' + id->lit + '(';
-    for (auto param_type: param_types) {
+    for (auto* param_type: param_types) {
         res += param_type->debug() + ", ";
     }
     if (param_types.size() > 0) {
@@ -277,7 +277,7 @@ std::string ConstGlobalVarDef::debug(int indent) const {
 
 std::string GlobalVarDecl::debug(int indent) const {
     std::string res = "";
-    for (auto var_def: var_defs) {
+    for (auto* var_def: var_defs) {
         res += var_def->debug(indent) + '\n';
     }
     if (var_defs.size() > 0) {
@@ -289,7 +289,7 @@ std::string GlobalVarDecl::debug(int indent) const {
 std::string CompUnit::debug(int indent) const {
     std::string res = "";
 
-    for (auto global_stmt: global_stmts) {
+    for (auto* global_stmt: global_stmts) {
         res += global_stmt->debug() + '\n';
     }
     

@@ -142,7 +142,7 @@ FuncDecl::FuncDecl(
     auto param_types = std::vector<Type*>();
     param_types.reserve(params.size());
 
-    for (auto param: params) {
+    for (auto* param: params) {
         param_types.push_back(std::get<0>(*param));
     }
 

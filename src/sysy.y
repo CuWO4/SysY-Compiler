@@ -144,7 +144,7 @@ global_var_decl
         auto var_defs = std::vector<ast::GlobalVarDef*>();
         var_defs.reserve($2->size());
 
-        for (auto manager: *$2) {
+        for (auto* manager: *$2) {
             var_defs.push_back(
                 manager->to_ast_var_def<ast::VolatileGlobalVarDef>($1)
             );
@@ -155,7 +155,7 @@ global_var_decl
     | TK_CONST type var_defs {
         auto var_defs = std::vector<ast::GlobalVarDef*>();
 
-        for (auto manager: *$3) {
+        for (auto* manager: *$3) {
             var_defs.push_back(
                 manager->to_ast_var_def<ast::ConstGlobalVarDef>($2)
             );
@@ -323,7 +323,7 @@ decl_stmt
         auto var_defs = std::vector<ast::VarDef*>();
         var_defs.reserve($2->size());
 
-        for (auto manager: *$2) {
+        for (auto* manager: *$2) {
             var_defs.push_back(
                 manager->to_ast_var_def<ast::VolatileVarDef>($1)
             );
@@ -334,7 +334,7 @@ decl_stmt
     | TK_CONST type var_defs {
         auto var_defs = std::vector<ast::VarDef*>();
 
-        for (auto manager: *$3) {
+        for (auto* manager: *$3) {
             var_defs.push_back(
                 manager->to_ast_var_def<ast::ConstVarDef>($2)
             );
@@ -375,19 +375,19 @@ var_def_trace
 
 var_def
     : id var_def_trace '=' initializer {
-        auto res = new parser::VarDefManager(new parser::Primitive, $1, $4);
+        auto* res = new parser::VarDefManager(new parser::Primitive, $1, $4);
         for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
             if (*dim == nullptr) {
                 res->wrap_pointer();
             }
             else {
-                res->wrap_array(* dim);
+                res->wrap_array(*dim);
             }
         }
         $$ = res;
     }
     | id var_def_trace {
-        auto res = new parser::VarDefManager(new parser::Primitive, $1);
+        auto* res = new parser::VarDefManager(new parser::Primitive, $1);
         for (auto dim = $2->rbegin(); dim != $2->rend(); dim++) {
             if (*dim == nullptr) {
                 res->wrap_pointer();
@@ -536,7 +536,7 @@ number
 block_start: {
     cur_nesting_level++;
 
-    auto new_nesting_info = new NestingInfo(
+    auto* new_nesting_info = new NestingInfo(
         cur_nesting_level,
         cur_nesting_count[cur_nesting_level],
         cur_nesting_info

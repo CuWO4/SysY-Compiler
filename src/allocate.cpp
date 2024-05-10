@@ -12,8 +12,8 @@ static int max(int a, int b) { return a > b ? a : b; }
  */
 static int get_max_called_func_param_n(const koopa::FuncDef* func_def) {
     int result = 0;
-    for (auto block: func_def->get_blocks()) {
-        for (auto stmt: block->get_stmts()) {
+    for (auto* block: func_def->get_blocks()) {
+        for (auto* stmt: block->get_stmts()) {
             // ! ugly, though works
             if (typeid(*stmt) == typeid(koopa::FuncCall)) {
                 result = max(
@@ -43,8 +43,8 @@ static int get_max_called_func_param_n(const koopa::FuncDef* func_def) {
  * @return whether function is called in the body of func_def
  */
 static bool has_called_func(const koopa::FuncDef* func_def) {
-    for (auto block: func_def->get_blocks()) {
-        for (auto stmt: block->get_stmts()) {
+    for (auto* block: func_def->get_blocks()) {
+        for (auto* stmt: block->get_stmts()) {
             if (
                 typeid(*stmt) == typeid(koopa::FuncCall)
                 || (
@@ -67,7 +67,7 @@ static void allocate_location(const koopa::FuncDef* func_def, int stack_frame_si
     }
 
     auto func_ids = value_manager.get_func_ids(func_def->get_id()->get_lit());
-    for (auto id : func_ids) {
+    for (auto* id : func_ids) {
         stack_frame_size -= id->get_type()->get_byte_size();
         riscv_trans::id_storage_map.register_id(
             id, 
@@ -76,7 +76,7 @@ static void allocate_location(const koopa::FuncDef* func_def, int stack_frame_si
     }
 
     int param_count = 0;
-    for (auto id: func_def->get_formal_param_ids()) {
+    for (auto* id: func_def->get_formal_param_ids()) {
         if (param_count < 8) {
             riscv_trans::id_storage_map.register_id(
                 id, 
@@ -99,7 +99,7 @@ static int get_stack_frame_size(const koopa::FuncDef* func_def) {
     int stack_frame_size = 0;
 
     auto func_ids = value_manager.get_func_ids(func_def->get_id()->get_lit());
-    for (auto id : func_ids) {
+    for (auto* id : func_ids) {
         stack_frame_size += id->get_type()->get_byte_size();
     }
 

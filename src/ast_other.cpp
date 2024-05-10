@@ -19,7 +19,7 @@ bool UnaryExpr::has_side_effect() const {
 }
 
 bool Indexing::has_side_effect() const {
-    for (auto index: indexes) {
+    for (auto* index: indexes) {
         if (index->has_side_effect()) {
             return true;
         }
@@ -36,7 +36,7 @@ unsigned ConstInitializer::get_dim() const { return 0; }
 
 unsigned Aggregate::get_dim() const {
     unsigned max_dim = 0;
-    for (auto initializer: initializers) {
+    for (auto* initializer: initializers) {
         max_dim = std::max(max_dim, initializer->get_dim());
     }
     return max_dim + 1;

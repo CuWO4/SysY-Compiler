@@ -88,7 +88,7 @@ int main(int argc, const char* argv[]) {
 	    ast::CompUnit* ast;
 	    yyparse(ast);
 
-	    auto koopa = ast->to_koopa();
+	    auto* koopa = ast->to_koopa();
 
 	    if (mode == "-koopa") {
 		    os << koopa->to_string();
