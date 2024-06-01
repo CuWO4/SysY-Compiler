@@ -79,7 +79,7 @@ namespace riscv_trans {
         /**
          * parse the lit
          * 
-         * @throw    <std::string> if failed
+         * @throw    <compiler_exception> if failed
          * @example  Register("t0")
          */
         Register(std::string lit);
@@ -150,7 +150,7 @@ namespace riscv_trans {
         IdStorageMap();
         bool does_id_exist(const koopa::Id* id);
         /**
-         * @throw  <const char*> if id is not registered
+         * @throw  <compiler_exception> if id is not registered
          */
         RiscvStorage* get_storage(const koopa::Id* id);
         void register_id(const koopa::Id* id, RiscvStorage* storage);

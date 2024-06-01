@@ -1,4 +1,5 @@
 #include "value_manager.h"
+#include "compiler_exception.hpp"
 
 #include <unordered_map>
 
@@ -212,7 +213,7 @@ std::vector<koopa::Id*> ValueManager::get_func_ids(std::string func_id_lit) {
     auto func_manager { ids.find(func_id_lit) };
 
     if (func_manager == ids.end()) {
-        throw "function `" + func_id_lit + "` not exists when calling `get_func_ids`";
+        throw compiler_exception("function `" + func_id_lit + "` not exists when calling `get_func_ids`");
     }
 
     std::vector<koopa::Id*> res;

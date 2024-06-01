@@ -15,6 +15,7 @@
 #include "ast.h"
 #include "koopa.h"
 #include "def.h"
+#include "compiler_exception.hpp"
 
 #include <cassert>
 #include <cstdio>
@@ -70,45 +71,43 @@ void handle_args(
 int main(int argc, const char* argv[]) {
     try {
 	    std::string mode { "" }; 
-		std::string input { "" }; 
-		std::string output { "" };
+			std::string input { "" }; 
+			std::string output { "" };
 	    handle_args(argc, argv, mode, input, output);
 
 	    yyin = fopen(input.c_str(), "r");
 	    if (yyin == nullptr) {
-		    throw std::string("unable to open file `") + input + '`';
+					throw compiler_exception(std::string("unable to open file `") + input + '`');
+			}
+
+				std::ofstream os;
+				os.open(output, std::ios::out);
+
+				if (mode == "-test") {
+					test();
+					return 0;
+			}
+
+				ast::CompUnit* ast;
+				yyparse(ast);
+
+				auto* koopa { ast->to_koopa() };
+
+				if (mode == "-koopa") {
+					os << koopa->to_string();
+			} 
+				else if (mode == "-riscv") {
+
+					std::string riscv_string { "" };
+
+				/* the `trans_mode` actually does not work for `CompUnit` */
+					koopa->prog_to_riscv(riscv_string); 
+
+					os << riscv_string;
+			}
+		} catch(compiler_exception& e) {
+				std::cerr << e.what() << std::endl;
 		}
-
-	    std::ofstream os;
-	    os.open(output, std::ios::out);
-
-	    if (mode == "-test") {
-		    test();
-		    return 0;
-		}
-
-	    ast::CompUnit* ast;
-	    yyparse(ast);
-
-	    auto* koopa { ast->to_koopa() };
-
-	    if (mode == "-koopa") {
-		    os << koopa->to_string();
-		} 
-	    else if (mode == "-riscv") {
-
-		    std::string riscv_string { "" };
-
-			/* the `trans_mode` actually does not work for `CompUnit` */
-		    koopa->prog_to_riscv(riscv_string); 
-
-		    os << riscv_string;
-		}
-	} catch (std::string& s) {
-	    std::cerr << "error: " << s << std::endl;
-	} catch (char const* const& s) {
-	    std::cerr << "error: " << s << std::endl;
-	}
 
     return 0;
 }

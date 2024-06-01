@@ -367,7 +367,7 @@ namespace ast {
 
                 /**
                  * val must be compile-time computable, otherwise
-                 * @throw <std::string>
+                 * @throw <compiler_exception>
                  */
                 koopa::Initializer* initializer_to_koopa(
                     std::vector<int> dimensions

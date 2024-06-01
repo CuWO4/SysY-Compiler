@@ -48,7 +48,7 @@ public:
 
     /**
      * @return  vector of ids defined in certain function
-     * @throw   <std::string> if function does not exist
+     * @throw   <compiler_exception> if function does not exist
      */
     std::vector<koopa::Id*> get_func_ids(std::string func_id_lit);
     std::vector<koopa::Id*> get_global_ids();

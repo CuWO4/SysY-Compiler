@@ -1,4 +1,5 @@
 #include "riscv_trans.h"
+#include "compiler_exception.hpp"
 
 #include "name.h"
 
@@ -42,7 +43,7 @@ namespace riscv_trans {
             }
         }
 
-        throw "unknown register `" + lit + '`';
+        throw compiler_exception("unknown register `" + lit + '`');
     }
 
     Register Register::get(std::string& str) { 
@@ -128,7 +129,7 @@ namespace riscv_trans {
             }
         }
 
-        throw "register exhausted";
+        throw compiler_exception("register exhausted");
     }
 
     void TempRegManager::refresh_reg(Register reg) {
@@ -149,7 +150,7 @@ namespace riscv_trans {
         auto res { map.find(id) };
 
         if (res == map.end()) {
-            throw "identifier `" + id->get_lit() + "` is not registered in `IdStorageMap`";
+            throw compiler_exception("identifier `" + id->get_lit() + "` is not registered in `IdStorageMap`");
         }
 
         return res->second;

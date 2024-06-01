@@ -7,6 +7,7 @@
     #include "ast.h"
     #include "nesting_info.h"
     #include "parser.hpp"
+    #include "compiler_exception.hpp"
 
     int yylex();
     void yyerror(ast::CompUnit*& ast, const char* s);
@@ -193,7 +194,7 @@ func_def_params
 func_def_param
     : type var_def {
         if ($2->has_init()) {
-            throw "error: function parameters have default values";
+            throw compiler_exception("error: function parameters have default values");
         }
         
         $$ = new std::tuple<ast::Type *, ast::Id*>(
@@ -554,5 +555,5 @@ block_end: {
 %%
 
 void yyerror(ast::CompUnit*& ast, const char* s) {
-    throw std::string(s);
+    throw compiler_exception(s);
 }

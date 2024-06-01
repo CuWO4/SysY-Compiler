@@ -21,13 +21,13 @@ namespace ast {
         AggregateAgent(std::vector<int> dimensions);
 
         /**
-         * @throw <const char*>  if initializer exceed
+         * @throw <compiler_exception>  if initializer exceed
          */
         void fill(int element);
 
         /**
          * try to find the first aligned boundary encountered aggregate, otherwise
-         * @throw <const char*>
+         * @throw <compiler_exception>
          */
         void enter_aggregate();
         void leave_aggregate();

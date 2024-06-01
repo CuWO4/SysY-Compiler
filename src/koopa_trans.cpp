@@ -1,6 +1,7 @@
 #include "koopa_trans.h"
 #include "koopa.h"
 #include "name.h"
+#include "compiler_exception.hpp"
 
 namespace koopa_trans {
 
@@ -65,7 +66,7 @@ void Blocks::set_last_val(koopa::Value* new_last_val) {
 
 koopa::Value* Blocks::get_last_val() {
     if (!has_last_val) {
-        throw "try to get a value from an expression that returns no value";
+        throw compiler_exception("try to get a value from an expression that returns no value");
     }
     return last_val;
 }

@@ -5,6 +5,7 @@
 #include "name.h"
 #include "loop_tag.h"
 #include "aggregate_agent.h"
+#include "compiler_exception.hpp"
 
 #include <string>
 #include <functional>
@@ -206,7 +207,7 @@ koopa_trans::Blocks* LogicAnd::to_koopa() const {
 
 koopa_trans::Blocks* Assign::to_koopa() const {
     if (!lv->is_assignable()) {
-        throw "`" + lv->debug() + "` is not assignable";
+        throw compiler_exception("`" + lv->debug() + "` is not assignable");
     }
     return lv->assign(rv);
 }
@@ -402,7 +403,7 @@ koopa_trans::Blocks* Indexing::to_koopa() const {
     auto* id_koopa { value_manager.get_id('@' + id->lit, id->nesting_info) };
 
     if (id_koopa == nullptr) {
-        throw "undeclared identifier `" + id->lit + '`';
+        throw compiler_exception("undeclared identifier `" + id->lit + '`');
     }
 
     // only atomic variables engage in compile-time evaluation
@@ -414,7 +415,7 @@ koopa_trans::Blocks* Indexing::to_koopa() const {
 
     // -1 since all identifiers defined is wrapped by pointer
     if (id_koopa->get_type()->get_dim().size() - 1 < indexes.size()) {
-        throw "invalid indexing";
+        throw compiler_exception("invalid indexing");
     }
     
     auto [res, pointer] = get_pointer(id_koopa);
@@ -467,11 +468,11 @@ koopa_trans::Blocks* Indexing::assign(const Expr* rv) const {
     auto* id_koopa { value_manager.get_id('@' + id->lit, id->nesting_info) };
 
     if (id_koopa == nullptr) {
-        throw "undeclared identifier `" + id->lit + '`';
+        throw compiler_exception("undeclared identifier `" + id->lit + '`');
     }
 
     if (id_koopa->get_type()->get_dim().size() - 1 != indexes.size()) {
-        throw "assigning a incomplete indexing";
+        throw compiler_exception("assigning a incomplete indexing");
     }
     
     auto [res, pointer] = get_pointer(id_koopa);
@@ -629,7 +630,7 @@ koopa_trans::Blocks* FuncCall::to_koopa() const {
     auto* func_id_koopa { value_manager.get_func_id('@' + func_id->lit, func_id->nesting_info) };
 
     if (func_id_koopa == nullptr) {
-        throw "call of function `" + func_id->lit + "` undeclared";
+        throw compiler_exception("call of function `" + func_id->lit + "` undeclared");
     }
 
     if (
@@ -638,7 +639,7 @@ koopa_trans::Blocks* FuncCall::to_koopa() const {
             actual_params
         )
     ) {
-        throw "calling function `" + func_id->lit + "` with mismatched actual arguments";
+        throw compiler_exception("calling function `" + func_id->lit + "` with mismatched actual arguments");
     }
 
     auto actual_params_koopa { std::vector<koopa::Value*>() };
@@ -671,7 +672,7 @@ koopa_trans::Blocks* FuncCall::to_koopa() const {
 
 koopa_trans::GlobalStmts* VolatileGlobalVarDef::to_koopa() const {
     if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
-        throw '`' + id->lit + "` redefined";
+        throw compiler_exception('`' + id->lit + "` redefined");
     }
 
     auto* stmts { new koopa_trans::GlobalStmts };
@@ -748,11 +749,11 @@ koopa_trans::GlobalStmts* VolatileGlobalVarDef::to_koopa() const {
 
 koopa_trans::GlobalStmts* ConstGlobalVarDef::to_koopa() const {
     if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
-        throw '`' + id->lit + "` redefined";
+        throw compiler_exception('`' + id->lit + "` redefined");
     }
 
     if (!has_init) {
-        throw "no initiator for const variable `" + id->lit + '`';
+        throw compiler_exception("no initiator for const variable `" + id->lit + '`');
     }
     
     auto* type_koopa { type->to_koopa() };
@@ -767,7 +768,7 @@ koopa_trans::GlobalStmts* ConstGlobalVarDef::to_koopa() const {
         auto* rval_koopa { init->expr_to_koopa() };
 
         if (!rval_koopa->get_last_val()->is_const()) {
-            throw "initiating const variable `" + id->lit + "` with a non-const value";
+            throw compiler_exception("initiating const variable `" + id->lit + "` with a non-const value");
         }
 
         value_manager.new_id(
@@ -796,7 +797,7 @@ koopa_trans::GlobalStmts* GlobalVarDecl::to_koopa() const {
 
 koopa_trans::Blocks* VolatileVarDef::to_koopa() const {
     if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
-        throw '`' + id->lit + "` redefined";
+        throw compiler_exception('`' + id->lit + "` redefined");
     }
 
     auto* stmts { new koopa_trans::Blocks };
@@ -858,11 +859,11 @@ koopa_trans::Blocks* VolatileVarDef::to_koopa() const {
 
 koopa_trans::Blocks* ConstVarDef::to_koopa() const {
     if (value_manager.is_id_declared('@' + id->lit, id->nesting_info)) {
-        throw '`' + id->lit + "` redefined";
+        throw compiler_exception('`' + id->lit + "` redefined");
     }
 
     if (!has_init) {
-        throw "no initiator for const variable `" + id->lit + '`';
+        throw compiler_exception("no initiator for const variable `" + id->lit + '`');
     }
 
     auto* stmts { new koopa_trans::Blocks };
@@ -1095,7 +1096,7 @@ koopa_trans::Blocks* For::to_koopa() const {
 
 koopa_trans::Blocks* Continue::to_koopa() const {
     if (loop_tag_manager.empty()) {
-        throw "not using `continue` in loop";
+        throw compiler_exception("not using `continue` in loop");
     }
     return new koopa_trans::Blocks(
         { new koopa::Jump(loop_tag_manager.top().get_continue_target()) }
@@ -1104,7 +1105,7 @@ koopa_trans::Blocks* Continue::to_koopa() const {
 
 koopa_trans::Blocks* Break::to_koopa() const {
     if (loop_tag_manager.empty()) {
-        throw "not using `break` in loop";
+        throw compiler_exception("not using `break` in loop");
     }
     return new koopa_trans::Blocks(
         { new koopa::Jump(loop_tag_manager.top().get_break_target()) }
@@ -1175,10 +1176,10 @@ koopa::Type* Pointer::to_koopa() const {
 koopa::Type* Array::to_koopa() const {
     auto* length_koopa { length->to_koopa() };
     if (!length_koopa->get_last_val()->is_const()) {
-        throw "declaring array with a variant length `" + length->debug() + "`";
+        throw compiler_exception("declaring array with a variant length `" + length->debug() + "`");
     }
     if (length_koopa->get_last_val()->get_val() <= 0) {
-        throw "declaring array with a variant non-positive length `" + length->debug() + "`";
+        throw compiler_exception("declaring array with a variant non-positive length `" + length->debug() + "`");
     }
     return new koopa::Array(
         element_type->to_koopa(), 
@@ -1201,7 +1202,7 @@ koopa::Id* get_func_id(
         return new_id;
     } else {
         if (*existed_id->get_type() != *func_type) { 
-            throw "inconsistent redefinition of function `" + lit + "`"; 
+            throw compiler_exception("inconsistent redefinition of function `" + lit + "`"); 
         }
         return existed_id;
     }
@@ -1267,7 +1268,7 @@ koopa_trans::GlobalStmts* FuncDef::to_koopa() const {
 
     if (koopa::FuncDecl::declared_funcs.count(id_koopa) > 0) {
         if (koopa::FuncDecl::func_implementations.count(id_koopa) > 0) {
-            throw "function `" + id->lit + "` redefined";
+            throw compiler_exception("function `" + id->lit + "` redefined");
         }
 
         koopa::FuncDecl::func_implementations[id_koopa] = new koopa::FuncDef(

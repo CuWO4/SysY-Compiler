@@ -1,4 +1,5 @@
 #include "aggregate_agent.h"
+#include "compiler_exception.hpp"
 
 namespace ast {
     AggregateAgent::AggregateAgent(std::vector<int> dimensions) 
@@ -17,7 +18,7 @@ namespace ast {
 
     void AggregateAgent::fill(int element) {
         if (filled_elements.size() > element_count[0]) {
-            throw "initializer exceeds";
+            throw compiler_exception("initializer exceeds");
         }
         filled_elements.push_back(element);
     }
@@ -28,7 +29,7 @@ namespace ast {
             dimension_at++;
             enter_layer++;
             if (dimension_at >= dimensions.size()) {
-                throw "improper initializer";
+                throw compiler_exception("improper initializer");
             }
         } while (filled_elements.size() % element_count[dimension_at] != 0);
         enter_layer_stack.push(enter_layer);
